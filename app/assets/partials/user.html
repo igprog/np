@@ -1,0 +1,134 @@
+﻿<div ng-controller="userCtrl">
+    <a href="" class="btn btn-default pull-right text-capitalize m10" ng-click="isLogin?toggleTpl('dashboard.html'):toggleTpl('login.html')"><i class="fa fa-times"></i><span class="hidden-xs"> {{'cancel' | translate}}</span></a>
+    <h3 class="text-capitalize">{{'nutrition plan web' | translate}} <span class="text-uppercase">{{package(user.userType)}}</span></h3>
+    <hr />
+    <div ng-if="showSaveMessage" style="margin-top:100px">
+        <div class="alert alert-success alert-dismissable">
+            <a href="#" class="close" data-dismiss="alert" aria-label="close">×</a>
+            <strong>{{'saved' | translate}}!</strong>
+        </div>
+        <md-dialog-actions layout="row">
+            <md-button class="md-raised md-accent" ng-click="newClient()">{{'user' | translate}}</md-button>
+        </md-dialog-actions>
+    </div>
+
+    <div ng-if="!showSaveMessage">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <div class="container row">
+                            <label class="text-capitalize">{{'user data' | translate}}<span class="radioValue"></span> </label>
+                        </div>
+                    </div>
+                    <div class="panel-footer">
+                        <div layout-gt-sm="row">
+                            <md-input-container ng-if="user.userId && config.debug" class="md-block" flex-gt-sm>
+                                <label>{{'id' | translate}}</label>
+                                <input ng-model="user.userId" type="text" disabled>
+                            </md-input-container>
+                            <md-input-container class="md-block" flex-gt-sm>
+                                <label>{{'first name' | translate}}</label>
+                                <input ng-model="user.firstName" type="text">
+                            </md-input-container>
+                            <md-input-container class="md-block" flex-gt-sm>
+                                <label>{{'last name' | translate}}</label>
+                                <input ng-model="user.lastName">
+                            </md-input-container>
+                            <md-input-container class="md-block" flex-gt-sm>
+                                <label style="margin-bottom: 30px">{{'admin type' | translate}}</label>
+                                <select ng-disabled="loginUser.adminType==0?false:true" ng-model="user.adminType" class="form-control">
+                                    <option ng-selected="user.adminType==0?true:false" value="0">{{'supervisor' | translate}}</option>
+                                    <option ng-selected="user.adminType==1?true:false" value="1">{{'admin' | translate}}</option>
+                                </select>
+                            </md-input-container>
+                        </div>
+                        <div layout-gt-sm="row">
+                            <md-input-container class="md-block" flex-gt-sm>
+                                <label>{{'company name' | translate}}</label>
+                                <input ng-model="user.companyName">
+                            </md-input-container>
+                            <md-input-container class="md-block" flex-gt-sm>
+                                <label class="text-uppercase">{{'pin' | translate}}</label>
+                                <input ng-model="user.pin">
+                            </md-input-container>
+                        </div>
+                        <div layout-gt-sm="row">
+                            <md-input-container class="md-block" flex-gt-sm>
+                                <label>{{'address' | translate}}</label>
+                                <input ng-model="user.address">
+                            </md-input-container>
+                            <md-input-container class="md-block" flex-gt-sm>
+                                <label>{{'postal code' | translate}}</label>
+                                <input ng-model="user.postalCode">
+                            </md-input-container>
+                            <md-input-container class="md-block" flex-gt-sm>
+                                <label>{{'city' | translate}}</label>
+                                <input ng-model="user.city">
+                            </md-input-container>
+                            <md-input-container class="md-block" flex-gt-sm>
+                                <label>{{'country' | translate}}</label>
+                                <input ng-model="user.country">
+                            </md-input-container>
+                        </div>
+                        <div class="row">
+                            <span class="col-sm-2 text-right">
+                                {{'phone' | translate}}
+                            </span>
+                            <div class="col-sm-4">
+                                <input ng-model="user.phone" class="form-control">
+                            </div>
+                            <span class="col-sm-2 text-right">
+                                {{'email' | translate}}
+                            </span>
+                            <div class="col-sm-4">
+                                <input ng-model="user.email" type="email" minlength="10" maxlength="100" ng-pattern="/^.+@.+\..+$/" disabled class="form-control" />
+                            </div>
+                        </div>
+                        <hr />
+                        <div layout-gt-sm="row">
+                            <md-input-container class="md-block" flex-gt-sm>
+                                <label>{{'user name' | translate}}</label>
+                                <input ng-model="user.userName" disabled>
+                            </md-input-container>
+                            <md-input-container class="md-block" flex-gt-sm>
+                                <label>{{'password' | translate}}</label>
+                                <input ng-model="user.password" type="{{showpass==true?'text':'password'}}">
+                            </md-input-container>
+                            <md-input-container class="md-block" flex-gt-sm>
+                                <span class="input-group-addon cursor" style="width:30px" ng-click="showPassword()" title="{{showpass==true?('hide password' | translate):('show password' | translate)}}"><i class="fa fa-eye{{showpass==true?'-slash':''}}"></i></span>
+                            </md-input-container>
+                            <md-input-container class="md-block" flex-gt-sm>
+                                <label>{{'activation date' | translate}}</label>
+                                <input ng-disabled="!config.debug" ng-model="user.activationDate" type="text">
+                            </md-input-container>
+                            <md-input-container class="md-block" flex-gt-sm>
+                                <label>{{'expiration date' | translate}}</label>
+                                <input ng-disabled="!config.debug" ng-model="user.expirationDate" type="text">
+                            </md-input-container>
+                            <md-input-container ng-if="config.debug" class="md-block" flex-gt-sm>
+                                <label>{{'is active' | translate}}</label>
+                                <input ng-model="user.isActive" type="checkbox">
+                            </md-input-container>
+                        </div>
+                    </div>
+                    <div>
+                        <md-dialog-actions layout="row">
+                            <md-button ng-disabled="user.adminType==2" class="md-raised md-primary" ng-click="update(user)"><span class="fa fa-floppy-o"></span> {{'save' | translate}}</md-button>
+                        </md-dialog-actions>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div ng-if="config.debug" class="bg-info debugBox">
+        user:
+        <pre>{{user | json}}</pre>
+    </div>
+
+
+</div>
+
+
+

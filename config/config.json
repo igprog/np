@@ -1,0 +1,16 @@
+﻿{
+  "backend": "http://localhost:50691/",
+  "appurl": "/app/",
+  "apk": "http://app.appsgeyser.com/5983009/ProgramPrehrane",
+  "debug": false,
+  "eur": 7.4,
+  "usd": 6.3,
+  "iban": "HR84 2340 0091 1603 4249 6",
+  "swift": "PBZGHR2X",
+  "bank": "Privredna banka Zagreb d.d., Rackoga 6, 10000 Zagreb, Croatia",
+  "company": "IG PROG, vl. Igor Gasparovic",
+  "address": "Ludvetov breg 5, 51000 Rijeka, Croatia",
+  "oib": 58331314923,
+  "email": "nutrition-plan@yahoo.com",
+  "language": "en"
+}

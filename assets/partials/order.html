@@ -1,0 +1,163 @@
+﻿<div id="orderform" ng-controller="orderCtrl" class="well text-left">
+        <h4>Order Form</h4>
+        <ol class="breadcrumb">
+            <li ng-class="!showUserDetails?'main':''" style="padding:10px; border-radius: 25px"><span class="badge">1</span><span ng-if=""></span> Login</li>
+            <li ng-class="showUserDetails==true&&showAlert==false?'main':''" style="padding:10px; border-radius: 25px"><span class="badge">2</span> Order</li>
+            <li ng-class="showAlert==true?'main':''" style="padding:10px; border-radius: 25px"><span class="badge">3</span> Payment</li>
+        </ol>
+        <hr />
+        <div ng-if="!showAlert">
+            <div ng-if="!showUserDetails">
+                <div layout-gt-sm="row">
+                    <md-input-container class="md-block" flex-gt-sm>
+                        <label>E-mail</label>
+                        <input ng-model="user.email" minlength="10" maxlength="100" ng-pattern="/^.+@.+\..+$/" type="text" />
+                    </md-input-container>
+                </div>
+                <div layout-gt-sm="row">
+                    <md-input-container class="md-block" flex-gt-sm>
+                        <label>Password</label>
+                        <input ng-model="password" type="password" />
+                    </md-input-container>
+                </div>
+                <div class="text-right">
+                    <button class="btn btn-default btn-lg main" ng-click="login(user.email, password)">Next <i class="fa fa-angle-double-right"></i></button>
+                </div>
+                <div class="text-left">
+                    Forgot password? <a href="#app" ng-click="forgotPassword(user.email)">Send password on my E-mail</a>
+                </div>
+                <div class="text-left">
+                    Don't have a username and password? <a href="#app" ng-click="registration()">Create an account...</a>
+                </div>
+            </div>
+            <div ng-if="showErrorAlert" class="alert alert-danger">
+                <strong>{{errorMessage}}</strong>
+            </div>
+            <div ng-if="showSuccessAlert" class="alert alert-success">
+                <strong>{{successMessage}}</strong>
+            </div>
+            <div ng-if="showUserDetails">
+                <div ng-if="user.application=='Nutrition Plan'" class="row m10">
+                    <div class="row m2">
+                        <label class="col-sm-2 text-right"></label>
+                        <div class="col-sm-6">
+                            <label>{{user.application}}</label>
+                        </div>
+                    </div>
+                    <div class="row m2">
+                        <div class="col-sm-2 text-right">Package: </div>
+                        <div class="col-sm-6">
+                            <select ng-model="user.userType" class="form-control" ng-change="calculatePrice()">
+                                <option ng-value="0" ng-selected="user.userType==0?true:false">START</option>
+                                <option ng-value="1" ng-selected="user.userType==1?true:false">STANDARD</option>
+                                <option ng-value="2" ng-selected="user.userType==2?true:false">PREMIUM</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row m2">
+                        <div class="col-sm-2 text-right">Subscription: </div>
+                        <div class="col-sm-6">
+                            <select ng-model="user.licence" class="form-control" ng-change="calculatePrice()">
+                                <option value="1" ng-selected="user.licence==1?true:false">1 year</option>
+                                <option value="2" ng-selected="user.licence==2?true:false">2 years (-20%)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row m2">
+                        <div class="col-sm-2 text-right">Price: </div>
+                        <div class="col-sm-6">
+                            <label>{{user.price/config.usd | number:2}} $</label>
+                        </div>
+                    </div>
+                </div>
+                <hr />
+                <h5 class="lead">Your data</h5>
+                <div class="mt20">
+                    <label class="radio-inline">
+                        <input ng-model="userType" value="0" type="radio" name="usertype" ng-change="changeUserType(0)">Natural Person
+                    </label>
+                    <label class="radio-inline">
+                        <input ng-model="userType" value="1" type="radio" name="usertype" ng-change="changeUserType(1)">Legal Person
+                    </label>
+                </div>
+                <div class="text-left mt20">
+                    <div layout-gt-sm="row">
+                        <md-input-container class="md-block" flex-gt-sm>
+                            <label>E-mail</label>
+                            <input ng-model="user.email" minlength="10" maxlength="100" ng-pattern="/^.+@.+\..+$/" type="text" required/>
+                        </md-input-container>
+                        <md-input-container class="md-block" flex-gt-sm>
+                            <label>First Name</label>
+                            <input ng-model="user.firstName" type="text" required>
+                        </md-input-container>
+                        <md-input-container class="md-block" flex-gt-sm>
+                            <label>Last Name</label>
+                            <input ng-model="user.lastName" type="text" required>
+                        </md-input-container>
+                    </div>
+                    <div ng-if="userType==1" layout-gt-sm="row">
+                        <md-input-container class="md-block" flex-gt-sm>
+                            <label>Company</label>
+                            <input ng-model="user.companyName" type="text" required>
+                        </md-input-container>
+                        <md-input-container class="md-block" flex-gt-sm>
+                            <label>PIN</label>
+                            <input ng-model="user.pin" type="text" required>
+                        </md-input-container>
+                    </div>
+                    <div layout-gt-sm="row">
+                        <md-input-container class="md-block" flex-gt-sm>
+                            <label>Street and number</label>
+                            <input ng-model="user.address" type="text" required>
+                        </md-input-container>
+                        <md-input-container class="md-block" flex-gt-sm>
+                            <label>Postal code</label>
+                            <input ng-model="user.postalCode" type="text" required>
+                        </md-input-container>
+                        <md-input-container class="md-block" flex-gt-sm>
+                            <label>City</label>
+                            <input ng-model="user.city" type="text" required>
+                        </md-input-container>
+                        <md-input-container class="md-block" flex-gt-sm>
+                            <label>Country</label>
+                            <input ng-model="user.country" type="text" required>
+                        </md-input-container>
+                    </div>
+                    <div class="text-right">
+                        <button class="btn btn-default btn-lg main" ng-disabled="isSendButtonDisabled" ng-click="sendOrder(user)">{{sendicontitle}} <span ng-class="sendicon"></span></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div ng-if="showAlert" class="alert alert-default main-border">
+            <strong>The order was successfully sent!</strong>
+            <p>Your account will be active within 24 hours of your payment receipt or after you send us a payment confirmation to email: <strong><a href="mailto:{{config.email}}"><span class="fa fa-envelope-o"></span> {{config.email}}</a></strong></p>
+        </div>
+
+        <div ng-if="showPaymentDetails" class="well text-left">
+            <b>PayPal payment:</b>
+            <div ng-include="'./assets/partials/paypal.html'"></div>
+            <div>
+                <b>Payment details:</b>
+                <div>
+                    <pre>
+IBAN: {{config.iban}}
+SWIFT CODE: {{config.swift}}
+Bank: {{config.bank}}
+Recipient: {{config.company}}
+Address: {{config.address}}
+Payment description: {{user.application}} {{user.version}}
+Amount: <span>{{user.price / config.usd | number:2}}</span> $
+                    </pre>
+                </div>
+            </div>
+        </div>
+
+
+        <div ng-if="showPaymentDetails" class="text-center">
+            <a href="{{config.appurl}}" target="_blank" class="btn btn-default main btn-lg">
+               <i class="fa fa-sign-in"></i> Start Application
+            </a>
+        </div>
+</div>

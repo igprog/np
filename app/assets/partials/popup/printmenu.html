@@ -1,0 +1,57 @@
+﻿<md-dialog flex layout-margin>
+    <form ng-cloak>
+        <md-toolbar>
+            <div class="md-toolbar-tools">
+                <h2 class="text-capitalize">{{'menu' | translate}}</h2>
+                <span flex></span>
+                <a href="" ng-click="cancel()" class="btn btn-primary">x</a>
+            </div>
+        </md-toolbar>
+        <md-dialog-content>
+            <div class="md-dialog-content">
+                <button ng-click="copyToClipboard('container')" class="btn btn-primary pull-right"><span class="text-capitalize"><i class="fa fa-files-o"></i> {{'copy to clipboard' | translate}}</span></button>
+                <div layout-gt-sm="row">
+                    <md-input-container>
+                        <label>{{'number of consumers' | translate}}</label>
+                        <input ng-model="consumers" type="number" min="1" ng-change="changeNumberOfConsumers(consumers)">
+                    </md-input-container>
+                </div>
+                <div id="container">
+                    <strong>{{currentMenu.title}}</strong>
+                    <p>{{currentMenu.note}}</p>
+                    <p ng-if="consumers > 1">{{'number of consumers' | translate}}: <strong>{{consumers}}</strong></p>
+                    <div ng-if="x.isSelected==1" ng-repeat="x in currentMenu.data.meals track by $index" class="m10">
+                        <label class="text-uppercase mt10">{{getMealTitle(x.code) | translate}}</label>
+                        <div ng-if="x.description" class="mt10">
+                            <em class="text-justify">{{x.description}}</em>
+                        </div>
+                        <div class="mt10">
+                            <div ng-if="y.meal.code==x.code" ng-repeat="y in foods track by $index">
+                                - {{y.food}}, {{y.quantity}} {{y.unit}}, {{y.mass}} g
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <hr />
+                        <label><span class="text-uppercase">{{'total' | translate}}</span><span ng-if="consumers > 1"> ({{'per consumer' | translate}})</span>:</label>
+                        <p>{{'energy' | translate}}: <span>{{totals.energy}} kcal</span></p>
+                        <p>{{'carbohydrates' | translate}}: <span>{{totals.carbohydrates | number:1}} g, ({{totals.carbohydratesPercentage | number:1}} %)</span></p>
+                        <p>{{'proteins' | translate}}: <span>{{totals.proteins | number:1}} g, ({{totals.proteinsPercentage | number:1}} %)</span></p>
+                        <p>{{'fats' | translate}}: <span>{{totals.fats | number:1}} g, ({{totals.fatsPercentage | number:1}} %)</span></p>
+                    </div>
+                    <div ng-if="totals.price.value>0">
+                        <hr />
+                        <label>{{'price' | translate}}: <span>{{totals.price.value * consumers | number:2}} {{config.currency}} </span></label>
+                    </div>
+                    <div ng-if="clientData.activities.length > 0">
+                        <hr />
+                        <label>{{'additional activity' | translate}}</label>
+                        <ul ng-repeat="x in clientData.activities">
+                            <li>{{x.activity}} - {{x.duration}} min, {{x.energy | number:0}} kcal</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </md-dialog-content>
+    </form>
+</md-dialog>

@@ -1,0 +1,22 @@
+﻿<div ng-controller="contactCtrl" >
+    <div ng-if="showAlert" class="alert alert-success">
+        <strong>Your message has been successfully sent!</strong>
+        <p>We will reply to you as soon as possible.</p>
+    </div>
+    <div ng-if="!showAlert">
+        <div class="row">
+            <div class="col-sm-6 form-group">
+                <input ng-model="d.name" class="form-control" name="name" placeholder="Name" type="text" required>
+            </div>
+            <div class="col-sm-6 form-group">
+                <input ng-model="d.email" class="form-control" name="email" placeholder="E-mail" type="email" required>
+            </div>
+        </div>
+        <textarea ng-model="d.message" class="form-control" name="comments" placeholder="Message" rows="5"></textarea><br>
+        <div class="row">
+            <div class="col-sm-12 form-group">
+                <button class="btn btn-default main-border pull-right" ng-disabled="isSendButtonDisabled" ng-click="send(d)"><span ng-class="sendicon"></span> {{sendicontitle}}</button>
+            </div>
+        </div>
+    </div>
+</div>

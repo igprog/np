@@ -1,0 +1,365 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <!--<script async src="https://www.googletagmanager.com/gtag/js?id=UA-43413032-21"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'UA-43413032-21');
+    </script>-->
+
+    <title>Nutrition Plan - Web Application</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Nutrition plan - Professional web application for nutritionists">
+    <meta name="author" content="IG PROG, Igor Gasparovic">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="assets/css/vendor/angular-material.min.css">
+    <script src="assets/js/vendor/jquery.min.js"></script>
+    <script src="assets/js/vendor/bootstrap.min.js"></script>
+    <script src="assets/js/vendor/angular.min.js"></script>
+    <script src="assets/js/vendor/angular-animate.min.js"></script>
+    <script src="assets/js/vendor/angular-aria.min.js"></script>
+    <script src="assets/js/vendor/angular-messages.min.js"></script>
+    <script src="assets/js/vendor/angular-material.min.js"></script>
+    <link rel="stylesheet" href="assets/css/style.css?v=1.0.1">
+    <link href='https://fonts.googleapis.com/css?family=Encode Sans Expanded' rel='stylesheet'>
+    <link rel="icon" type="image/x-icon" href="/favicon.ico?v=1" />
+    <style>
+        body {
+            font-family: 'Encode Sans Expanded';
+            font-size: 16px;
+        }
+    </style>
+
+
+</head>
+<body id="home" ng-app="app" ng-controller="appCtrl" data-spy="scroll" data-target=".navbar" data-offset="60" ng-cloak>
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="index.html" style="padding-top:2px !important">Nutrition Plan</a>
+                <!--<a class="navbar-brand" href="index.html" style="padding-top:2px !important" ><img src="assets/img/logo.svg" alt="Nutrition Plan"></a>-->
+            </div>
+            <div class="collapse navbar-collapse" id="myNavbar">
+                <ul class="nav navbar-nav navbar-right">
+					<li><a href="#about"><i class="fa fa-info"></i> About</a></li>
+					<li><a href="#registration"><i class="fa fa-user-plus"></i> Registration</a></li>
+                    <li><a href="#pricing"><i class="fa fa-usd"></i> Price</a></li>
+                    <li><a href="#order"><i class="fa fa-shopping-cart"></i> Order</a></li>
+                    <li><a href="#contact"><i class="fa fa-comment"></i> Contact</a></li>
+                    <!--<li class="dropdown">
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="fa fa-book"></i> Dokumentacija<span class="caret"></span></a>
+                        <ul class="dropdown-menu" style="background-color:#353535">
+                            <li style="padding:5px"><a href="uputstva.html"><i class="fa fa-question-circle"></i> Uputstva</a></li>
+                            <li style="padding:5px"><a href="https://www.programprehrane.com/izrada-uravnotezenog-jelovnika.html"><i class="fa fa-cutlery"></i> Izrada uravnoteženog jelovnika</a></li>
+                        </ul>
+                    </li>-->
+                    <li><a href="{{config.appurl}}" title="signup"><i class="fa fa-sign-in"></i> App</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="jumbotron text-left" style="padding-top:20vh; margin-bottom:10px">
+        <div class="row">
+            <div class="col-md-6 col-md-offset-3">
+                <a href="#about" style="text-decoration:none" class="text-center">
+                    <h1 class="main-text" style="text-shadow: 2px 2px 7px #000000;">Nutrition Plan</h1>
+                    <h2 class="lead">Web App for creating balanced diet plan</h2>
+                </a>
+                <div class="text-center">
+                    <a href="{{config.appurl}}" class="btn btn-default m10 main-border" style="width:260px"><i class="fa fa-sign-in fa-2x"></i> <span class="lead"> Login</span></a>
+                    <a href="#registration" class="btn btn-default m10 main" style="width:260px"><i class="fa fa-user-plus fa-2x"></i> <span class="lead"> Register</span></a>
+                </div>
+            </div>
+            <!--<div class="col-md-6 col-md-offset-1">
+                <a href="#about" style="text-decoration:none" class="text-center">
+                    <h1 class="main-text" style="text-shadow: 2px 2px 7px #000000;">Nutrition Plan</h1>
+                    <h2 class="lead">Web App for creating balanced diet plan</h2>
+                </a>
+                <div class="text-center">
+                    <a href="{{config.appurl}}" class="btn btn-default m10 main-border" style="width:260px"><i class="fa fa-sign-in fa-2x"></i> <span class="lead"> Login</span></a>
+                    <a href="#registration" class="btn btn-default m10 main" style="width:260px"><i class="fa fa-user-plus fa-2x"></i> <span class="lead"> Register</span></a>
+                </div>
+            </div>-->
+        </div>
+    </div>
+    <div class="container text-center">
+        <div class="row p10">
+            <div class="col-sm-3 p10">
+                <i class="fa fa-calculator main-text fa-3x"></i>
+                <h4 style="margin-bottom:0px">Calculations</h4>
+                <h3 class="small" style="margin:5px">BMI and energy expenditure</h3>
+            </div>
+            <div class="col-sm-3 p10">
+                <i class="fa fa-bicycle main-text fa-3x"></i>
+                <h4 style="margin-bottom:0px">Physical Activities</h4>
+                <h3 class="small" style="margin:5px">More than 400 physical activities</h3>
+            </div>
+            <div class="col-sm-3 p10">
+                <i class="fa fa-heartbeat main-text fa-3x"></i>
+                <h4 style="margin-bottom:0px">Recommendations</h4>
+                <h3 class="small" style="margin:5px">Recommendations for different age groups and multiple types of diets</h3>
+            </div>
+            <div class="col-sm-3 p10">
+                <i class="fa fa-cutlery main-text fa-3x"></i>
+                <h4 style="margin-bottom:0px">Diet Plan</h4>
+                <h3 class="small" style="margin:5px">Creating daily and weekly menues</h3>
+            </div>
+        </div>
+        <div class="row pt10">
+            <div class="col-sm-3 p10">
+                <i class="fa fa-pie-chart main-text fa-3x"></i>
+                <h4 style="margin-bottom:0px">Analysis</h4>
+                <h3 class="small" style="margin:5px">Client and menu analysis, graphic and tabular views</h3>
+            </div>
+            <div class="col-sm-3 p10">
+                <i class="fa fa-bar-chart main-text fa-3x"></i>
+                <h4 style="margin-bottom:0px">Patients</h4>
+                <h3 class="small" style="margin:5px">Patients database. Tracking of anthropometric parameters</h3>
+            </div>
+            <div class="col-sm-3 p10">
+                <i class="fa fa-mobile main-text fa-3x"></i>
+                <h4 style="margin-bottom:0px">Client App</h4>
+                <h3 class="small" style="margin:5px">Allow your patients to follow their own measures and take the menus</h3>
+            </div>
+            <div class="col-sm-3 p10">
+                <i class="fa fa-usd main-text fa-3x"></i>
+                <h4 style="margin-bottom:0px">Menu Price List</h4>
+                <h3 class="small" style="margin:5px">Creating menu price list</h3>
+            </div>
+        </div>
+    </div>
+
+    <div id="about" class="container pt60">
+        <div class="row">
+            <div class="col-sm-6">
+                <h2>About</h2><br>
+                <h2>Nutrition Plan</h2>
+                <label><a href="{{config.appurl}}" title="Plan ishrane Veb"><strong>Nutrition Plan</strong></a> is a web application for creating a variety of balanced menus and a physical activity plan.</label><br>
+                <p class="text-justify">
+                    Web application <a href="{{config.appurl}}" title="Plan ishrane Veb"><strong>Nutrition Plan</strong></a> <!--(in original <a href="https://www.programprehrane.com" target="_blank" rel="noopener" title="Program Prehrane Web"><strong>Program Prehrane Web</strong></a>) naslednica je <a href="#awards">višestruko nagrađivanog</a> kompjuterskog programa <a href="{{config.backend}}program-prehrane-5.html" target="_blank" rel="noopener"><strong>Program Prehrane 5.0</strong></a>,-->
+                    was born from the need to develop a tool for nutritionists and health workers but also everyone else who takes care of a healthy and balanced diet, that will provide quick and easy creation meal plan and physical activity plan.
+                </p>
+            </div>
+            <div class="col-sm-6" style="padding:10px">
+                <img src="assets/img/nutrition-plan.jpg" alt="nutrition plan" class="img-thumbnail"/>
+                <!--<iframe name="video" title="youtube video" style="width:100%" height="325" src="https://www.youtube.com/embed/idu2m3unQ2k" frameborder="0" allowfullscreen></iframe>-->
+            </div>
+        </div>
+        <div>
+            <p class="text-justify">
+                <a href="{{config.appurl}}" title="Plan Ishrane Veb"><strong>Nutrition Plan</strong></a> allows to determine the state of nutrition and energy consumption of the individual and the creation of menus based on scientific knowledge in the field of nutrition.
+                By creating menus using this application, end-user nutrition becomes balanced and varied thanks to the fact that the menu design is based on the recommended number of unit serving of all food groups and their energy, macro and micronutrition values.
+                Since the application <a href="{{config.appurl}}" title="Nutrition Plan"><strong>Nutrition Plan</strong></a> contains a database of over 700 foods and meals, it can satisfy the demands of most users regarding food choice.
+                In addition, the application provides the ability to enter your own foods and their macro and micronutritional values.
+                Furthermore, when talking about the problem of overweight, it is recommended with changing dietary habits in everyday life to include additional physical activity.
+                And so <a href="{{config.appurl}}" title="Nutrition Plan"><strong>Nutrition Plan</strong></a> provides information about the energy consumption of over 400 physical activities.
+            </p>
+            <p>See more about application features <a href="#pricing"><strong>here...</strong></a></p>
+        </div>
+    </div>
+
+    <div id="registration" class="container text-left pt60">
+        <h2 class="text-center">Registration</h2>
+        <p>To access the application, it is necessary to complete <em>registration form</em>. Enter your First and Last Name, E-mail address and the Password you want to use to access the application.</p>
+        <div id="webapp" class="col-md-8 col-md-offset-2">
+            <div ng-include="'./assets/partials/signup.html'"></div>
+        </div>
+    </div>
+
+    <div id="pricing" class="container bg-grey pt60">
+        <div class="text-center">
+            <h2>Nutrition Plan - Packages</h2>
+        </div>
+        <div class="row slideanim">
+            <div class="col-sm-4">
+                <div class="panel panel-default text-center" style="padding:0">
+                    <div class="panel-heading main">
+                        <h3>START</h3>
+                    </div>
+                    <div class="panel-body">
+                        <h4><strong>{{550/config.usd | number:2}} $</strong> / 1 year</h4>
+                        <h5><strong>{{880/config.usd | number:2}} $</strong> / 2 years</h5>
+                        <hr />
+                        <ul class="list-group">
+                            <li class="list-group-item">Number of users: <strong>1</strong></li>
+                            <li class="list-group-item">Number of clients: <strong>5/month</strong></li>
+                            <li class="list-group-item">Number of foods: <strong>668</strong></li>
+                            <!--<li class="list-group-item"><s>Scheduler</s></li>-->
+                            <li class="list-group-item"><s>Sending menu on the client's E-mail</s></li>
+                            <li class="list-group-item"><s>Client App</s></li>
+                        </ul>
+                    </div>
+                    <div class="panel-footer">
+                        <div class="p5">
+                            <a href="#details" class="btn btn-default btn-block m2"><i class="fa fa-info"></i> Find out more</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="ribbon"><span>Best choice</span></div>
+                <div class="panel panel-default text-center" style="padding:0; box-shadow:0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)">
+                    <div class="panel-heading main">
+                        <h3>STANDARD</h3>
+                    </div>
+                    <div class="panel-body">
+                        <h4><strong>{{950/config.usd | number:2}} $</strong> / 1 year</h4>
+                        <h5><strong>{{1520/config.usd | number:2}} $</strong> / 2 years</h5>
+                        <hr />
+                        <ul class="list-group">
+                            <li class="list-group-item">Number of users: <strong>2</strong></li>
+                            <li class="list-group-item">Number of clients: <strong>20/month</strong></li>
+                            <li class="list-group-item">Number of foods: <strong>724</strong></li>
+                            <!--<li class="list-group-item">Scheduler</li>-->
+                            <li class="list-group-item">Sending menu on the client's E-mail</li>
+                            <li class="list-group-item">Client App</li>
+                        </ul>
+                    </div>
+                    <div class="panel-footer">
+                        <div class="p5">
+                            <a href="#details" class="btn btn-default btn-block m2"><i class="fa fa-info"></i> Find out more</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="panel panel-default text-center" style="padding:0">
+                    <div class="panel-heading main">
+                        <h3>PREMIUM</h3>
+                    </div>
+                    <div class="panel-body">
+                        <h4><strong>{{1850/config.usd | number:2}} $</strong> / 1 year</h4>
+                        <h5><strong>{{2960/config.usd | number:2}} $</strong> / 2 years</h5>
+                        <hr />
+                        <ul class="list-group">
+                            <li class="list-group-item">Number of users: <strong>5</strong></li>
+                            <li class="list-group-item">Number of clients: <strong>unlimited</strong></li>
+                            <li class="list-group-item">Number of foods: <strong>724</strong></li>
+                            <!--<li class="list-group-item">Scheduler</li>-->
+                            <li class="list-group-item">Sending menu on the client's E-mail</li>
+                            <li class="list-group-item">Client App</li>
+                        </ul>
+                    </div>
+                    <div class="panel-footer">
+                        <div class="p5">
+                            <a href="#details" class="btn btn-default btn-block m2"><i class="fa fa-info"></i> Find out more</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="details" ng-include="'./assets/partials/details.html'"></div>
+
+    <div class="text-center mt10">
+        <a href="#registration" class="btn btn-default btn-lg main-border lead"><i class="fa fa-hand-o-right"></i> Try a FREE Demo version</a>
+    </div>
+
+
+    <div id="order" ng-controller="webAppCtrl" class="container text-left pt60">
+        <h2 class="text-center">ORDER</h2>
+        <div>
+            <h3>Order Procedure</h3>
+            <ul>
+                <li>If you are not already registered, first <a href="#registration">register yourself</a>.</li>
+                <li>In the order form, enter email and password that You used to access the application and click <kbd>Next >></kbd>.</li>
+                <li>Choose package (<em>START, STANDARD or PREMIUM</em>) and subscription duration (<em>one or two years</em>) and fill all required fields
+                    <p class="small"><em>* if the invoice is issued to the company, select <strong>legal person</strong>.</em></p>
+                </li>
+                <li>Send an order by clicking <kbd>Next >></kbd>.</li>
+                <li>You will receive your payment information on your e-mail.</li>
+                <li>Your account will become active after we receive your payment or after you send us a payment confirmation.</li>
+            </ul>
+        </div>
+        <div ng-include="'./assets/partials/order.html'" class="col-md-8 col-md-offset-2"></div>
+    </div>
+
+    <!--<div class="container pt60 mt20">
+        <hr />
+        <div class="row">
+            <div class="col-sm-2">
+                <img src="./assets/img/responsive.jpg" alt="Plan Ishrane" class="img-responsive">
+            </div>
+            <div class="col-sm-10">
+                <strong>POVEST:</strong> <strong>Program Prehrane</strong> se na tržištu nalazi već više od 10 godina, a do sada je doživeo 6 verzija.
+                <div class="table-responsive">
+                    <table class="table table-condensed">
+                        <tr>
+                            <th>Verzija</th>
+                            <th>Godina izdanja</th>
+                                <th>Tehnologija</th>
+                            </tr>
+                            <tr>
+                                <td>Program Prehrane 1.0</td>
+                                <td>2008</td>
+                                <td>Visual Basic 4.0</td>
+                            </tr>
+                            <tr>
+                                <td>Program Prehrane 2.0</td>
+                                <td>2012</td>
+                                <td>Visual Basic 6.0</td>
+                            </tr>
+                            <tr>
+                                <td>Program Prehrane 3.0</td>
+                                <td>2012</td>
+                                <td>VB Net</td>
+                            </tr>
+                            <tr>
+                                <td>Program Prehrane 4.0</td>
+                                <td>2013</td>
+                                <td>VB Net</td>
+                            </tr>
+                            <tr>
+                                <td><a href="{{config.backend}}program-prehrane-5.html" target="_blank" rel="noopener"><strong>Program Prehrane 5.0</strong></a></td>
+                                <td>2014</td>
+                                <td>VB Net</td>
+                            </tr>
+                            <tr>
+                                <td>Program Prehrane Web</td>
+                                <td>2017</td>
+                            <td>AngularJS, C# (ASMX)</td>
+                            </tr>
+                        </table>
+                    </div>
+
+            </div>
+        </div>
+    </div>-->
+
+    <!--<div ng-include="'./assets/partials/awards.html'"></div>
+
+    <div ng-include="'./assets/partials/customers.html'"></div>-->
+
+    <div ng-include="'./assets/partials/info.html'"></div>
+
+    <footer class="container-fluid text-center pt60">
+        <div class="navbar-fixed-bottom m10">
+            <a href="#home" title="Na vrh">
+                <span class="fa fa-chevron-up fa-2x"></span>
+            </a>
+        </div>
+        <hr />
+        <!--<p>Program Prehrane je deponiran u Hrvatskoj autorskoj agenciji - Centru za intelektualno vlasništvo d.o.o. u Zagrebu.</p>-->
+        <div>
+            <span class="pull-right">Copyright © {{year}} IG PROG</span>
+        </div>
+    </footer>
+
+    <script src="./assets/js/app.js?v=1.0.3"></script>
+    <script src="./assets/js/main.js?v=1.0.0"></script>
+
+</body>
+</html>

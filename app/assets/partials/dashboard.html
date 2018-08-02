@@ -1,0 +1,39 @@
+﻿<div ng-controller="dashboardCtrl">
+    <div ng-show="!client.clientId" ng-controller="clientsCtrl" class="text-center" style="padding:0; margin-top:120px">
+        <div class="row">
+            <div class="col-sm-4 col-sm-offset-2 p20">
+                <a href="" class="btn btn-default btn-lg btn-block" ng-click="newClient()">
+                    <div class="text-primary text-uppercase">
+                        <i class="fa fa-user-plus fa-3x"></i>
+                        <div>{{'new client' | translate}}</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-sm-4 p20">
+                <a href="" ng-show="clients.length>0" class="btn btn-default btn-lg btn-block" ng-click="search()">
+                    <div class="text-primary text-uppercase">
+                        <i class="fa fa-search fa-3x"></i>
+                        <div>{{'search clients' | translate}}</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+    <div ng-if="client.clientId" class="noprint">
+        <ul class="nav nav-tabs">
+            <li ng-class="selectedNavItem=='clientsdata'?'active':''" ng-click="toggleNewTpl('clientsdata')"><a href="#"><i class="fa fa-user-o"></i> <span class="hidden-xs text-uppercase">{{'client' | translate}}</span></a></li>
+            <li ng-if="showTabs()" ng-class="selectedNavItem=='calculation'?'active':''"><a href="#" ng-click="toggleNewTpl('calculation')"><i class="fa fa-calculator"></i> <span class="hidden-xs text-uppercase">{{'calculation' | translate}}</span></a></li>
+            <li ng-if="showTabs()" ng-class="selectedNavItem=='activities'?'active':''"><a href="#" ng-click="toggleNewTpl('activities')"><i class="fa fa-bicycle"></i> <span class="hidden-xs text-uppercase">{{'activity' | translate}}</span></a></li>
+            <li ng-if="showTabs()" ng-class="selectedNavItem=='diets'?'active':''"><a href="#" ng-click="toggleNewTpl('diets')"><i class="fa fa-heartbeat"></i> <span class="hidden-xs text-uppercase">{{'diet' | translate}}</span></a></li>
+            <li ng-if="showTabs()" ng-class="selectedNavItem=='meals'?'active':''"><a href="#" ng-click="toggleNewTpl('meals')"><i class="fa fa-list-ol"></i> <span class="hidden-xs text-uppercase">{{'meals' | translate}}</span></a></li>
+            <li ng-if="showTabs()" ng-class="selectedNavItem=='menu'?'active':''"><a href="#" ng-click="toggleNewTpl('menu')"><i class="fa fa-cutlery"></i> <span class="hidden-xs text-uppercase">{{'menu' | translate}}</span></a></li>
+            <li ng-if="showTabs()" ng-class="selectedNavItem=='analysis'?'active':''"><a href="#" ng-click="toggleNewTpl('analysis')"><i class="fa fa-bar-chart"></i> <span class="hidden-xs text-uppercase">{{'analysis' | translate}}</span></a></li>
+            <!--<li ng-if="config.debug&&showTabs()" ng-class="selectedNavItem=='print'?'active':''"><a href="#" ng-click="toggleNewTpl('print')"><i class="fa fa-print"></i> <span class="hidden-xs text-uppercase">{{'print' | translate}}</span></a></li>-->
+            <li ng-if="showTabs()" ng-class="selectedNavItem=='myfoods'?'active':''"><a href="#" ng-click="toggleNewTpl('myfoods')"><i class="fa fa-apple"></i> <span class="hidden-xs text-uppercase">{{'my foods' | translate}}</span></a></li>
+            <li ng-if="showTabs()" ng-class="selectedNavItem=='myrecipes'?'active':''"><a href="#" ng-click="toggleNewTpl('myrecipes')"><i class="fa fa-file-text-o"></i> <span class="hidden-xs text-uppercase">{{'my recipes' | translate}}</span></a></li>
+            <li ng-if="showTabs()" ng-class="selectedNavItem=='prices'?'active':''"><a href="#" ng-click="toggleNewTpl('prices')"><i class="fa fa-usd"></i> <span class="hidden-xs text-uppercase">{{'prices' | translate}}</span></a></li>
+        </ul>
+    </div>
+    <div ng-if="client.clientId" ng-include="newTpl" class="loginBox" style="min-height:80%"></div>
+</div>
+
