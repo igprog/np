@@ -4,7 +4,7 @@
   "shortDescription": "meal planning web app",
   "apppage": "app.programprehrane.com",
   "apppageurl": "/app/",
-  "clientapppageurl": "http://localhost:50691/client/",
+  "clientapppageurl": "../client/",
   "webpage": "www.nutrition-plan.com",
   "webpageurl": "../",
   "author": "Igor Gašparović",
