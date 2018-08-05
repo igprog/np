@@ -346,6 +346,38 @@ angular.module('app', ['ngMaterial'])
         }
     }
 
+    $scope.showAppLink = false;
+    $scope.alertclass = 'success';
+    $scope.confirmPayPal = function (u, p) {
+        $scope.showErrorAlert = false;
+        $scope.showSuccessAlert = false;
+        $scope.showAppLink = false;
+        if (u === undefined || p === undefined) {
+            $scope.showErrorAlert = true;
+            $scope.errorMessage = 'Enter E-mail and password';
+            return false;
+        }
+        $http({
+            url: $rootScope.config.backend + 'Users.asmx/ConfirmPayPal',
+            method: "POST",
+            data: { userName: u, password: p, lang: $rootScope.config.language }
+        })
+        .then(function (response) {
+            $scope.showSuccessAlert = true;
+            $scope.successMessage = JSON.parse(response.data.d);
+            if ($scope.successMessage == 'your account has been successfully activated') {
+                $scope.alertclass = 'success';
+                $scope.showAppLink = true;
+            } else {
+                $scope.alertclass = 'danger';
+            }
+        },
+        function (response) {
+            $scope.showErrorAlert = true;
+            $scope.errorMessage = JSON.parse(response.data.d);
+        });
+    }
+
 }])
 
 .controller('contactCtrl', ['$scope', '$http', '$rootScope', function ($scope, $http, $rootScope) {
@@ -384,6 +416,5 @@ angular.module('app', ['ngMaterial'])
     }
 
 }])
-
 
 ;
