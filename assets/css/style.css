@@ -1,6 +1,6 @@
 ﻿ /*!
 style.css
-(c) 2017 IG PROG, www.igprog.hr
+(c) 2018 IG PROG, www.igprog.hr
 */
  html {
       height:auto;
@@ -29,14 +29,12 @@ body {
       color: black;
       padding: 100px 25px;
       font-family: Montserrat, sans-serif;
-      /*background: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0)), url('../img/main.png');*/
+      background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.1)), url('../img/main.jpg');
       background-repeat:no-repeat;
       background-position: right center;
       background-size: cover;
-     /*  background-position: center top;
-      background-size: cover; */
+      background-position: center top;
       height:70vh;
-      opacity:1;
   }
   .container-fluid {
      /* padding: 60px 50px;*/
@@ -85,7 +83,7 @@ body {
   }
   .navbar {
       margin-bottom: 0;
-      background-color: #353535;
+      background-color: #BCE498;
       z-index: 9999;
       border: 0;
       font-size: 12px !important;
@@ -95,15 +93,15 @@ body {
       font-family: Montserrat, sans-serif;
   }
   .navbar li a, .navbar .navbar-brand {
-      color: #65ccb8 !important;
+      color: #244C00 !important;
   }
   .navbar-nav li a:hover, .navbar-nav li.active a {
       color: #fff !important;
-      background-color: #65ccb8 !important;
+      background-color: #639833 !important;
   }
   .navbar-default .navbar-toggle {
       border-color: transparent;
-      color: #65ccb8 !important;
+      color: #639833 !important;
   }
   footer .glyphicon {
       font-size: 20px;
@@ -160,7 +158,6 @@ body {
     color: Gray;
     text-decoration: line-through;
 }
-
 
 
 .box {
@@ -250,17 +247,25 @@ body {
 }
 
 .main {
-    background-color: #65ccb8 !important;
+    background-color: #639833 !important;
     color: white !important;
 }
 
 .main-text, a {
-    color: #65ccb8 !important;
+    color: #639833 !important;
 }
 
 .main-border {
-    border: 1px solid #65ccb8 !important;
-    color: #65ccb8 !important;
+    border: 1px solid #639833 !important;
+    color: #639833 !important;
+}
+
+.main-light {
+    color: #BCE498 !important;
+}
+
+.main-dark {
+    color: #244C00 !important;
 }
 
 

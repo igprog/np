@@ -53,7 +53,11 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
           .then(function (response) {
               $rootScope.config = response.data;
               $sessionStorage.config = response.data;
-              $rootScope.setLanguage($rootScope.config.language);
+              if (localStorage.language) {
+                  $rootScope.setLanguage(localStorage.language);
+              } else {
+                  $rootScope.setLanguage($rootScope.config.language);
+              }
               if (angular.isDefined(queryLang)) {
                   if (queryLang == 'hr' || queryLang == 'sr' || queryLang == 'sr_cyrl' || queryLang == 'en') {
                       $rootScope.setLanguage(queryLang);
@@ -92,6 +96,9 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $translate.use(x);
         $translatePartialLoader.addPart('main');
         $rootScope.config.language = x;
+        if (typeof (Storage) !== "undefined") {
+            localStorage.language = x;
+        }
         $sessionStorage.config.language = x;
         if ($sessionStorage.usergroupid != undefined || $sessionStorage.usergroupid != null) {
             $rootScope.loadData();
@@ -214,8 +221,30 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
     checkUser();
 
+    var validateForm = function () {
+        if ($rootScope.clientData.clientId == null) {
+            return false;
+        }
+        if ($rootScope.clientData.height <= 0) {
+            functions.alert($translate.instant('height is required'));
+            return false;
+        }
+        if ($rootScope.clientData.weight <= 0) {
+            functions.alert($translate.instant('weight is required'));
+            return false;
+        }
+        if ($rootScope.clientData.pal.value <= 0) {
+            functions.alert($translate.instant('choose physical activity level'));
+            return false;
+        }
+        return true;
+    }
+    
     $scope.toggleNewTpl = function (x) {
         if ($rootScope.clientData != undefined) {
+            if (validateForm() == false) {
+                return false;
+            };
             if (x == 'menu' && $rootScope.clientData.meals.length > 0) {
                 if ($rootScope.clientData.meals[1].isSelected == false && $rootScope.clientData.meals[5].isSelected == true) {
                     $rootScope.newTpl = './assets/partials/meals.html';
@@ -253,6 +282,9 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
     $rootScope.saveClientData = function (x) {
+        if (validateForm() == false) {
+            return false;
+        };
         if ($rootScope.clientData.meals.length > 0) {
             if ($rootScope.clientData.meals[1].isSelected == false && $rootScope.clientData.meals[5].isSelected == true) {
                 $rootScope.newTpl = 'assets/partials/meals.html';
@@ -282,16 +314,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
        function (response) {
            alert(response.data.d)
        });
-    }
-
-    $scope.showTabs = function () {
-        if(angular.isUndefined($rootScope.clientData)){return false;}
-        var x = $rootScope.clientData;
-        if (x.clientId != null && x.height > 0 && x.weight > 0 && x.pal.value > 0) {
-            return true;
-        } else {
-            return false;
-        }
     }
 
     $scope.hideMsg = function () {
@@ -349,6 +371,11 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         }
         return list;
     }
+
+    $scope.showNewVersionDetails = false;
+    $scope.toggleNewVersionDetails = function () {
+        $scope.showNewVersionDetails = $scope.showNewVersionDetails == false ? true : false;
+    };
 
 }])
 
@@ -895,7 +922,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             url: $sessionStorage.config.backend + webService + '/Update',
             method: 'POST',
             data: {x: user}
-
         })
        .then(function (response) {
            functions.alert($translate.instant('saved'), '');
@@ -954,6 +980,67 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.showpass = $scope.showpass == true ? false : true;
     }
 
+    /********* Logo ************/
+    var isLogoExists = function () {
+        $http({
+            url: $sessionStorage.config.backend + 'Files.asmx/IsLogoExists',
+            method: 'POST',
+            data: { userId: $sessionStorage.usergroupid, filename: 'logo.png' },
+        }).then(function (response) {
+            if (response.data.d == 'TRUE') {
+                $scope.showLogo = true;
+            } else {
+                $scope.showLogo = false;
+                $scope.logo = null;
+            }
+        },
+       function (response) {
+           functions.alert($translate.instant(response.data.d));
+       });
+    }
+    isLogoExists();
+
+    $scope.logo = "logo.png?v=" + new Date().getTime();
+    $scope.upload = function () {
+        var content = new FormData(document.getElementById("formUpload"));
+        $http({
+            url: $sessionStorage.config.backend + '/UploadHandler.ashx',
+            method: 'POST',
+            headers: { 'Content-Type': undefined },
+            data: content,
+        }).then(function (response) {
+            $scope.showLogo = true;
+            $scope.logo = "logo.png?v=" + new Date().getTime();
+            if (response.data != 'OK') {
+                functions.alert($translate.instant(response.data));
+            }
+            isLogoExists();
+        },
+       function (response) {
+           functions.alert($translate.instant(response.data));
+       });
+    }
+
+    $scope.removeLogo = function (x) {
+        $http({
+            url: $sessionStorage.config.backend + 'Files.asmx/DeleteLogo',
+            method: 'POST',
+            data: { userId: x.userId, filename: 'logo.png' },
+        }).then(function (response) {
+            $scope.showLogo = false;
+            $scope.logo = null;
+            if (response.data.d != 'OK') {
+                functions.alert($translate.instant(response.data.d));
+            }
+        },
+       function (response) {
+           functions.alert($translate.instant(response.data.d));
+       });
+    }
+    /********* Logo ************/
+
+
+
 }])
 
 //-------------- Program Prehrane Controllers---------------
@@ -974,6 +1061,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
     $scope.toggleSubTpl = function (x) {
         $scope.subTpl = x;
+    };
+
+    $scope.toggleCurrTpl = function (x) {
+        $rootScope.currTpl = './assets/partials/' + x;
     };
 
     var init = function (x) {
@@ -1192,7 +1283,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
         $scope.remove = function (x) {
             var confirm = $mdDialog.confirm()
-                  .title($translate.instant('delete input') + ' ?')
+                  .title($translate.instant('are you sure you want to delete') + '?')
                   .textContent($translate.instant('client') + ': ' + x.firstName + ' ' + x.lastName)
                   .targetEvent(x)
                   .ok($translate.instant('yes'))
@@ -1737,9 +1828,9 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
     $scope.getWaistClass = function (x) {
-        if (x < 94) { return { text: 'text-success', icon: 'fa fa-check' }; }
-        if (x >= 94 && x <= 102) { return { text: 'text-warning', icon: 'fa fa-exclamation' }; }
-        if (x > 102) { return { text: 'text-danger', icon: 'fa fa-exclamation' }; }
+        if (x.value < x.increasedRisk) { return { text: 'text-success', icon: 'fa fa-check' }; }
+        if (x.value >= x.increasedRisk && x.value < x.highRisk) { return { text: 'text-warning', icon: 'fa fa-exclamation' }; }
+        if (x.value >= x.highRisk) { return { text: 'text-danger', icon: 'fa fa-exclamation' }; }
     }
 
     var getCharts = function () {
@@ -1774,16 +1865,19 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         var id = 'whrChart';
         var value = $rootScope.calculation.whr.value.toFixed(1);
         var unit = 'WHR';
+        var increasedRisk = $rootScope.calculation.whr.increasedRisk;
+        var highRisk = $rootScope.calculation.whr.highRisk;
+        var optimal = $rootScope.calculation.whr.optimal;
         var options = {
             title: 'WHR',
             min: 0,
-            max: 2,
-            greenFrom: 0,
-            greenTo: 1,
-            yellowFrom: 1,
-            yellowTo: 1.1,
-            redFrom: 1.1,
-            redTo: 2,
+            max: 1.6,
+            greenFrom: optimal - 0.1,
+            greenTo: increasedRisk,
+            yellowFrom: increasedRisk,
+            yellowTo: highRisk,
+            redFrom: highRisk,
+            redTo: 1.6,
             minorTicks: 0.1
         };
         google.charts.setOnLoadCallback(charts.guageChart(id, value, unit, options));
@@ -1792,17 +1886,19 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     var waistChart = function () {
         var id = 'waistChart';
         var value = $rootScope.calculation.waist.value.toFixed(1);
+        var increasedRisk = $rootScope.calculation.waist.increasedRisk;
+        var highRisk = $rootScope.calculation.waist.highRisk;
         var unit = 'cm';
         var options = {
             title: 'WHR',
-            min: 60,
-            max: 160,
-            greenFrom: 60,
-            greenTo: 94,
-            yellowFrom: 94,
-            yellowTo: 102,
-            redFrom: 102,
-            redTo: 160,
+            min: 0,
+            max: 140,
+            greenFrom: 70,
+            greenTo: increasedRisk,
+            yellowFrom: increasedRisk,
+            yellowTo: highRisk,
+            redFrom: highRisk,
+            redTo: 140,
             minorTicks: 5
         };
         google.charts.setOnLoadCallback(charts.guageChart(id, value, unit, options));
@@ -2253,7 +2349,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 function (response) {
                     //alert(response.data.d)
                 });
-            }, 1000);
+            }, 600);
         }
     }
 
@@ -2321,12 +2417,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 return false;
             }
 
-            //var obj = JSON.parse(x);
-            //if (obj.foodGroup.code == 'MYF') {
-            //    getMyFoodDetails(x);
-            //    return false;
-            //}
-
             $http({
                 url: $sessionStorage.config.backend + 'Foods.asmx/Get',
                 method: "POST",
@@ -2344,7 +2434,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 })
 
                 initFood = angular.copy($scope.food);
-              //  showServings($scope.food);
             },
             function (response) {
                 alert(response.data.d)
@@ -2355,12 +2444,12 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             $http({
                 url: $sessionStorage.config.backend + 'MyFoods.asmx/Get',
                 method: "POST",
-                data: { userId: $rootScope.user.userId, id: JSON.parse(x).id }
+                data: { userId: $rootScope.user.userGroupId, id: JSON.parse(x).id }
             })
           .then(function (response) {
               $scope.food = JSON.parse(response.data.d);
-              initFood = angular.copy(JSON.parse(response.data.d));
-            //  showServings($scope.food);
+              $scope.food.unit = $translate.instant($scope.food.unit);
+              initFood = angular.copy($scope.food);
           },
           function (response) {
               alert(response.data.d)
@@ -2398,7 +2487,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                     },
                     function (response) {
                     });
-                }, 1000);
+                }, 600);
             }
         }
 
@@ -2567,34 +2656,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.getMealTitle = function (x) {
             return $rootScope.getMealTitle(x);
         }
-
-        //$scope.print = function () {
-        //    alert('todo');
-        //    window.print();
-        //}
-
-        //$scope.pdf = function () {
-        //    printPdf();
-        //}
-
-        //var printPdf = function () {
-        //    var fileName = 'jelovnik';
-        //    $http({
-        //        url: $sessionStorage.config.backend + 'PrintPdf.asmx/MenuPdf',
-        //        method: "POST",
-        //        data: { userId: $rootScope.user.userId, fileName: fileName, currentMenu: d.currentMenu, clientData: d.clientData, totals: $rootScope.totals, lang: $rootScope.config.language }
-        //    })
-        //      .then(function (response) {
-        //       //   alert(response.data.d);
-        //          //window.open($sessionStorage.config.backend + '/App_Data/users/' + $rootScope.user.userId + '/pdf/' + fileName + '.pdf', + '_blank');
-        //          //  window.open($sessionStorage.config.backend + 'pdf/users/' + $rootScope.user.userId + '/pdf/' + fileName + '.pdf');
-        //       //   $scope.pdfLink = $sessionStorage.config.backend + 'upload/users/' + $rootScope.user.userId + '/pdf/' + fileName + '.pdf';
-        //      },
-        //      function (response) {
-        //          alert(response.data.d)
-        //      });
-        //}
-        //printPdf();
 
     };
   
@@ -2955,7 +3016,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 $scope.mealsTotals.push($rootScope.totals.mealsTotalEnergy.length > 0 ? $rootScope.totals.mealsTotalEnergy[key].meal.energy : 0);
                 $scope.mealsMin.push($rootScope.recommendations.mealsRecommendationEnergy[key].meal.energyMin);
                 $scope.mealsMax.push($rootScope.recommendations.mealsRecommendationEnergy[key].meal.energyMax);
-                $scope.mealsTitles.push(value.title);
+                $scope.mealsTitles.push($translate.instant($rootScope.getMealTitle(value.code)));
             }
         })
 
@@ -2971,23 +3032,21 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         var t = $rootScope.totals;
         var r = $rootScope.recommendations
         $rootScope.servGraphData = charts.createGraph(
-                $translate.instant('unit servings'), //['jedinična serviranja'],
+                $translate.instant('unit servings'),
                 [
                     [t.servings.cerealsServ, t.servings.vegetablesServ, t.servings.fruitServ, t.servings.meatServ, t.servings.milkServ, t.servings.fatsServ],
                     [r.servings.cerealsServ, r.servings.vegetablesServ, r.servings.fruitServ, r.servings.meatServ, r.servings.milkServ, r.servings.fatsServ]
                 ],
                 [$translate.instant('cereals'), $translate.instant('vegetables'), $translate.instant('fruit'), $translate.instant('meat'), $translate.instant('milk'), $translate.instant('fats')],
-
-               // ['ugljikohidrati', 'povrče', 'voće', 'meso', 'mlijeko', 'masti'],
                 ['#45b7cd', '#33cc33', '#33cc33'],
                 [
                      {
-                         label: $translate.instant('choosen'), // "Odabrano",
+                         label: $translate.instant('choosen'),
                          borderWidth: 1,
                          type: 'bar'
                      },
                      {
-                         label: $translate.instant('recommended'), // "Preporučeno",
+                         label: $translate.instant('recommended'),
                          borderWidth: 3,
                          hoverBackgroundColor: "rgba(255,99,132,0.4)",
                          hoverBorderColor: "rgba(255,99,132,1)",
@@ -3539,14 +3598,15 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
     $scope.filterMeal = function (x) {
-            if (x.meal.code == $rootScope.currentMeal) {
-                return true;
-            } else {
-                return false;
-            }
+        if (x.meal.code == $rootScope.currentMeal) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     $scope.parameterStyle = function (total, r) {
+        if (!angular.isDefined(total) || !angular.isDefined(r)) { return false; }
         if (r.mda != null) {
             if (total < r.mda) { return 'background-color:#9bc1ff; color:white' }
         }
@@ -3573,10 +3633,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 var idx = $rootScope.currentMenu.data.selectedFoods.length;
                 $scope.addFoodToMeal(value, recipe.data.selectedInitFoods[key], idx);
             });
-            //$rootScope.currentMenu = x;
-            //$rootScope.clientData.meals = x.data.meals;
             getTotals($rootScope.currentMenu);
-           // $rootScope.currentMeal = 'B';
         }, function () {
         });
     };
@@ -3863,6 +3920,12 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
     //----------------------------------------
 
+    $scope.saveRecipeFromMenu = function (data, currentMeal) {
+        $rootScope.newTpl = './assets/partials/myrecipes.html';
+        $rootScope.selectedNavItem = 'myrecipes';
+        $rootScope.recipeData = data;
+        $rootScope.currentMealForRecipe = currentMeal;
+    }
 
 }])
 
@@ -4176,7 +4239,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
     var loadMyFoods = function () {
         $http({
-            url: $sessionStorage.config.backend + 'MyFoods.asmx/Load',
+            url: $sessionStorage.config.backend + webService + '/Load',
             method: "POST",
             data: { userId: $sessionStorage.usergroupid }
         })
@@ -4192,6 +4255,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     $scope.save = function (x) {
         if ($rootScope.user.licenceStatus == 'demo' && $rootScope.clients.length > 0) {
             functions.demoAlert('this function is not available in demo version');
+            return false;
+        }
+        if (functions.isNullOrEmpty(x.food)) {
+            functions.alert($translate.instant('food title is required'), '');
             return false;
         }
         if (checkIsOtherFood(x) == true) {
@@ -4211,8 +4278,12 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             data: { userId: $rootScope.user.userGroupId, x: x }
         })
         .then(function (response) {
-            functions.alert($translate.instant(response.data.d), '');
-            loadMyFoods();
+            if (response.data.d != 'there is already a food with the same name') {
+                functions.alert($translate.instant(response.data.d), '');
+                loadMyFoods();
+            } else {
+                functions.alert($translate.instant('there is already a food with the same name'), '');
+            }
         },
         function (response) {
             functions.alert($translate.instant(response.data.d), '');
@@ -4310,6 +4381,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         .then(function (response) {
             $scope.recipe = JSON.parse(response.data.d);
             $scope.currentRecipe = null;
+            recipeFromMenu();
             load();
         },
         function (response) {
@@ -4333,6 +4405,26 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             alert(response.data.d)
         });
     };
+
+    var recipeFromMenu = function () {
+        if (angular.isDefined($rootScope.recipeData)) {
+            if ($rootScope.recipeData != null) {
+                if (angular.isDefined($rootScope.recipeData.selectedFoods)) {
+                    angular.forEach($rootScope.recipeData.selectedFoods, function (value, key) {
+                        if (value.meal.code == $rootScope.currentMealForRecipe) {
+                            $scope.recipe.data.selectedFoods.push(value);
+                            $scope.recipe.data.selectedInitFoods.push($rootScope.recipeData.selectedFoods[key]);
+                        }
+                    })
+                    angular.forEach($rootScope.recipeData.meals, function (value, key) {
+                        if (value.code == $rootScope.currentMealForRecipe) {
+                            $scope.recipe.description = value.description;
+                        }
+                    })
+                }
+            }
+        }
+    }
 
     init();
 
@@ -4369,13 +4461,14 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         }
         $scope.addFoodBtnIcon = 'fa fa-plus';
         $scope.addFoodBtn = false;
-    }, function () {
-        $scope.addFoodBtnIcon = 'fa fa-plus';
-        $scope.addFoodBtn = false;
-    });
+        }, function () {
+            $scope.addFoodBtnIcon = 'fa fa-plus';
+            $scope.addFoodBtn = false;
+        });
     }
 
     $scope.new = function () {
+        $rootScope.recipeData = null;
         init();
     }
 
@@ -4407,8 +4500,12 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             data: { userId: $sessionStorage.usergroupid, x: recipe }
         })
         .then(function (response) {
-            $scope.recipe = JSON.parse(response.data.d);
-            load();
+            if (response.data.d != 'there is already a recipe with the same name') {
+                $scope.recipe = JSON.parse(response.data.d);
+                load();
+            } else {
+                functions.alert($translate.instant('there is already a recipe with the same name'), '');
+            }
         },
         function (response) {
             alert(response.data.d);

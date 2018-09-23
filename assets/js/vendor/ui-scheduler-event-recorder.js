@@ -184,13 +184,13 @@
                 value: {},
                 setter: function (val) {
                     return A.merge({
-                        'delete': 'Briši',
-                        'description-hint': 'Aktivnost...',
-                        cancel: 'Zatvori',
-                        description: 'Opis',
-                        edit: 'Uredi',
-                        save: 'Spremi',
-                        when: 'Kad'
+                        'delete': 'Delete',
+                        'description-hint': 'Description...',
+                        cancel: 'Cancel',
+                        description: 'Description',
+                        edit: 'Edit',
+                        save: 'Save',
+                        when: 'When'
                     },
                         val || {}
                     );

@@ -46,7 +46,7 @@ angular.module('app', ['ngMaterial'])
         $http({
             url: $rootScope.config.backend + 'Mail.asmx/Send',
             method: 'POST',
-            data: { name: g.name, email: g.email, phone: g.phone, address: g.address, type: g.type, message: g.message }
+            data: { name: g.name, email: g.email, phone: g.phone, address: g.address, type: g.type, message: g.message, lang: $rootScope.config.language }
         })
      .then(function (response) {
          $scope.sendicon = 'fa fa-check';
@@ -65,7 +65,6 @@ angular.module('app', ['ngMaterial'])
     $rootScope.application = 'Nutrition Plan';
     $rootScope.version = 'STANDARD';
 }])
-
 
 .controller('signupCtrl', ['$scope', '$http', '$rootScope', function ($scope, $http, $rootScope) {
     $scope.accept = false;
@@ -151,6 +150,7 @@ angular.module('app', ['ngMaterial'])
                $scope.msg.icon = 'check';
                $scope.hidebutton = true;
                $scope.signupok = true;
+               window.location.hash = 'registration';
            }
        },
        function (response) {
@@ -214,15 +214,15 @@ angular.module('app', ['ngMaterial'])
         var unitprice = 0;
         var totalprice = 0;
 
-        if ($scope.user.userType == 0) { unitprice = 550; $scope.user.version = 'START'; }
-        if ($scope.user.userType == 1) { unitprice = 950; $scope.user.version = 'STANDARD'; }
-        if ($scope.user.userType == 2) { unitprice = 1850; $scope.user.version = 'PREMIUM'; }
+            if ($scope.user.userType == 0) { unitprice = 550; $scope.user.version = 'START'; }
+            if ($scope.user.userType == 1) { unitprice = 950; $scope.user.version = 'STANDARD'; }
+            if ($scope.user.userType == 2) { unitprice = 1850; $scope.user.version = 'PREMIUM'; }
 
-        if ($scope.user.licence > 1) {
-            unitprice = unitprice * $scope.user.licence - ((unitprice * $scope.user.licence) * ($scope.user.licence / 10))
-        }
+            if ($scope.user.licence > 1) {
+                unitprice = unitprice * $scope.user.licence - ((unitprice * $scope.user.licence) * ($scope.user.licence / 10))
+            }
 
-        $scope.user.licenceNumber = 1;
+            $scope.user.licenceNumber = 1;
 
         totalprice = $scope.user.licenceNumber > 1 ? unitprice * $scope.user.licenceNumber - (unitprice * $scope.user.licenceNumber * 0.1) : unitprice;
         $scope.user.price = totalprice;
@@ -399,7 +399,7 @@ angular.module('app', ['ngMaterial'])
         $http({
             url: $rootScope.config.backend + 'Mail.asmx/Send',
             method: 'POST',
-            data: { name: d.name, email: d.email, messageSubject: 'nutrition Plan - Inquiry', message: d.message, lang: $rootScope.config.language }
+            data: { name: d.name, email: d.email, messageSubject: 'Nutrition Plan - Inquiry', message: d.message, lang: $rootScope.config.language }
         })
        .then(function (response) {
            $scope.showAlert = true;

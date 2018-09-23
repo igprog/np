@@ -1,5 +1,5 @@
+Sitemap: https://www.nutrition-plan.com/sitemap.xml
 User-agent: *
 Disallow: /app/eula.html
-Disallow: /app/licence.txt
 Disallow: /app/5bcfb2319af945468ae2a9f061ce257f.html
 Disallow: /client/
