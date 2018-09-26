@@ -1,11 +1,11 @@
 ﻿{
   "backend": "http://localhost:50691/",
-  "title": "nutrition plan",
+  "title": "NutriProg.com",
   "shortDescription": "meal planning web app",
   "apppage": "app.programprehrane.com",
   "apppageurl": "/app/",
   "clientapppageurl": "../client/",
-  "webpage": "www.nutrition-plan.com",
+  "webpage": "www.nutriprog.com",
   "webpageurl": "../",
   "author": "Igor Gašparović",
   "copyright": "IG PROG",

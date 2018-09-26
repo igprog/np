@@ -38,10 +38,10 @@ body {
   }
 
   @media only screen and (max-width: 600px) {
-    .jumbotron {
-        height:100vh;
+        .jumbotron {
+            height:100vh;
+        }
     }
-}
 
   .container-fluid {
      /* padding: 60px 50px;*/

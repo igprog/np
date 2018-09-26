@@ -1567,7 +1567,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         }
         $scope.sendingMail = true;
         var link = $rootScope.config.clientapppageurl + '?uid=' + client.userId + '&cid=' + client.clientId
-        var messageSubject = $translate.instant('nutrition plan') + '. ' + $translate.instant('app access link')   //'Program Prehrane. link za pristup aplikaciji';
+        var messageSubject = $translate.instant('NutriProg.com') + '. ' + $translate.instant('app access link')   //'Program Prehrane. link za pristup aplikaciji';
         var messageBody = '<p>' + $translate.instant('dear') + ',' + '</p>' +
             $translate.instant('the app access link to track your body weight and download menus is') + ': ' +
             '<br />' +
@@ -4912,7 +4912,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 }])
 
 .controller('orderCtrl', ['$scope', '$http', '$rootScope', '$translate', function ($scope, $http, $rootScope, $translate) {
-    $scope.application = $translate.instant('nutrition plan');
+    $scope.application = $translate.instant('Nutri Prog');
     $scope.version = 'STANDARD';
     $scope.userType = 1;
     $scope.showAlert = false;

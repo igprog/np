@@ -62,7 +62,7 @@ angular.module('app', ['ngMaterial'])
 }])
 
 .controller('webAppCtrl', ['$scope', '$http', '$rootScope', function ($scope, $http, $rootScope) {
-    $rootScope.application = 'Nutrition Plan';
+    $rootScope.application = 'Nutri Prog';
     $rootScope.version = 'STANDARD';
 }])
 
@@ -399,7 +399,7 @@ angular.module('app', ['ngMaterial'])
         $http({
             url: $rootScope.config.backend + 'Mail.asmx/Send',
             method: 'POST',
-            data: { name: d.name, email: d.email, messageSubject: 'Nutrition Plan - Inquiry', message: d.message, lang: $rootScope.config.language }
+            data: { name: d.name, email: d.email, messageSubject: 'NutriProg.com - Inquiry', message: d.message, lang: $rootScope.config.language }
         })
        .then(function (response) {
            $scope.showAlert = true;

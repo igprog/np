@@ -1,10 +1,10 @@
 ﻿{
   "backend": "../",
-  "title": "nutrition plan",
+  "title": "nutriprog.com",
   "shortDescription": "meal planning web app",
   "apppage": "app.programprehrane.com",
   "apppageurl": "/app/",
-  "webpage": "nutrition-plan.com",
+  "webpage": "nutriprog.com",
   "webpageurl": "../",
   "author": "Igor Gašparović",
   "copyright": "IG PROG",
@@ -30,7 +30,7 @@
   ],
   "debug": true,
   "version": "1.0.0",
-  "date":  "06.05.2018",
+  "date": "06.05.2018",
   "eur": 7.4,
   "currency": "hrk",
   "currencies": [
