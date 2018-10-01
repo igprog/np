@@ -1292,7 +1292,6 @@
   "Writing, reclining": "Writing, reclining",
   "Writing, desk work (sitting)": "Writing, desk work (sitting)",
 
-
   "application": "application",
   "scheduler": "scheduler",
   "language": "language",
@@ -1315,7 +1314,6 @@
   "recommendations": "recommendations",
   "weight": "weight",
   "energy intake": "energy intake",
-  "goal": "goal",
   "back": "back",
   "new client": "new client",
   "search clients": "search clients",
@@ -1720,6 +1718,13 @@
   "height is required": "Height is required",
   "weight is required": "Weight is required",
   "choose physical activity level": "Choose physical activity level",
-  "web application": "web application"
+  "web application": "web application",
+  "measured": "measured",
+  "recommended energy intake": "recommended energy intake",
+  "recommended additional energy expenditure": "recommended additional energy expenditure",
+  "for persons with health problems or suspicion on them, it is recommended that before choosing additionaly physical activity consult with his doctor": "for persons with health problems or suspicion on them, it is recommended that before choosing additionaly physical activity consult with his doctor",
+  "for persons with health problems or suspicion on them, it is recommended that before choosing a diet consult with his doctor": "for persons with health problems or suspicion on them, it is recommended that before choosing a diet consult with his doctor",
+  "my recommendations": "my recommendations",
+  "if your recommendations are different from the recommendations provided by the application, enter your values here, otherwise leave blank fields": "if your recommendations are different from the recommendations provided by the application, enter your values here, otherwise leave blank fields"
 
 }
