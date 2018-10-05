@@ -31,8 +31,8 @@
     }
   ],
   "debug": true,
-  "version": "1.0.88",
-  "date": "02.10.2018",
+  "version": "1.0.89",
+  "date": "04.10.2018",
   "eur": 7.4,
   "usd": 6.3,
   "currency": "$",
@@ -55,5 +55,19 @@
     }
   ],
   "showupdatedes": false,
-  "showlanguages": false
+  "showlanguages": false,
+  "packages": [
+	  {
+		  "title": "START",
+		  "price":550
+	  },
+	  {
+		  "title": "STANDARD",
+		  "price":950
+	  },
+	  {
+		  "title": "PREMIUM",
+		  "price":1850
+	  }
+  ]
 }
