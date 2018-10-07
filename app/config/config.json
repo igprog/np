@@ -1,5 +1,5 @@
 ﻿{
-  "backend": "http://localhost:50691/",
+  "backend": "../",
   "title": "NutriProg.com",
   "shortDescription": "meal planning web app",
   "apppage": "app.programprehrane.com",
