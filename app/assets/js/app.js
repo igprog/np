@@ -82,7 +82,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                   $rootScope.setLanguage($rootScope.config.language);
               }
               if (angular.isDefined(queryLang)) {
-                  if (queryLang == 'hr' || queryLang == 'sr' || queryLang == 'sr_cyrl' || queryLang == 'en') {
+                  if (queryLang == 'hr' || queryLang == 'ba' || queryLang == 'sr' || queryLang == 'sr_cyrl' || queryLang == 'en') {
                       $rootScope.setLanguage(queryLang);
                   }
               }
@@ -288,8 +288,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     };
     $scope.toggleNewTpl('clientsdata');
 
-    $scope.showSaveMessage = false;
-
     $scope.logout = function () {
         $sessionStorage.loginuser = null;
         $sessionStorage.user = null;
@@ -304,6 +302,8 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $rootScope.mainMessage = null;
         $rootScope.currTpl = 'assets/partials/login.html';
     }
+
+
 
     $rootScope.saveClientData = function (x) {
         if (validateForm() == false) {
@@ -401,9 +401,25 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.showNewVersionDetails = $scope.showNewVersionDetails == false ? true : false;
     };
 
+    var getDateDiff = function (x) {
+        var today = new Date();
+        var date1 = today;
+        var date2 = new Date(x);
+        var diffDays = parseInt((date2 - date1) / (1000 * 60 * 60 * 24));
+        return diffDays;
+    }
+
+    $scope.dateDiff = function() {
+        if (localStorage.lastvisit) {
+            return getDateDiff(localStorage.lastvisit)
+        } else {
+            return 0;
+        }
+    }
+
 }])
 
-.controller('loginCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', 'functions', '$translate', '$mdDialog', function ($scope, $http, $sessionStorage, $window, $rootScope, functions, $translate, $mdDialog) {
+.controller('loginCtrl', ['$scope', '$http','$localStorage', '$sessionStorage', '$window', '$rootScope', 'functions', '$translate', '$mdDialog', function ($scope, $http, $localStorage, $sessionStorage, $window, $rootScope, functions, $translate, $mdDialog) {
     var webService = 'Users.asmx';
 
     $scope.toggleTpl = function (x) {
@@ -420,6 +436,12 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
     $scope.login = function (u, p) {
+        $scope.errorMesage = null;
+        if (functions.isNullOrEmpty(u) || functions.isNullOrEmpty(p)) {
+            $scope.errorLogin = true;
+            $scope.errorMesage = $translate.instant('enter user name (email) and password');
+            return false;
+        }
         $rootScope.loading = true;
         $http({
             url: $rootScope.config.backend + webService + '/Login',
@@ -432,6 +454,12 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         .then(function (response) {
             if (JSON.parse(response.data.d).userName == u) {
                 $rootScope.user = JSON.parse(response.data.d);
+                if ($rootScope.user.userId !== $rootScope.user.userGroupId && $rootScope.user.isActive === false) {
+                    $rootScope.loading = false;
+                    $scope.errorLogin = true;
+                    $scope.errorMesage = $translate.instant('your account is not active') + '. ' + $translate.instant('please contact your administrator');
+                    return false;
+                }
                 $rootScope.loginUser = JSON.parse(response.data.d);
                 $sessionStorage.loginuser = $rootScope.loginUser;
                 $sessionStorage.userid = $rootScope.user.userId;
@@ -441,6 +469,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 $sessionStorage.islogin = true;
                 $rootScope.isLogin = true;
                 $rootScope.loadData();
+
+                if (typeof (Storage) !== "undefined") {
+                    localStorage.lastvisit = new Date();
+                }
 
                 //   $rootScope.getUserSettings();  //TODO
 
@@ -565,7 +597,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     $scope.signup = function () {
         $scope.signupdisabled = true;
         $scope.newUser.userName = $scope.newUser.email;
-        if ($scope.newUser.firstName == "" || $scope.newUser.lastName == "" || $scope.newUser.email == "" || $scope.newUser.password == "" || $scope.passwordConfirm == "" || $scope.emailConfirm == "") {
+        if (functions.isNullOrEmpty($scope.newUser.firstName) || functions.isNullOrEmpty($scope.newUser.lastName) || functions.isNullOrEmpty($scope.newUser.email) || functions.isNullOrEmpty($scope.newUser.password) || functions.isNullOrEmpty($scope.passwordConfirm) || functions.isNullOrEmpty($scope.emailConfirm)) {
             functions.alert($translate.instant('all fields are required'), '');
             $scope.signupdisabled = false;
             return false;
@@ -798,7 +830,8 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 .controller('userCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate) {
     var webService = 'Users.asmx';
 
-    $scope.adminTypes = [ {
+    $scope.adminTypes = [
+       {
            value: 0,
            text: 'Supervizor'
        },
@@ -1024,7 +1057,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
     isLogoExists();
 
-    $scope.logo = "logo.png?v=" + new Date().getTime();
+    $scope.logo = '../upload/users/' + $rootScope.user.userGroupId + '/logo.png?v=' + new Date().getTime();
     $scope.upload = function () {
         var content = new FormData(document.getElementById("formUpload"));
         $http({
@@ -1034,7 +1067,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             data: content,
         }).then(function (response) {
             $scope.showLogo = true;
-            $scope.logo = "logo.png?v=" + new Date().getTime();
+            $scope.logo = '../upload/users/' + $rootScope.user.userGroupId + '/logo.png?v=' + new Date().getTime();
             if (response.data != 'OK') {
                 functions.alert($translate.instant(response.data));
             }
@@ -1127,7 +1160,8 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $http({
             url: $sessionStorage.config.backend + webService + '/Load',
             method: 'POST',
-            data: { userId: $sessionStorage.usergroupid }
+            //data: { userId: $sessionStorage.usergroupid }
+            data: { userId: $sessionStorage.usergroupid, user: $rootScope.user }
         })
         .then(function (response) {
             $rootScope.clients = JSON.parse(response.data.d);
@@ -1257,7 +1291,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $http({
             url: $sessionStorage.config.backend + webService + '/Load',
             method: "POST",
-            data: { userId: $sessionStorage.usergroupid }
+            data: { userId: $sessionStorage.usergroupid, user: $rootScope.user }
         })
        .then(function (response) {
            $rootScope.clients = JSON.parse(response.data.d);
@@ -1287,6 +1321,12 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
     $scope.searchPopupCtrl = function ($scope, $mdDialog, d, $http) {
         $scope.d = d;
+        $scope.limit = 20;
+
+        $scope.loadMore = function () {
+            $scope.limit += 20;
+        }
+
         $scope.getDateFormat = function (x) {
             return new Date(x);
         }
@@ -1323,7 +1363,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             $http({
                 url: $sessionStorage.config.backend + webService + '/Delete',
                 method: "POST",
-                data: { userId: $sessionStorage.usergroupid, clientId: x.clientId }
+                data: { userId: $sessionStorage.usergroupid, clientId: x.clientId, user: $rootScope.user }
             })
            .then(function (response) {
                $rootScope.clients = JSON.parse(response.data.d);
@@ -2893,6 +2933,11 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.appMenues = false;
         $scope.toTranslate = false;
         $scope.toLanguage = '';
+        $scope.limit = 20;
+
+        $scope.loadMore = function () {
+            $scope.limit += 20;
+        }
 
         var load = function () {
             $scope.loading = true;
@@ -3044,7 +3089,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             templateUrl: 'assets/partials/popup/savemenu.html',
             parent: angular.element(document.body),
             clickOutsideToClose: true,
-            d: { currentMenu: $rootScope.currentMenu, client: $rootScope.client, totals: $rootScope.totals, config: $sessionStorage.config }
+            d: { currentMenu: $rootScope.currentMenu, client: $rootScope.client, totals: $rootScope.totals, config: $sessionStorage.config, user: $rootScope.user }
         })
        .then(function (x) {
            $rootScope.currentMenu = x;
@@ -3055,22 +3100,23 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     var openSaveMenuPopupCtrl = function ($scope, $mdDialog, $http, d, $translate) {
         $scope.d = angular.copy(d);
         var save = function (currentMenu) {
-            if (currentMenu.title == '' || currentMenu.title == undefined) {
+            if (functions.isNullOrEmpty(currentMenu.title)) {
+            //if (currentMenu.title == '' || currentMenu.title == undefined) {
                 document.getElementById("txtMenuTitle").focus();
                 functions.alert($translate.instant('enter menu title'), '');
                 openSaveMenuPopup();
                 return false;
             }
             currentMenu.diet = d.client.clientData.diet.diet;
+            $mdDialog.hide($scope.d.currentMenu);
             $http({
                 url: $sessionStorage.config.backend + 'Menues.asmx/Save',
                 method: "POST",
-                data: { userId: $rootScope.user.userGroupId, x: currentMenu }
+                data: { userId: $rootScope.user.userGroupId, x: currentMenu, user: $scope.d.user }
             })
           .then(function (response) {
               if (response.data.d != 'error') {
                   $scope.d.currentMenu = JSON.parse(response.data.d);
-                  $mdDialog.hide($scope.d.currentMenu);
               } else {
                   functions.alert($translate.instant('there is already a menu with the same name'), '');
               }
@@ -3093,9 +3139,9 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             save(x);
         }
 
-
         var saveAppMenu = function (currentMenu) {
-            if (currentMenu.title == '' || currentMenu.title == undefined) {
+            if (functions.isNullOrEmpty(currentMenu.title)) {
+            //if (currentMenu.title == '' || currentMenu.title == undefined) {
                 document.getElementById("txtMenuTitle").focus();
                 functions.alert($translate.instant('enter menu title'), '');
                 openSaveMenuPopup();
@@ -3848,6 +3894,11 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.toTranslate = false;
         $scope.toLanguage = '';
         $scope.showDescription = true;
+        $scope.limit = 20;
+
+        $scope.loadMore = function () {
+            $scope.limit += 20;
+        }
 
         var load = function () {
             $scope.loading = true;
@@ -4493,6 +4544,11 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     };
 
     var getMyFoodsPopupCtrl = function ($scope, $mdDialog, $http) {
+        $scope.limit = 20;
+
+        $scope.loadMore = function () {
+            $scope.limit += 20;
+        }
 
         var load = function () {
             $scope.loading = true;
@@ -4748,6 +4804,11 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     };
 
     var getMyRecipesPopupCtrl = function ($scope, $mdDialog, $http) {
+        $scope.limit = 20;
+
+        $scope.loadMore = function () {
+            $scope.limit += 20;
+        }
 
         var load = function () {
             $scope.loading = true;
