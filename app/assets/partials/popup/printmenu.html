@@ -1,4 +1,4 @@
-﻿<md-dialog flex flex-gt-sx>
+﻿<md-dialog flex>
     <form ng-cloak>
         <md-toolbar class="main-background">
             <div class="md-toolbar-tools">
@@ -15,38 +15,74 @@
                 <div>
                     <fieldset class="fieldset-border">
                         <legend class="fieldset-border text-capitalize">{{'settings' | translate}}</legend>
-                        <md-input-container style="margin-right:80px">
-                            <label>{{'number of consumers' | translate}}</label>
-                            <input ng-model="consumers" type="number" min="1" ng-change="changeNumberOfConsumers(consumers)">
-                        </md-input-container>
-                        <md-checkbox ng-model="settings.showQty" class="md-primary">
-                            {{'show quantity' | translate}}
-                        </md-checkbox>
-                        <md-checkbox ng-model="settings.showMass" class="md-primary">
-                            {{'show mass' | translate}}
-                        </md-checkbox>
-                        <md-checkbox ng-model="settings.showServ" class="md-primary">
-                            {{'show servings' | translate}}
-                        </md-checkbox>
+                        <div>
+                            <md-input-container style="margin-right:80px">
+                                <label>{{'number of consumers' | translate}}</label>
+                                <input ng-model="consumers" type="number" min="1" ng-change="changeNumberOfConsumers(consumers)">
+                            </md-input-container>
+                        </div>
+                        <div>
+                            <md-checkbox ng-model="settings.showClientData" class="md-primary">
+                                {{'show client data' | translate}}
+                            </md-checkbox>
+                            <md-checkbox ng-model="settings.showTitle" class="md-primary">
+                                {{'show dish title' | translate}}
+                            </md-checkbox>
+                            <md-checkbox ng-model="settings.showDescription" class="md-primary">
+                                {{'show description' | translate}}
+                            </md-checkbox>
+                            <md-checkbox ng-model="settings.showFoods" class="md-primary">
+                                {{'show foods' | translate}}
+                            </md-checkbox>
+                        </div>
+                        <div>
+                            <md-checkbox ng-disabled="!settings.showFoods" ng-model="settings.showQty" class="md-primary">
+                                {{'show quantity' | translate}}
+                            </md-checkbox>
+                            <md-checkbox ng-disabled="!settings.showFoods" ng-model="settings.showMass" class="md-primary">
+                                {{'show mass' | translate}}
+                            </md-checkbox>
+                            <md-checkbox ng-disabled="!settings.showFoods" ng-model="settings.showServ" class="md-primary">
+                                {{'show servings' | translate}}
+                            </md-checkbox>
+                            <md-checkbox ng-model="settings.showTotals" class="md-primary">
+                                {{'show totals' | translate}}
+                            </md-checkbox>
+                        </div>
                     </fieldset>
                 </div>
                 <hr />
                 <div id="container" class="well">
+                    <div ng-if="settings.showClientData">
+                        <p>{{currentMenu.client.firstName}} {{currentMenu.client.lastName}}</p>
+                        <p>
+                            {{'height' | translate}}: {{currentMenu.client.clientData.height}} cm, {{'weight' | translate}}: {{currentMenu.client.clientData.weight}} kg
+                            <span ng-if="currentMenu.client.clientData.waist>0">, {{'waist' | translate}}: {{currentMenu.client.clientData.waist}} cm</span><span ng-if="clientData.hip>0">, {{'hip' | translate}}: {{clientData.hip}} kg</span>
+                        </p>
+                        <p>{{currentMenu.client.clientData.diet.diet | translate}}</p>
+                        <hr />
+                    </div>
                     <strong>{{currentMenu.title}}</strong>
                     <p>{{currentMenu.note}}</p>
                     <p ng-if="consumers > 1">{{'number of consumers' | translate}}: <strong>{{consumers}}</strong></p>
                     <div ng-if="x.isSelected==1" ng-repeat="x in currentMenu.data.meals track by $index" class="m10">
-                        <label class="text-uppercase mt10">{{getMealTitle(x.code) | translate}}</label>
+                        <label class="text-uppercase mt10">{{getMealTitle(x)}}</label>
                         <div ng-if="x.description" class="mt10">
-                            <em class="text-justify">{{x.description}}</em>
+                            <em ng-if="!isSeparatedDes(x.description)&&settings.showDescription">{{x.description}}</em>
+                            <div ng-if="isSeparatedDes(x.description)">
+                                <div ng-repeat="y in getTitleDes(x.description)">
+                                    <div ng-if="settings.showTitle">{{y.title}}</div>
+                                    <em ng-if="settings.showDescription">{{y.description}}</em>
+                                </div>
+                            </div>
                         </div>
-                        <div class="mt10">
+                        <div ng-if="settings.showFoods" class="mt10">
                             <div ng-if="y.meal.code==x.code" ng-repeat="y in foods track by $index">
                                 - {{y.food}}<span ng-if="settings.showQty">, {{y.quantity}} {{y.unit}}</span><span ng-if="settings.showMass">, {{y.mass}} g</span> <span ng-if="settings.showServ&&getServDescription(y.servings)!=''">, ({{getServDescription(y.servings)}})</span>
                             </div>
                         </div>
                     </div>
-                    <div>
+                    <div ng-if="settings.showTotals">
                         <hr />
                         <label><span class="text-uppercase">{{'total' | translate}}</span><span ng-if="consumers > 1"> ({{'per consumer' | translate}})</span>:</label>
                         <p>{{'energy value' | translate}}: <span>{{totals.energy}} kcal</span></p>
@@ -58,10 +94,10 @@
                         <hr />
                         <label>{{'price' | translate}}: <span>{{totals.price.value * consumers | number:2}} {{config.currency}} </span></label>
                     </div>
-                    <div ng-if="clientData.activities.length > 0">
+                    <div ng-if="currentMenu.client.clientData.activities.length > 0">
                         <hr />
                         <label>{{'additional activity' | translate}}</label>
-                        <ul ng-repeat="x in clientData.activities">
+                        <ul ng-repeat="x in currentMenu.client.clientData.activities">
                             <li>{{x.activity}} - {{x.duration}} min, {{x.energy | number:0}} kcal</li>
                         </ul>
                     </div>

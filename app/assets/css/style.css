@@ -42,17 +42,9 @@ a {
     background-color: white;
 }
 
-@media (max-width: 767px) {
-    .loginBox {
-        padding:20px;
-        margin-top:0px;
-        background-repeat: no-repeat;
-        background-size: 100% 100%;
-        box-shadow: none;
-        border-radius: 0px 0px 10px 10px !important;
-        border:1px solid #ddd;
-        border-top:0px;
-    }
+md-dialog {
+    min-width: 40%;
+    max-height: 80%;
 }
 
 .borderNone {
@@ -105,6 +97,10 @@ a {
 
 .mt20 {
     margin-top:20px;
+}
+
+.mt60 {
+    margin-top:60px;
 }
 
 .ml10 {
@@ -218,7 +214,6 @@ hr.bold {
 }
 
 fieldset.fieldset-border {
-    border: 1px groove #ddd !important;
     padding: 0 1.4em 1.4em 1.4em !important;
     margin: 0 0 1.5em 0 !important;
     -webkit-box-shadow:  0px 0px 0px 0px #000;
@@ -254,6 +249,72 @@ legend.fieldset-border {
 .main-background {
     background-color: #337ab7 !important;
 }
+
+a[class*="btn-default"], button[class*="btn-default"], input[class*="search"] {
+    border-color: #337ab7;
+    color: #337ab7;
+}
+
+.center {
+    position: fixed;
+    top: 50%;
+    opacity: 0.7;
+}
+
+.center-left {
+    left:5%;
+}
+
+.center-right {
+    left:90%;
+}
+
+.center:hover {
+    opacity: 1;
+}
+
+@media (max-width: 767px) {
+    .loginBox {
+        padding:20px;
+        margin-top:0px;
+        background-repeat: no-repeat;
+        background-size: 100% 100%;
+        box-shadow: none;
+        border-radius: 0px 0px 10px 10px !important;
+        border:1px solid #ddd;
+        border-top:0px;
+    }
+    md-dialog {
+        min-width:100%;
+        min-height:100%;
+    }
+    .center {
+        top: 85%;
+    }
+    .center-left {
+        left:1%;
+    }
+    .center-right {
+        left:100%;
+        margin-left: -60px;
+    }
+    fieldset.fieldset-border {
+        border: none !important;
+        padding: 0 !important;
+        margin: 10px 0px 0px 0px !important;
+    }
+}
+
+@media (min-width: 992px) {
+    md-dialog {
+        max-width:60%;
+        max-height:90%;
+    }
+    md-dialog[class*="fixed-height"] {
+        min-height:90%;
+    }
+}
+
 
 
 /*.text-capitalize-first::first-letter {

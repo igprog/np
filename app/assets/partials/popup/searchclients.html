@@ -1,4 +1,4 @@
-﻿<md-dialog flex flex-gt-sx>
+﻿<md-dialog flex class="fixed-height">
     <md-toolbar class="main-background">
         <div class="md-toolbar-tools">
             <h2 class="text-capitalize">{{'clients' | translate}}</h2>
@@ -11,7 +11,7 @@
             <div class="row m10">
                 <div class="col-sm-4">
                     <div class="input-group">
-                        <input ng-model="searchValue" class="form-control text-capitalize" type="text" placeholder="{{'search' | translate}}..." autofocus />
+                        <input ng-model="searchValue" class="form-control search" type="text" placeholder="{{'search' | translate}}..." />
                         <span class="input-group-btn">
                             <a href="" class="btn btn-default"><i class="fa fa-search" aria-hidden="true"></i>&#8203;</a>
                         </span>
@@ -31,7 +31,7 @@
                     </thead>
                     <tbody>
                         <tr ng-repeat="x in d | filter:searchValue | limitTo:limit" ng-click="get(x)">
-                            <td style="width:20%">{{$index +1}}</td>
+                            <td style="width:20%">{{d.length-$index}}</td>
                             <td style="width:20%">{{x.firstName}}</td>
                             <td style="width:20%">{{x.lastName}}</td>
                             <td style="width:20%">{{getDateFormat(x.birthDate) | date:'dd.MM.yyyy'}}</td>

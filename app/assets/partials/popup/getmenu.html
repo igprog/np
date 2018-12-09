@@ -1,4 +1,4 @@
-﻿<md-dialog flex>
+﻿<md-dialog flex class="fixed-height">
     <form ng-cloak>
         <md-toolbar class="main-background">
             <div class="md-toolbar-tools">
@@ -20,16 +20,16 @@
                         </ul>
                     </div>
                     <div class="row">
-                        <div class="col-sm-4 ">
+                        <div class="col-sm-4">
                             <div class="input-group">
-                                <input ng-model="searchValue" class="form-control" type="text" placeholder="{{'search' | translate}}..." autofocus />
+                                <input ng-model="searchValue" class="form-control search" type="text" placeholder="{{'search' | translate}}..." />
                                 <span class="input-group-btn">
                                     <button class="btn btn-default" type="button"><i class="fa fa-search" aria-hidden="true"></i>&#8203;</button>
                                 </span>
                             </div>
                         </div>
-                        <div class="col-sm-4">
-                            <md-radio-group ng-show="appMenues==false" ng-model="type" layout="row">
+                        <div class="col-sm-4 p10 ml10">
+                            <md-radio-group ng-show="appMenues==false" ng-model="type" layout="row" ng-click="loadMore()">
                                 <md-radio-button value="0" class="md-primary">{{'all menus' | translate}}</md-radio-button>
                                 <md-radio-button value="1" class="md-primary">{{'client menus' | translate}}</md-radio-button>
                             </md-radio-group>
@@ -47,7 +47,6 @@
                                 <th>{{'client' | translate}}</th>
                                 <th></th>
                             </tr>
-                            <!--<tr ng-if="type==1?x.client.clientId==clientData.clientId:x.client.clientId!=null" ng-repeat="x in d | filter:searchValue" ng-click="confirm(x)">-->
                             <tr ng-if="type==1?x.client.clientId==clientData.clientId:1==1" ng-repeat="x in d | filter:searchValue | limitTo:limit" ng-click="confirm(x)">
                                 <td class="nowrap">{{x.title}}</td>
                                 <td class="nowrap">{{x.diet | translate}}</td>

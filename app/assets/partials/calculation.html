@@ -1,8 +1,8 @@
 ﻿<div ng-controller="calculationCtrl">
     <div>
         <div class="panel-heading">
-            <a ng-if="pdfLink==null" ng-click="printPdf()" class="btn btn-default text-capitalize" ng-disabled="creatingPdf"><i class="fa fa-{{creatingPdf==true?'spinner fa-spin':'file-pdf-o'}}"></i> {{'create pdf' | translate}}</a>
-            <a ng-if="pdfLink!=null" href="{{pdfLink}}" class="btn btn-success text-capitalize" download ng-click="hidePdfLink()"><i class="fa fa-file-pdf-o"></i> {{'download' | translate}} {{'PDF' | translate}}</a>
+            <a ng-if="pdfLink==null" ng-click="printPdf()" class="btn btn-default text-capitalize" ng-disabled="creatingPdf"><span class="text-danger"><i class="fa fa-{{creatingPdf==true?'spinner fa-spin':'file-pdf-o'}}"></i> {{'create pdf' | translate}}</span></a>
+            <a ng-if="pdfLink!=null" href="{{pdfLink}}" class="btn btn-success text-capitalize" download ng-click="hidePdfLink()"><i class="fa fa-file-pdf-o"></i> {{'take pdf' | translate}}</a>
         </div>
         <div class="row mt10">
             <div class="col-sm-6">
@@ -107,7 +107,7 @@
                                 <td>{{'energy intake' | translate}}</td>
                                 <td width="100px" class="text-right bg-success">
                                     <strong>
-                                        {{appCalculation.recommendedEnergyIntake}}
+                                        {{calculation.recommendedEnergyIntake}}
                                     </strong>
                                 </td>
                                 <td><strong>kcal</strong></td>
@@ -116,7 +116,7 @@
                                 <td>{{'additional energy expenditure' | translate}}</td>
                                 <td width="100px" class="text-right bg-success">
                                     <strong>
-                                        {{appCalculation.recommendedEnergyExpenditure}}
+                                        {{calculation.recommendedEnergyExpenditure}}
                                     </strong>
                                 </td>
                                 <td><strong>kcal</strong></td>
@@ -157,9 +157,9 @@
             </div>
         </div>
     </div>
-    <div style="margin-bottom:30px">
-        <a href="" ng-if="client.clientId" class="btn btn-primary btn-lg pull-left" ng-click="toggleNewTpl('clientsdata')"><i class="fa fa-angle-double-left" aria-hidden="true"></i><span class="text-capitalize"> {{'back' | translate}}</span></a>
-        <a href="" ng-if="client.clientId" class="btn btn-primary btn-lg pull-right" ng-click="toggleNewTpl('activities')"><span class="text-capitalize">{{'forward' | translate}} </span><i class="fa fa-angle-double-right" aria-hidden="true"></i></a>
+    <div>
+        <a href="" ng-if="client.clientId" class="btn btn-default btn-lg center center-left" title="{{'back' | translate}}" ng-click="toggleNewTpl('clientsdata')"><i class="fa fa-angle-double-left fa-2x text-primary" aria-hidden="true"></i></a>
+        <a href="" ng-if="client.clientId" class="btn btn-default btn-lg center center-right" title="{{'forward' | translate}}" ng-click="toggleNewTpl('activities')"><i class="fa fa-angle-double-right fa-2x text-primary" aria-hidden="true"></i></a>
     </div> 
 </div>
 
