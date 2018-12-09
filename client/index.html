@@ -1,10 +1,10 @@
 ﻿<html lang="en">
 <head>
-    <title>Program Prehrane Web</title>
+    <title>Nutri Prog | Client</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Web aplikacija za izradu uravnoteženih jelovnika i plana tjelesne aktivnosti.">
-    <meta name="author" content="IG PROG, obrt za računalno programiranje">
+    <meta name="description" content="Nutri Prog. Application for clients.">
+    <meta name="author" content="IG PROG">
     <!--CDN CSS-->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <!--CSS-->
@@ -60,17 +60,57 @@
             </div>
         </nav>
 
-    <div class="container mt20 mb20" ng-include="currTpl" style="margin-bottom:50px"></div>
+    <div id="mySidenav" class="sidenav">
+        <a href="javascript:void(0)" class="closebtn mt40" title="{{'cancel' | translate}}" onclick="closeNav()">&times;</a>
+        <div class="p20 text-capitalize">
+            <form>
+                <div class="form-group">
+                    <label for="firstName">{{'first name' | translate}}:</label>
+                    <input if="firstName" ng-model="client.firstName" type="text" placeholder="{{'first name' | translate}}" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label for="lastName">{{'last name' | translate}}:</label>
+                    <input if="lastName" ng-model="client.lastName" type="text" placeholder="{{'last name' | translate}}" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label for="birthDate">{{'birth date' | translate}}:</label>
+                    <input if="birthDate" ng-model="client.birthDate" type="date" placeholder="{{'birth date' | translate}}" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label class="radio-inline"><input ng-model="client.gender.value" value="0" type="radio" name="optradio" ng-click="setGenderTitle(client.gender)">{{'male' | translate}}</label>
+                    <label class="radio-inline"><input ng-model="client.gender.value" value="1" type="radio" name="optradio" ng-click="setGenderTitle(client.gender)">{{'female' | translate}}</label>
+                </div>
+                <div class="form-group">
+                    <label for="phone">{{'phone' | translate}}:</label>
+                    <input if="phone" ng-model="client.phone" type="text" placeholder="{{'phone' | translate}}" class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label for="email">{{'email' | translate}}:</label>
+                    <input if="email" ng-model="client.email" type="text" placeholder="{{'email' | translate}}" class="form-control" />
+                </div>
+                <div class="text-right">
+                    <button ng-click="updateClient(client)" type="submit" class="btn btn-default"><i class="fa fa-floppy-o"></i> {{'save' | translate}}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="user-info" onclick="openNav()"><i class="fa fa-cog"></i> {{client.firstName}} {{client.lastName}}</div>
+    <div class="container mt20 mb20" ng-include="currTpl" style="margin-bottom:50px" onclick="closeNav()"></div>
     <div class="text-right navbar-fixed-bottom" style="padding:5px 10px 0px 0px">
         <span class="text-primary small">&copy {{today | date:'yyyy'}} {{config.copyright}}</span>
     </div>
-
-   
-   
 
     <script src="assets/js/app.js?v=2"></script>
     <script src="assets/js/functions.js?v=1.0.0"></script>
     <script src="assets/js/charts.js?v=1.0.0"></script>
 
+    <script>
+        function openNav() {
+            document.getElementById("mySidenav").style.width = "270px";
+        }
+        function closeNav() {
+            document.getElementById("mySidenav").style.width = "0";
+        }
+    </script>
 </body>
 </html>

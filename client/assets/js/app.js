@@ -25,38 +25,77 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'chart.js', 'ngSto
 
 }])
 
-
-
 .controller('AppCtrl', ['$scope', '$timeout', '$q', '$log', '$rootScope', '$localStorage', '$sessionStorage', '$window', '$http', '$translate', '$translatePartialLoader', 'functions', 'charts', function ($scope, $timeout, $q, $log, $rootScope, $localStorage, $sessionStorage, $window, $http, $translate, $translatePartialLoader, functions, charts) {
 
-    var querystring = location.search;
-    if (!functions.isNullOrEmpty(querystring)) {
-        if (querystring.split('&')[0].substring(1, 4) == 'uid') {
-            $scope.userId = querystring.split('&')[0].substring(5);
-        }
-        if (querystring.split('&')[1].substring(0, 3) == 'cid') {
-            $scope.clientId = querystring.split('&')[1].substring(4);
-        }
-    }
-    
     $scope.today = new Date();
+
+    function initPrintSettings() {
+        $http({
+            url: $sessionStorage.config.backend + 'PrintPdf.asmx/InitMenuSettings',
+            method: "POST",
+            data: {}
+        })
+       .then(function (response) {
+           $scope.settings = JSON.parse(response.data.d);
+       },
+       function (response) {
+           alert(response.data.d)
+       });
+    };
+
+    var saveVersion = function () {
+        if (typeof (Storage) !== "undefined") {
+            localStorage.version = $scope.config.version;
+        }
+        window.location.reload(true);
+    }
+
+    $scope.setLanguage = function (x) {
+        $translate.use(x);
+        $translatePartialLoader.addPart('main');
+        $scope.config.language = x;
+        if (typeof (Storage) !== "undefined") {
+            if (localStorage.language !== undefined) {
+                if (localStorage.language !== x) {
+                    $timeout(function () {
+                        setClientLogGraphData(0);
+                    }, 300);
+                }
+            }
+            localStorage.language = x;
+        }
+        //$sessionStorage.config.language = x;
+    };
 
     var getConfig = function () {
         $http.get('./config/config.json')
           .then(function (response) {
-              $rootScope.config = response.data;
-              $sessionStorage.config = response.data;
-              getClient();
-              var queryLang = location.search.substring(6);
-              if (angular.isDefined(queryLang)) {
-                  if (queryLang == 'hr' || queryLang == 'sr' || queryLang == 'en') {
-                      $rootScope.setLanguage(queryLang);
+              $scope.config = response.data;
+              var querystring = location.search;
+              if (!functions.isNullOrEmpty(querystring)) {
+                  if (querystring.split('&')[0].substring(1, 4) == 'uid') {
+                      $scope.userId = querystring.split('&')[0].substring(5);
+                  }
+                  if (querystring.split('&')[1].substring(0, 3) == 'cid') {
+                      $scope.clientId = querystring.split('&')[1].substring(4);
+                  }
+                  if (querystring.split('&')[2].substring(0, 4) == 'lang') {
+                      $scope.config.language = querystring.split('&')[2].substring(5);
                   }
               }
-              if ($sessionStorage.islogin == true) { $rootScope.loadData(); }
+              $scope.setLanguage($scope.config.language);
+              $sessionStorage.config = $scope.config;
+              getClient();
+              initPrintSettings();
+              if (localStorage.version) {
+                  if (localStorage.version != $scope.config.version) {
+                      saveVersion();
+                  }
+              } else {
+                  saveVersion();
+              }
           });
     };
-    
 
     $rootScope.loadPals = function () {
         $http({
@@ -74,44 +113,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'chart.js', 'ngSto
 
     $rootScope.loadData = function () {
         $rootScope.loadPals();
-    }
-
-    $scope.toggleCurrTpl = function (x) {
-        $scope.currTpl = './assets/partials/' + x;
-    };
-    $scope.toggleCurrTpl('clientdata.html');
-
-    $scope.toggleTpl = function (x) {
-        $scope.tpl = x;
-    };
-    $scope.toggleTpl('inputData');
-
-    $scope.toggleSubTpl = function (x) {
-        $scope.subTpl = x;
-    };
-    $scope.toggleSubTpl('clientLog');
-
-    $scope.showSaveMessage = false;
-
-    
-    $rootScope.saveClientData = function (x) {
-        saveClientData(x);
-    }
-
-    var saveClientData = function (x) {
-        x.userId = $rootScope.user.userId;
-        x.clientId = x.clientId == null ? $rootScope.client.clientId : x.clientId;
-        $http({
-            url: $sessionStorage.config.backend + 'ClientsData.asmx/Save',
-            method: 'POST',
-            data: { userId: $sessionStorage.usergroupid, x: x }
-        })
-       .then(function (response) {
-           $scope.clientData.date = new Date($rootScope.clientData.date);
-       },
-       function (response) {
-           alert(response.data.d)
-       });
     }
 
     $scope.showTabs = function () {
@@ -138,6 +139,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'chart.js', 'ngSto
         })
         .then(function (response) {
             $scope.client = JSON.parse(response.data.d);
+            $scope.client.birthDate = new Date($scope.client.birthDate);
             getClientData();
         },
         function (response) {
@@ -170,6 +172,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'chart.js', 'ngSto
         })
         .then(function (response) {
             $scope.clientLog = JSON.parse(response.data.d);
+            angular.forEach($scope.clientLog, function (x, key) {
+                x.date = new Date(x.date);
+            });
+
             setClientLogGraphData(0);
         },
         function (response) {
@@ -181,7 +187,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'chart.js', 'ngSto
         $http({
             url: $sessionStorage.config.backend + 'ClientsData.asmx/Save',
             method: "POST",
-            data: { userId: $scope.userId, x: x }
+            data: { userId: $scope.userId, x: x, userType: 0 }
         })
         .then(function (response) {
             getClientLog();
@@ -192,10 +198,12 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'chart.js', 'ngSto
     }
 
     $scope.updateClientLog = function (x) {
+        var cd = angular.copy(x);
+        cd.date = cd.date.toLocaleDateString();
         $http({
             url: $sessionStorage.config.backend + 'ClientsData.asmx/UpdateClientLog',
             method: "POST",
-            data: { userId: $scope.userId, clientData: x }
+            data: { userId: $scope.userId, clientData: cd }
         })
         .then(function (response) {
             getClientLog();
@@ -276,20 +284,20 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'chart.js', 'ngSto
             ['#3399ff', '#ff3333', '#33ff33'],
             [
                    {
-                       label: $translate.instant("measured value"),
+                       label: $translate.instant('measured value'),
                        borderWidth: 5,
                        type: 'line',
                        fill: true
                    },
                    {
-                       label: $translate.instant("lower limit"),
+                       label: $translate.instant('lower limit'),
                        borderWidth: 2,
                        backgroundColor: '#e6e6ff',
                        fill: false,
                        type: 'line'
                    },
                    {
-                       label: $translate.instant("upper limit"),
+                       label: $translate.instant('upper limit'),
                        borderWidth: 2,
                        backgroundColor: '#e6e6ff',
                        fill: false,
@@ -299,10 +307,18 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'chart.js', 'ngSto
             true
         )
 
+        var getRecommendedWeight = function (h) {
+            return {
+                min: Math.round(((18.5 * h * h) / 10000) * 10) / 10,
+                max: Math.round(((25 * h * h) / 10000) * 10) / 10
+            }
+        }
+
         //TODO - goal
         if (angular.isDefined($scope.calculation.recommendedWeight)) {
             angular.forEach($scope.clientLog, function (x, key) {
-                if (type == 0) { clientData.push(x.weight); goalFrom.push($scope.calculation.recommendedWeight.min); goalTo.push($scope.calculation.recommendedWeight.max); }
+                if (type == 0) { clientData.push(x.weight); goalFrom.push(getRecommendedWeight(x.height).min); goalTo.push(getRecommendedWeight(x.height).max); }
+                //if (type == 0) { clientData.push(x.weight); goalFrom.push($scope.calculation.recommendedWeight.min); goalTo.push($scope.calculation.recommendedWeight.max); }
                 if (type == 1) { clientData.push(x.waist); goalFrom.push(95); }
                 if (type == 2) { clientData.push(x.hip); goalFrom.push(97); }
                 if (key % (Math.floor($scope.clientLog.length / 31) + 1) === 0) {
@@ -370,6 +386,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'chart.js', 'ngSto
         })
         .then(function (response) {
             $scope.menu = JSON.parse(response.data.d);
+            $scope.menu.client.clientData = $scope.clientData;
             getTotals($scope.menu);
             $scope.toggleTpl('menu');
         },
@@ -378,13 +395,14 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'chart.js', 'ngSto
         });
     }
 
-    $scope.getMealTitle = function (x) {
-        if (x == 'B') { return 'breakfast'; }
-        if (x == 'MS') { return 'morning snack'; }
-        if (x == 'L') { return 'lunch'; }
-        if (x == 'AS') { return 'afternoon snack'; }
-        if (x == 'D') { return 'dinner'; }
-        if (x == 'MBS') { return 'meal before sleep'; }
+    $rootScope.getMealTitle = function (x) {
+        if (x.code == 'B') { return $translate.instant('breakfast'); }
+        else if (x.code == 'MS') { return $translate.instant('morning snack'); }
+        else if (x.code == 'L') { return $translate.instant('lunch'); }
+        else if (x.code == 'AS') { return $translate.instant('afternoon snack'); }
+        else if (x.code == 'D') { return $translate.instant('dinner'); }
+        else if (x.code == 'MBS') { return $translate.instant('meal before sleep'); }
+        else return x.title;
     }
 
     var getTotals = function (x) {
@@ -395,12 +413,14 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'chart.js', 'ngSto
         })
        .then(function (response) {
            $scope.totals = JSON.parse(response.data.d);
-           $scope.totals.price.currency = $rootScope.config.currency;
+           $scope.totals.price.currency = $scope.config.currency;
        },
        function (response) {
            alert(response.data.d)
        });
     }
+
+    var consumers = 1;
 
     $scope.pdfLink = null;
     $scope.creatingPdf = false;
@@ -410,7 +430,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'chart.js', 'ngSto
         $http({
             url: $sessionStorage.config.backend + 'PrintPdf.asmx/MenuPdf',
             method: "POST",
-            data: { userId: $scope.userId, currentMenu: $scope.menu, clientData: $scope.clientData, totals: $scope.totals, consumers: 1, lang: $rootScope.config.language }
+            data: { userId: $scope.userId, currentMenu: $scope.menu, totals: $scope.totals, consumers: consumers, lang: $scope.config.language, settings: $scope.settings }
         })
         .then(function (response) {
             var fileName = response.data.d;
@@ -481,7 +501,71 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'chart.js', 'ngSto
     }
     //********* New *****************
 
+    $scope.toggleCurrTpl = function (x) {
+        $scope.currTpl = './assets/partials/' + x;
+        if(x == 'clientdata.html') {
+            getCharts();
+        }
+    };
+    $scope.toggleCurrTpl('clientdata.html');
 
+    $scope.toggleTpl = function (x) {
+        $scope.tpl = x;
+        getCharts();
+    };
+    $scope.toggleTpl('inputData');
+
+    $scope.toggleSubTpl = function (x) {
+        $scope.subTpl = x;
+    };
+    $scope.toggleSubTpl('clientLog');
+
+    $scope.show = false;
+    $scope.showTitle = 'show';
+    $scope.showOther = function () {
+        $scope.show = !$scope.show;
+        if ($scope.show == true) {
+            $scope.showTitle = 'hide';
+        } else {
+            $scope.showTitle = 'show';
+        }
+    }
+
+    $scope.showLog = true;
+    $scope.showClientLog = function () {
+        $scope.showLog = !$scope.showLog;
+    }
+
+    $scope.getBmiClass = function (x) {
+        if (x < 18.5) { return { text: 'text-info', bg: 'alert alert-info', icon: 'fa fa-exclamation' }; }
+        if (x >= 18.5 && x <= 25) { return { text: 'text-success', bg: 'alert alert-success', icon: 'fa fa-check' }; }
+        if (x > 25 && x < 30) { return { text: 'text-warning', bg: 'alert alert-warning', icon: 'fa fa-exclamation' }; }
+        if (x >= 30) { return { text: 'text-danger', bg: 'alert alert-danger', icon: 'fa fa-exclamation' }; }
+    }
+
+    $scope.updateClient = function (x) {
+        updateClient(x);
+    }
+
+    var updateClient = function (x) {
+        var c = angular.copy(x);
+        c.birthDate = c.birthDate.toLocaleDateString();
+        $http({
+            url: $sessionStorage.config.backend + 'Clients.asmx/UpdateClient',
+            method: 'POST',
+            data: { userId: $scope.userId, x: c }
+        })
+       .then(function (response) {
+           document.getElementById("mySidenav").style.width = "0";
+       },
+       function (response) {
+           alert(response.data.d);
+       });
+    }
+
+    $scope.setGenderTitle = function (x) {
+        x.title = x.value == 0 ? 'male' : 'femaile';
+    }
 
 }])
 
@@ -526,7 +610,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'chart.js', 'ngSto
         }
     }
 });
-
 
 
 ;
