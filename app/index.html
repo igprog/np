@@ -96,10 +96,10 @@
                 </div>
             </div>
         </nav>
-        <div ng-cloak>
+        <div ng-cloak class="container">
             <div ng-if="!isLogin" class="text-center" style="padding-top:40px; color:white">
-                <h1 class="text-uppercase" style="font-size:26px">Nutri Prog</h1>
-                <h2 style="font-size:18px"><em>Web Application</em></h2>
+                <h1 class="text-uppercase" style="font-size:26px">{{config.title | translate}}</h1>
+                <h2 style="font-size:18px"><em>{{'version' | translate}}: {{config.version}}</em></h2>
             </div>
             <div ng-if="loading" layout="row" layout-sm="column" layout-align="space-around" class="text-center">
                 <md-progress-circular ng-disabled="!loading" md-mode="indeterminate"></md-progress-circular>
@@ -115,11 +115,13 @@
                 <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
                 <strong>
                     <i class="fa fa-info-circle fa-2x" aria-hidden="true"></i><span class="text-uppercase ml5">{{mainMessage}}</span>
-                    <strong class="btn btn-success ml10" ng-click="toggleTpl('order.html'); hideMsg()"><i class="fa fa-hand-o-right fa-2x" aria-hidden="true"></i><span class="text-uppercase ml5">{{mainMessageBtn}}</span></strong>
+                    <button class="btn btn-default text-uppercase ml10" ng-click="toggleTpl('order.html'); hideMsg()">
+                        <span class="text-success"><i class="fa fa-hand-o-right fa-2x arrow1" aria-hidden="true"></i> {{mainMessageBtn}}</span>
+                    </button>
                 </strong>
             </div>
 
-            <div ng-show="!loading" class="container" ng-include="currTpl" style="margin-bottom:50px"></div>
+            <div ng-show="!loading" ng-include="currTpl" style="margin-bottom:50px"></div>
 
             <div class="text-right navbar-fixed-bottom" style="padding:5px 10px 0px 0px">
                 <span class="text-primary small">&copy {{today | date:'yyyy'}} {{config.copyright}}</span>

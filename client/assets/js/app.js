@@ -9,7 +9,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'chart.js', 'ngSto
     $translateProvider.useLoader('$translatePartialLoader', {
          urlTemplate: './assets/json/translations/{lang}/{part}.json'
     });
-    $translateProvider.preferredLanguage('hr');
+    $translateProvider.preferredLanguage('en');
     $translatePartialLoaderProvider.addPart('main');
     $translateProvider.useSanitizeValueStrategy('escape');
 
@@ -67,10 +67,69 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'chart.js', 'ngSto
         //$sessionStorage.config.language = x;
     };
 
+    $scope.toggleCurrTpl = function (x) {
+        $scope.currTpl = './assets/partials/' + x;
+        if (x == 'clientdata.html') {
+            $scope.tpl = 'inputData';
+            $scope.subTpl = 'clientLog';
+            getCharts();
+        }
+        if (x == 'activation.html') {
+            $scope.client = null;
+            $scope.clientApp = null;
+            localStorage.code = null;
+            localStorage.language = null;
+            $sessionStorage.config.language = null;
+            $scope.clientId = null;
+            $scope.userId = null;
+            window.location = window.location.href.split("?")[0];
+        }
+    };
+
+    $scope.toggleTpl = function (x) {
+        $scope.tpl = x;
+        getCharts();
+    };
+
+    $scope.toggleSubTpl = function (x) {
+        $scope.subTpl = x;
+    };
+
+    $scope.activationCode = null;
+    $scope.activateApp = function (x) {
+        debugger;
+        if (x == null || x == '' || x == 'null') { return false; }
+        $http({
+            url: $sessionStorage.config.backend + 'ClientApp.asmx/Activate',
+            method: 'POST',
+            data: { code: x }
+        })
+       .then(function (response) {
+           $scope.clientApp = JSON.parse(response.data.d);
+           if ($scope.clientApp.code == x) {
+               localStorage.code = $scope.clientApp.code;
+               localStorage.language = $scope.clientApp.lang;
+               $sessionStorage.config.language = $scope.clientApp.lang;
+               $scope.clientId = $scope.clientApp.clientId;
+               $scope.userId = $scope.clientApp.userId;
+               getClient();
+               $scope.toggleCurrTpl('clientdata.html');
+           } else {
+               alert($translate.instant('wrong activation code'))
+           }
+       },
+       function (response) {
+           alert(response.data.d);
+       });
+    }
+
     var getConfig = function () {
+        $scope.userId = null;
+        $scope.clientId = null;
         $http.get('./config/config.json')
           .then(function (response) {
               $scope.config = response.data;
+              $sessionStorage.config = $scope.config;
               var querystring = location.search;
               if (!functions.isNullOrEmpty(querystring)) {
                   if (querystring.split('&')[0].substring(1, 4) == 'uid') {
@@ -82,11 +141,23 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'chart.js', 'ngSto
                   if (querystring.split('&')[2].substring(0, 4) == 'lang') {
                       $scope.config.language = querystring.split('&')[2].substring(5);
                   }
+              } else {
+                  if (typeof (Storage) !== "undefined") {
+                      if (localStorage.code !== undefined) {
+                          $scope.activateApp(localStorage.code);
+                      }
+                  }
               }
+              if ($scope.userId == null || $scope.clientId == null) {
+                  $scope.currTpl = './assets/partials/activation.html';
+                  return false;
+              }
+
               $scope.setLanguage($scope.config.language);
               $sessionStorage.config = $scope.config;
               getClient();
               initPrintSettings();
+              $scope.toggleCurrTpl('clientdata.html');
               if (localStorage.version) {
                   if (localStorage.version != $scope.config.version) {
                       saveVersion();
@@ -265,7 +336,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'chart.js', 'ngSto
     $scope.calculate = function () {
         getCalculation();
         getCharts();
-
     }
 
     var setClientLogGraphData = function (type) {
@@ -321,7 +391,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'chart.js', 'ngSto
                 if (type == 1) { clientData.push(x.waist); goalFrom.push(95); }
                 if (type == 2) { clientData.push(x.hip); goalFrom.push(97); }
                 if (key % (Math.floor($scope.clientLog.length / 31) + 1) === 0) {
-                    labels.push(new Date(x.date));
+                    labels.push(new Date(x.date).toLocaleDateString());
                 } else {
                     labels.push("");
                 }
@@ -356,7 +426,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'chart.js', 'ngSto
         });
     }
 
-
     getConfig();
 
     $scope.loading = false;
@@ -368,7 +437,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'chart.js', 'ngSto
             data: { userId: $scope.userId, clientId: $scope.clientId }
         })
        .then(function (response) {
-           $scope.menues = JSON.parse(response.data.d);
+           $scope.menus = JSON.parse(response.data.d);
            $scope.loading = false;
        },
        function (response) {
@@ -499,25 +568,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'chart.js', 'ngSto
         }
     }
     //********* New *****************
-
-    $scope.toggleCurrTpl = function (x) {
-        $scope.currTpl = './assets/partials/' + x;
-        if(x == 'clientdata.html') {
-            getCharts();
-        }
-    };
-    $scope.toggleCurrTpl('clientdata.html');
-
-    $scope.toggleTpl = function (x) {
-        $scope.tpl = x;
-        getCharts();
-    };
-    $scope.toggleTpl('inputData');
-
-    $scope.toggleSubTpl = function (x) {
-        $scope.subTpl = x;
-    };
-    $scope.toggleSubTpl('clientLog');
 
     $scope.show = false;
     $scope.showTitle = 'show';

@@ -352,6 +352,12 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
     var saveClientData = function (x) {
+        if ($rootScope.user.licenceStatus == 'demo') {
+            if ($rootScope.newTpl == 'assets/partials/clientsdata.html') {
+                functions.demoAlert('the saving function is disabled in demo version');
+            }
+            return false;
+        }
         x.userId = $rootScope.user.userId;
         x.clientId = x.clientId == null ? $rootScope.client.clientId : x.clientId;
         $http({
@@ -842,7 +848,8 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
     var save = function (x) {
-        if ($rootScope.user.licenceStatus == 'demo' || $rootScope.user.userType < 1) {
+        if ($rootScope.user.licenceStatus == 'demo') {
+            functions.demoAlert('the saving function is disabled in demo version');
             return false;
         }
         $http({
@@ -1268,7 +1275,13 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         })
         .then(function (response) {
             $rootScope.client = response;
-            $scope.get(response);
+           // $scope.get($rootScope.client);
+            if ($rootScope.user.licenceStatus == 'demo') {
+                init($rootScope.client);
+                $rootScope.client.clientId = 'demo';
+            } else {
+                $scope.get($rootScope.client);
+            }
         }, function () {
         });
     };
@@ -1277,6 +1290,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.d = d;
         $scope.d.date = new Date($scope.d.date);
         $scope.d.birthDate = new Date($scope.d.birthDate);
+        $scope.user = $rootScope.user;
 
         var getDateDiff = function (x) {
             var today = new Date();
@@ -1309,8 +1323,13 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                     $scope.birthDateRequiredMsq = null;
                 }
             }
-            if ($rootScope.user.licenceStatus == 'demo' && $rootScope.clients.length > 0) {
-                functions.demoAlert('in demo version you can enter only one client');
+            //if ($rootScope.user.licenceStatus == 'demo' && $rootScope.clients.length > 0) {
+            //    functions.demoAlert('in demo version you can enter only one client');
+            //    return false;
+            //}
+            if ($rootScope.user.licenceStatus == 'demo') {
+                //functions.demoAlert('the saving function is disabled in demo version');
+                $mdDialog.hide(x);
                 return false;
             }
             x.userId = $sessionStorage.userid;
@@ -1489,6 +1508,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
     $scope.getClientLog = function (x) {
+        if ($rootScope.user.licenceStatus == 'demo') {
+            $scope.toggleTpl('clientStatictic');
+            return false;
+        }
         $http({
             url: $sessionStorage.config.backend + 'ClientsData.asmx/GetClientLog',
             method: "POST",
@@ -1739,49 +1762,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.pdfLink1 = null;
     }
 
-    $scope.clientAppUrl = function (x) {
-        if (x !== undefined) {
-            return $rootScope.config.clientapppageurl + '?uid=' + x.userId + '&cid=' + x.clientId + '&lang=' + $rootScope.config.language;
-        } else {
-            return;
-        }
-    }
-
-    $scope.sendingMail = false;
-    $scope.sendAppLinkToClientEmail = function (client) {
-        if ($scope.sendingMail == true) { return false; }
-        if (functions.isNullOrEmpty(client.email)) {
-            functions.alert($translate.instant('email is required'), '');
-            return false;
-        }
-        $scope.sendingMail = true;
-        var link = $scope.clientAppUrl(client);
-        var messageSubject = $translate.instant('nutrition program') + '. ' + $translate.instant('app access link')   //'Program Prehrane | Klijent. link za pristup aplikaciji';
-        var messageBody = '<p>' + $translate.instant('dear') + ',' + '</p>' +
-            $translate.instant('the app access link to track your body weight and download menus is') + ': ' +
-            '<br />' +
-            '<strong><a href="' + link + '">' + link + '</a></strong>' + 
-            '<br />' +
-            '<br />' +
-            '<i>* ' + $translate.instant('this is an automatically generated email – please do not reply to it') + '</i>' +
-            '<br />' +
-            '<p>' + $translate.instant('best regards') + '</p>' +
-            '<a href="' + $rootScope.config.webpageurl + '">' + $rootScope.config.webpage + '</a>'
-        $http({
-            url: $sessionStorage.config.backend + 'Mail.asmx/SendMessage',
-            method: "POST",
-            data: { sendTo: client.email, messageSubject: messageSubject, messageBody: messageBody, lang: $rootScope.config.language }
-        })
-        .then(function (response) {
-            $scope.sendingMail = false;
-            functions.alert(response.data.d, '');
-        },
-        function (response) {
-            $scope.sendingMail = false;
-            functions.alert($translate.instant(response.data.d), '');
-        });
-    }
-
     $scope.clientLogDiff = function (type, clientLog, x, idx) {
         var diff = 0;
         if (clientLog.length - idx == 1) return {
@@ -1819,12 +1799,22 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         }
     }
 
+    /*
     $scope.backToApp = function () {
         $rootScope.currTpl = './assets/partials/dashboard.html';
     }
 
+    $scope.showAccessClientAppData = false;
+    $scope.showAccessClientAppDataTitle = $translate.instant('show access data');
+    $scope.toggleAccessClientAppData = function () {
+        $scope.showAccessClientAppData = !$scope.showAccessClientAppData;
+        $scope.showAccessClientAppDataTitle = $scope.showAccessClientAppData == true ? $translate.instant('hide access data') : $translate.instant('show access data');
+    };
+    */
 
 }])
+
+
 
 .controller('detailCalculationOfEnergyExpenditureCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', '$timeout', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate, $timeout) {
     $rootScope.totalDailyEnergyExpenditure = {
@@ -1939,7 +1929,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
     $scope.save = function (x) {
-        if ($rootScope.user.licenceStatus == 'demo' && $rootScope.clients.length > 0) {
+        if ($rootScope.user.licenceStatus == 'demo') {
             functions.demoAlert('this function is not available in demo version');
             return false;
         }
@@ -2268,6 +2258,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
     $scope.saveMyCalculation = function (x) {
+        if ($rootScope.user.licenceStatus == 'demo') {
+            functions.demoAlert('the saving function is disabled in demo version');
+            return false;
+        }
         var myCalculation = angular.copy($rootScope.calculation);
         myCalculation.recommendedEnergyIntake = x.recommendedEnergyIntake;
         myCalculation.recommendedEnergyExpenditure = x.recommendedEnergyExpenditure;
@@ -2707,6 +2701,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
     $scope.save = function () {
+        if ($rootScope.user.licenceStatus == 'demo') {
+            functions.demoAlert('the saving function is disabled in demo version');
+            return false;
+        }
         if ($rootScope.user.userType < 2) {
             return false;
         }
@@ -3657,7 +3655,8 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             return false;
         }
         if ($rootScope.user.licenceStatus == 'demo') {
-            functions.demoAlert('this function is not available in demo version');
+            functions.demoAlert('the saving function is disabled in demo version');
+            return false;
         } else {
             openSaveMenuPopup();
         }
@@ -4488,6 +4487,9 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         }
 
         var load = function () {
+            if ($rootScope.user.licenceStatus == 'demo') {
+                return false;
+            }
             $scope.loading = true;
             $scope.appRecipes = false;
             $http({
@@ -5065,7 +5067,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
     $scope.save = function (x) {
-        if ($rootScope.user.licenceStatus == 'demo' && $rootScope.clients.length > 0) {
+        if ($rootScope.user.licenceStatus == 'demo') {
             functions.demoAlert('this function is not available in demo version');
             return false;
         }
@@ -5118,6 +5120,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
     var openMyFoodsPopup = function () {
+        if ($rootScope.user.licenceStatus == 'demo') { return false; }
         $mdDialog.show({
             controller: getMyFoodsPopupCtrl,
             templateUrl: 'assets/partials/popup/myfoods.html',
@@ -5207,6 +5210,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     };
 
     var load = function () {
+        if ($rootScope.user.licenceStatus == 'demo') { return false; }
         $rootScope.loading = true;
         $http({
             url: $sessionStorage.config.backend + 'Recipes.asmx/Load',
@@ -5307,6 +5311,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
     $scope.save = function (recipe) {
+        if ($rootScope.user.licenceStatus == 'demo') {
+            functions.demoAlert('the saving function is disabled in demo version');
+            return false;
+        }
         if (recipe.title == '' || recipe.title == null) {
             functions.alert($translate.instant('enter recipe title'), '');
             return false;
@@ -5378,6 +5386,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
     var openMyRecipesPopup = function () {
+        if ($rootScope.user.licenceStatus == 'demo') { return false; }
         $mdDialog.show({
             controller: getMyRecipesPopupCtrl,
             templateUrl: 'assets/partials/popup/myrecipes.html',
@@ -5398,6 +5407,9 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         }
 
         var load = function () {
+            if ($rootScope.user.licenceStatus == 'demo') {
+                return false;
+            }
             $scope.loading = true;
             $http({
                 url: $sessionStorage.config.backend + 'Recipes.asmx/Load',
@@ -5495,7 +5507,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
     $scope.save = function (x) {
-        if ($rootScope.user.licenceStatus == 'demo' && $rootScope.clients.length > 0) {
+        if ($rootScope.user.licenceStatus == 'demo') {
             functions.demoAlert('this function is not available in demo version');
             return false;
         }
@@ -5905,6 +5917,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         window.location.hash = 'registration';
     }
 
+    $scope.backToApp = function () {
+        $rootScope.currTpl = './assets/partials/dashboard.html';
+    }
+
 }])
 
 .controller('infoCtrl', ['$scope', '$rootScope', '$translate', function ($scope, $rootScope, $translate) {
@@ -5936,6 +5952,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     if(angular.isDefined($sessionStorage.settings)){$rootScope.settings = $sessionStorage.settings;}
 
     $scope.save = function (d) {
+        if ($rootScope.user.licenceStatus == 'demo') {
+            functions.demoAlert('the saving function is disabled in demo version');
+            return false;
+        }
         $http({
             url: $sessionStorage.config.backend + webService + '/SaveJsonToFile',
             method: "POST",
@@ -6214,6 +6234,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.d = d.weeklyMenu;
 
         var save = function (x) {
+            if ($rootScope.user.licenceStatus == 'demo') {
+                functions.demoAlert('the saving function is disabled in demo version');
+                return false;
+            }
             if (functions.isNullOrEmpty(x.title)) {
                 functions.alert($translate.instant('enter menu title'), '');
                 return false;
@@ -6366,6 +6390,118 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         }
 
     };
+
+}])
+
+.controller('clientAppCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', '$timeout', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate, $timeout) {
+    var webService = 'ClientApp.asmx';
+    $scope.show = false;
+    $scope.showTitle = $translate.instant('show access data');
+
+    $scope.toggle = function (client, clientApp) {
+        $scope.show = !$scope.show;
+        if ($scope.show == true) {
+            if (clientApp.id == null) {
+                $scope.getActivationCode(client, clientApp);
+            }
+            $scope.showTitle = $translate.instant('hide access data');
+        } else {
+            $scope.showTitle = $translate.instant('show access data');
+        }
+    };
+
+    $scope.get = function (x) {
+        $scope.show = false;
+        $scope.showTitle = $translate.instant('show access data');
+        $http({
+            url: $sessionStorage.config.backend + webService + '/Get',
+            method: "POST",
+            data: { clientId: x.clientId }
+        })
+        .then(function (response) {
+            $scope.clientApp = JSON.parse(response.data.d);
+        },
+        function (response) {
+            alert(response.data.d)
+        });
+    }
+
+    $scope.client = null;
+    $scope.getActivationCode = function (client, clientApp) {
+        if (clientApp.id == null) {
+            clientApp.clientId = client.clientId;
+            clientApp.userId = $rootScope.user.userGroupId;
+            clientApp.lang = $rootScope.config.language;
+        }
+        $http({
+            url: $sessionStorage.config.backend + webService + '/GetActivationCode',
+            method: "POST",
+            data: { x: clientApp }
+        })
+        .then(function (response) {
+            $scope.clientApp = JSON.parse(response.data.d);
+        },
+        function (response) {
+            alert(response.data.d)
+        });
+    }
+
+    $scope.clientAppUrl = function (x) {
+        if (x !== undefined) {
+            return $rootScope.config.clientapppageurl + '?uid=' + x.userId + '&cid=' + x.clientId + '&lang=' + $rootScope.config.language;
+        } else {
+            return;
+        }
+    }
+
+    $scope.sendingMail = false;
+    $scope.sendAppLinkToClientEmail = function (client) {
+        if ($scope.sendingMail == true) { return false; }
+        if (functions.isNullOrEmpty(client.email)) {
+            functions.alert($translate.instant('email is required'), '');
+            return false;
+        }
+        $scope.sendingMail = true;
+        var link = $scope.clientAppUrl(client);
+        var messageSubject = $translate.instant('nutrition program') + '. ' + $translate.instant('application access data');
+        var messageBody = '<p>' + $translate.instant('dear') + ',' + '</p>' +
+            $translate.instant('we send you the access data to track your body weight and download menus') + '.' +
+            '<br />' +
+            '<br />' +
+            $translate.instant('web application') + ': ' + '<strong><a href="' + $rootScope.config.clientapppageurl + '">' + $rootScope.config.clientapppageurl + '</a></strong>' +
+            '<br />' +
+            $translate.instant('or') + ' ' + $translate.instant('android application') + ': ' + '<strong>' + '<a href="' + $rootScope.config.clientapp_apk + '">' + $rootScope.config.clientapp_apk + '</a></strong>' +
+            '<br />' +
+            '<iframe src="https://www.appsgeyser.com/social_widget/social_widget.php?width=100&height=100&apkName=Program Prehrane Klijent_8297899&simpleVersion=yes" width="180" height="220" vspace="0" hspace="0" frameborder="no" scrolling="no" seamless="" allowtransparency="true"></iframe>' +
+            '<br />' +
+            $translate.instant('activation code') + ': ' + '<strong>' + $scope.clientApp.code + '</strong>' +
+            '<br />' +
+            '<hr />' +
+             $translate.instant('or') + ' ' +  $translate.instant('web application') + ' (' + $translate.instant('without activation code') + '): ' + '<strong><a href="' + link + '">' + link + '</a></strong>' +
+            '<br />' +
+            '<br />' +
+            '<i>* ' + $translate.instant('this is an automatically generated email – please do not reply to it') + '</i>' +
+            '<br />' +
+            '<p>' + $translate.instant('best regards') + '</p>' +
+            '<a href="' + $rootScope.config.webpageurl + '">' + $rootScope.config.webpage + '</a>'
+        $http({
+            url: $sessionStorage.config.backend + 'Mail.asmx/SendMessage',
+            method: "POST",
+            data: { sendTo: client.email, messageSubject: messageSubject, messageBody: messageBody, lang: $rootScope.config.language }
+        })
+        .then(function (response) {
+            $scope.sendingMail = false;
+            functions.alert(response.data.d, '');
+        },
+        function (response) {
+            $scope.sendingMail = false;
+            functions.alert($translate.instant(response.data.d), '');
+        });
+    }
+
+    $scope.backToApp = function () {
+        $rootScope.currTpl = './assets/partials/dashboard.html';
+    }
 
 }])
 
