@@ -298,7 +298,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                     return false;
                 }
             }
-            debugger;
             if (x == 'menu') {
                 if ($rootScope.myMeals !== undefined) {
                     $rootScope.setMealCode();
@@ -435,17 +434,9 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.showUpdates = !$scope.showUpdates;
     };
 
-    var getDateDiff = function (x) {
-        var today = new Date();
-        var date1 = today;
-        var date2 = new Date(x);
-        var diffDays = parseInt((date2 - date1) / (1000 * 60 * 60 * 24));
-        return diffDays;
-    }
-
     $scope.dateDiff = function () {
         if (localStorage.lastvisit) {
-            return getDateDiff(localStorage.lastvisit)
+            return functions.getDateDiff(localStorage.lastvisit)
         } else {
             return 0;
         }
@@ -496,14 +487,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
     $scope.toggleTpl('loginTpl');
 
-    var getDateDiff = function (x) {
-        var today = new Date();
-        var date1 = today;
-        var date2 = new Date(x);
-        var diffDays = parseInt((date2 - date1) / (1000 * 60 * 60 * 24));
-        return diffDays;
-    }
-
     $scope.login = function (u, p) {
         $scope.errorMesage = null;
         if (functions.isNullOrEmpty(u) || functions.isNullOrEmpty(p)) {
@@ -551,7 +534,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                     $rootScope.currTpl = './assets/partials/order.html';
                 } else {
                     $rootScope.currTpl = './assets/partials/dashboard.html';
-                    var daysToExpite = getDateDiff($rootScope.user.expirationDate);
+                    var daysToExpite = functions.getDateDiff($rootScope.user.expirationDate);
                     if (daysToExpite <= 10 && daysToExpite > 0) {
                         $rootScope.mainMessage = $translate.instant('your subscription will expire in') + ' ' + daysToExpite + ' ' + (daysToExpite == 1 ? $translate.instant('day') : $translate.instant('days')) + '.';
                         $rootScope.mainMessageBtn = $translate.instant('renew subscription');
@@ -576,7 +559,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 $window.location.href = lang == 'hr' ? '../app/' : '../app/?lang=' + lang;
                 ***************/
 
-             //   $rootScope.loading = false;
             } else {
                 $rootScope.loading = false;
                 $scope.errorLogin = true;
@@ -837,7 +819,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         eventObj_old.clientId = angular.isDefined($rootScope.client) && $rootScope.client != null ? $rootScope.client.clientId : null;
         eventObj_old.content = angular.isUndefined(event.details[0].newSchedulerEvent.lastChange.content) ? x.content : event.details[0].newSchedulerEvent.lastChange.content.prevVal;
         eventObj_old.endDate = angular.isUndefined(event.details[0].newSchedulerEvent.lastChange.endDate) ? x.endDate : Date.parse(event.details[0].newSchedulerEvent.lastChange.endDate.prevVal);
-       // eventObj_old.startDate = startDatePrev == null ? x.startDate : Date.parse(startDatePrev);
         eventObj_old.startDate = angular.isUndefined(event.details[0].newSchedulerEvent.lastChange.startDate) ? x.startDate : Date.parse(event.details[0].newSchedulerEvent.lastChange.startDate.prevVal);
         eventObj_old.userId = $rootScope.user.userId;
         remove(eventObj_old);
@@ -858,7 +839,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             data: { userGroupId: $rootScope.user.userGroupId, userId: $rootScope.user.userId, x: x }
         })
         .then(function (response) {
-            //functions.alert($translate.instant(response.data.d));
         },
         function (response) {
             functions.alert($translate.instant(response.data.d));
@@ -874,7 +854,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         eventObj.startDate = x.startDate;
         eventObj.userId = $rootScope.user.userId;
         remove(eventObj);
-        //$scope.getSchedulerByRoom();
     }
 
     var remove = function (x) {
@@ -884,7 +863,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             data: { userGroupId: $rootScope.user.userGroupId, userId: $rootScope.user.userId, x: x }
         })
         .then(function (response) {
-            //alert($translate.instant(response.data.d))
         },
         function (response) {
             functions.alert($translate.instant(response.data));
@@ -1275,7 +1253,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         })
         .then(function (response) {
             $rootScope.client = response;
-           // $scope.get($rootScope.client);
             if ($rootScope.user.licenceStatus == 'demo') {
                 init($rootScope.client);
                 $rootScope.client.clientId = 'demo';
@@ -1291,14 +1268,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.d.date = new Date($scope.d.date);
         $scope.d.birthDate = new Date($scope.d.birthDate);
         $scope.user = $rootScope.user;
-
-        var getDateDiff = function (x) {
-            var today = new Date();
-            var date2 = today;
-            var date1 = new Date(x);
-            var diffDays = parseInt((date2 - date1) / (1000 * 60 * 60 * 24));
-            return diffDays;
-        }
 
         $scope.hide = function () {
             $mdDialog.hide();
@@ -1316,19 +1285,14 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 return false;
             } else {
                 $scope.firstNameRequiredMsq = null;
-                if (getDateDiff(x.birthDate) < 365) {
+                if (functions.getDateDiff(x.birthDate) < 365) {
                     $scope.birthDateRequiredMsq = 'birth date is required';
                     return false;
                 } else {
                     $scope.birthDateRequiredMsq = null;
                 }
             }
-            //if ($rootScope.user.licenceStatus == 'demo' && $rootScope.clients.length > 0) {
-            //    functions.demoAlert('in demo version you can enter only one client');
-            //    return false;
-            //}
             if ($rootScope.user.licenceStatus == 'demo') {
-                //functions.demoAlert('the saving function is disabled in demo version');
                 $mdDialog.hide(x);
                 return false;
             }
@@ -1601,19 +1565,41 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         });
     };
 
-    $scope.changeDisplayType = function (x) {
-        setClientLogGraphData(x);
+    var initChartDays = function () {
+        $scope.chartDays = [
+           { days: 7, title: 'last 7 days' },
+           { days: 14, title: 'last 14 days' },
+           { days: 30, title: 'last 30 days' },
+           { days: 92, title: 'last 3 months' },
+           { days: 180, title: 'last 6 months' },
+           { days: 365, title: 'last 12 months' },
+           { days: 100000, title: 'all' }
+        ]
+        $scope.clientLogsDays = $scope.chartDays[2];
+    }
+    initChartDays();
+
+    $scope.changeDisplayType = function (type, days) {
+        setClientLogGraphData(type, days);
     }
 
-    var setClientLogGraphData = function (type) {
-        var clientData = [];
+    var getRecommendedWeight = function (h) {
+        return {
+            min: Math.round(((18.5 * h * h) / 10000) * 10) / 10,
+            max: Math.round(((25 * h * h) / 10000) * 10) / 10
+        }
+    }
+
+    var setClientLogGraphData = function (type, days) {
+        $scope.clientLog_ = [];
+        var clientLog = [];
         var goalFrom = [];
         var goalTo = [];
         var labels = [];
         $rootScope.clientLogGraphData = charts.createGraph(
             [$translate.instant('tracking of anthropometric measures')],
             [
-                clientData,
+                clientLog,
                 goalFrom,
                 goalTo
             ],
@@ -1644,31 +1630,28 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             true
         )
 
-        var getRecommendedWeight = function (h) {
-            return {
-                min: Math.round(((18.5 * h * h) / 10000) *10  ) / 10,
-                max: Math.round(((25 * h * h) / 10000) * 10) / 10
-            }
-        }
-
         //TODO - goal
         if (angular.isDefined($rootScope.calculation.recommendedWeight)) {
+            if (days === undefined) { days = 30; }
             angular.forEach($scope.clientLog, function (x, key) {
-                if (type == 0) { clientData.push(x.weight); goalFrom.push(getRecommendedWeight(x.height).min); goalTo.push(getRecommendedWeight(x.height).max); }
-                if (type == 1) { clientData.push(x.waist); goalFrom.push(95); }
-                if (type == 2) { clientData.push(x.hip); goalFrom.push(97); }
-                if (key % (Math.floor($scope.clientLog.length/31)+1) === 0) {
-                    labels.push(new Date(x.date).toLocaleDateString());
-                } else {
-                    labels.push("");
+                if (functions.getDateDiff(x.date) <= days) {
+                    $scope.clientLog_.push(x);
+                    if (type == 0) { clientLog.push(x.weight); goalFrom.push(getRecommendedWeight(x.height).min); goalTo.push(getRecommendedWeight(x.height).max); }
+                    if (type == 1) { clientLog.push(x.waist); goalFrom.push(95); }
+                    if (type == 2) { clientLog.push(x.hip); goalFrom.push(97); }
+                    if (key % (Math.floor($scope.clientLog.length / 31) + 1) === 0) {
+                        labels.push(new Date(x.date).toLocaleDateString());
+                    } else {
+                        labels.push("");
+                    }
                 }
             });
         }
         
     };
 
-    $rootScope.setClientLogGraphData = function (x) {
-        setClientLogGraphData(x);
+    $rootScope.setClientLogGraphData = function (type, days) {
+        setClientLogGraphData(type, days);
     }
 
     $scope.getDateFormat = function (x) {
@@ -1721,6 +1704,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
     $scope.pdfLink1 = null;
+
     $scope.printClientLogPdf = function () {
         if ($scope.creatingPdf == true) {
             return false;
@@ -1731,30 +1715,14 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             img = document.getElementById("clientDataChart").toDataURL("image/png").replace(/^data:image\/(png|jpg);base64,/, "");
         }
         $http({
-            url: $sessionStorage.config.backend + 'ClientsData.asmx/GetClientLog',
+            url: $sessionStorage.config.backend + 'PrintPdf.asmx/ClientLogPdf',
             method: "POST",
-            data: { userId: $sessionStorage.usergroupid, clientId: $rootScope.client.clientId }
+            data: { userId: $sessionStorage.usergroupid, client: $rootScope.client, clientData: $rootScope.clientData, clientLog: $scope.clientLog_, lang: $rootScope.config.language, imageData: img }
         })
         .then(function (response) {
-            $rootScope.clientLog = JSON.parse(response.data.d);
-            $http({
-                url: $sessionStorage.config.backend + 'PrintPdf.asmx/ClientLogPdf',
-                method: "POST",
-                data: { userId: $sessionStorage.usergroupid, client: $rootScope.client, clientData: $rootScope.clientData, clientLog: $rootScope.clientLog, lang: $rootScope.config.language, imageData: img }
-            })
-          .then(function (response) {
-              $scope.creatingPdf = false;
-              var fileName = response.data.d;
-              $scope.pdfLink1 = $sessionStorage.config.backend + 'upload/users/' + $rootScope.user.userGroupId + '/pdf/' + fileName + '.pdf';
-          },
-          function (response) {
-              $scope.creatingPdf = false;
-              alert(response.data.d)
-          });
-        },
-        function (response) {
             $scope.creatingPdf = false;
-            alert(response.data.d)
+            var fileName = response.data.d;
+            $scope.pdfLink1 = $sessionStorage.config.backend + 'upload/users/' + $rootScope.user.userGroupId + '/pdf/' + fileName + '.pdf';
         });
     }
 
@@ -1798,19 +1766,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             }
         }
     }
-
-    /*
-    $scope.backToApp = function () {
-        $rootScope.currTpl = './assets/partials/dashboard.html';
-    }
-
-    $scope.showAccessClientAppData = false;
-    $scope.showAccessClientAppDataTitle = $translate.instant('show access data');
-    $scope.toggleAccessClientAppData = function () {
-        $scope.showAccessClientAppData = !$scope.showAccessClientAppData;
-        $scope.showAccessClientAppDataTitle = $scope.showAccessClientAppData == true ? $translate.instant('hide access data') : $translate.instant('show access data');
-    };
-    */
 
 }])
 
@@ -2127,14 +2082,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                     energy = $rootScope.appCalculation.recommendedEnergyIntake + 300;
                     activity = $rootScope.appCalculation.recommendedEnergyExpenditure;
                 }
-
-                //else {
-                //    energy = -300;
-                //    activity = 0;
-                //}
-
-              //  energy = $rootScope.appCalculation.goal.code == "G1" ? 0 : -300;
-               // activity = 0;
                 break;
             case "G2":  // zadrzavanje postojece tjelesne mase
                 if ($rootScope.appCalculation.goal.code == "G1") {
@@ -2149,14 +2096,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                     energy = $rootScope.appCalculation.recommendedEnergyIntake - 300;
                     activity = $rootScope.appCalculation.recommendedEnergyExpenditure;
                 }
-
-
-                //else {
-                //    energy = 0;
-                //    activity = 0;
-                //}
-
-               
                 break;
             case "G3":  // povecanje tjelesne mase
                 if ($rootScope.appCalculation.goal.code == "G2") {
@@ -2189,18 +2128,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                     energy = $rootScope.appCalculation.recommendedEnergyIntake + 400;
                     activity = $rootScope.appCalculation.recommendedEnergyExpenditure + 100;
                 }
-
-                //else
-
-
-                //{
-                //    energy = 0;
-                //    activity = $rootScope.calculation.recommendedEnergyExpenditure + 0;
-                //}
-
-                //energy = 500;
-                //activity = 200;
-
                 break;
             default:
                 energy = 0;
@@ -2306,11 +2233,8 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 energy = energy + value.energy;
             })
         }
-       // return energy > 0 ? $rootScope.calculation.recommendedEnergyExpenditure - energy : $rootScope.calculation.recommendedEnergyExpenditure;
         return $rootScope.calculation.recommendedEnergyExpenditure - energy;
     }
-
-  //  var energyLeft = getEnergyLeft() > 0 ? getEnergyLeft() : $rootScope.calculation.recommendedEnergyExpenditure;
 
     $scope.openPopup = function (x) {
         energyLeft = getEnergyLeft();
@@ -2486,9 +2410,8 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 } 
             }
         }
-        if ($rootScope.clientData.myMeals !== undefined) {
+        if ($rootScope.clientData.myMeals !== undefined && $rootScope.clientData.myMeals != null) {
             if ($rootScope.clientData.myMeals.data != null) {
-                debugger;
                 if ($rootScope.clientData.myMeals.data.meals.length >= 2) {
                     $scope.tpl = 'myMeals';
                 } else {
@@ -2538,7 +2461,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
 .controller('myMealsCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate) {
     var webService = 'MyMeals.asmx';
-    debugger;
     var init = function () {
         $http({
             url: $sessionStorage.config.backend + webService + '/Init',
@@ -2548,6 +2470,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         .then(function (response) {
             $rootScope.myMeals = JSON.parse(response.data.d);
             $rootScope.clientData.myMeals = angular.copy($rootScope.myMeals);
+            $rootScope.clientData.meals = $rootScope.clientData.myMeals.data.meals;
             $rootScope.isMyMeals = true;
         },
         function (response) {
@@ -2561,7 +2484,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 return false;
             }
         }
-        if ($rootScope.clientData.myMeals !== undefined) {
+        if ($rootScope.clientData.myMeals !== undefined && $rootScope.clientData.myMeals != null) {
             if ($rootScope.clientData.myMeals.data != null) {
                 if ($rootScope.clientData.myMeals.data.meals.length > 0) {
                     $rootScope.myMeals = angular.copy($rootScope.clientData.myMeals);
@@ -2596,25 +2519,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
     initMyMeals();
 
-    $scope.get = function (id) {
-        debugger;
-        if ($rootScope.user.userType < 2) { return false; }
-        $http({
-            url: $sessionStorage.config.backend + webService + '/Get',
-            method: "POST",
-            data: { userId: $sessionStorage.usergroupid, id: id }
-        })
-        .then(function (response) {
-            $rootScope.myMeals = JSON.parse(response.data.d);
-            $rootScope.clientData.myMeals = angular.copy($rootScope.myMeals);
-            $rootScope.isMyMeals = true;
-        },
-        function (response) {
-            functions.alert($translate.instant(response.data.d), '');
-        });
-    }
-
-
     $scope.new = function () {
         if ($rootScope.user.userType < 2) { return false; }
         init();
@@ -2631,8 +2535,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             $rootScope.myMeals = JSON.parse(response.data.d);
             if ($rootScope.user.userType > 2) {
                 $rootScope.clientData.myMeals = angular.copy($rootScope.myMeals);
+                $rootScope.clientData.meals = $rootScope.clientData.myMeals.data.meals;
             }
             $rootScope.isMyMeals = true;
+            $rootScope.mealsAreChanged = true;
         },
         function (response) {
             alert(response.data.d)
@@ -2783,7 +2689,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         .then(function (response) {
             $rootScope.myMeals = response;
             $rootScope.clientData.myMeals = angular.copy($rootScope.myMeals);
+            debugger;
+            $rootScope.clientData.meals = $rootScope.clientData.myMeals.data.meals;
             $rootScope.isMyMeals = true;
+            $rootScope.mealsAreChanged = true;
         }, function () {
         });
     };
@@ -2868,48 +2777,23 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         functions.alert($translate.instant('choose at least 3 meals'), '');
     }
 
-    var getRecommendations = function (x) {
+    var getRecommendations = function (clientData) {
+        debugger;
 
-        /****** my recommendations *****/
-        //var isMyrecommendations = false;
-
-        //if (angular.isDefined($rootScope.myCalculation)) {
-            //$rootScope.calculation.recommendedEnergyIntake = functions.isNullOrEmpty($rootScope.myCalculation.recommendedEnergyIntake) == true
-           // isMyrecommendations = !functions.isNullOrEmpty($rootScope.myCalculation.recommendedEnergyIntake)
-
-            //? $rootScope.appCalculation.recommendedEnergyIntake
-            //: $rootScope.myCalculation.recommendedEnergyIntake;
-            //$rootScope.recommendations.energy = $rootScope.calculation.recommendedEnergyIntake;
-
-        //    $rootScope.calculation.recommendedEnergyExpenditure = functions.isNullOrEmpty($rootScope.myCalculation.recommendedEnergyExpenditure) == true
-        //    ? $rootScope.appCalculation.recommendedEnergyExpenditure
-        //    : $rootScope.myCalculation.recommendedEnergyExpenditure;
-        //}
-        /******************************/
-
-
-        //var detailTee = 0;
-        //if (angular.isDefined($rootScope.totalDailyEnergyExpenditure)) {
-        //    if ($rootScope.totalDailyEnergyExpenditure.duration == 1440) {
-        //        detailTee = $rootScope.totalDailyEnergyExpenditure.value;
-        //    }
-        //}
 
         var energyPerc = null;
-        if (!$rootScope.clientData.myMeals || $rootScope.isMyMeals == false) {
-            energyPerc = null;
-        } else {
-            if ($rootScope.clientData.myMeals.data != null) {
-                if ($rootScope.clientData.myMeals.data.meals.length >= 2) {
-                    $rootScope.clientData.meals = $rootScope.clientData.myMeals.data.meals;
-                    energyPerc = $rootScope.clientData.myMeals.data.energyPerc; // $rootScope.myMeals.data.energyPerc;
+        if (clientData.myMeals !== undefined && clientData.myMeals != null) {
+            if (clientData.myMeals.data != null) {
+                if (clientData.myMeals.data.meals.length >= 2 && $rootScope.isMyMeals == true) {
+                    clientData.meals = clientData.myMeals.data.meals;
+                    energyPerc = clientData.myMeals.data.energyPerc; // $rootScope.myMeals.data.energyPerc;
                 }
             }
         }
         $http({
             url: $sessionStorage.config.backend + webService + '/GetRecommendations',
             method: "POST",
-            data: { client: x, myRecommendedEnergyIntake: $rootScope.myCalculation.recommendedEnergyIntake, myMealsEnergyPerc: energyPerc }
+            data: { client: clientData, myRecommendedEnergyIntake: $rootScope.myCalculation.recommendedEnergyIntake, myMealsEnergyPerc: energyPerc }
         })
        .then(function (response) {
            $rootScope.recommendations = JSON.parse(response.data.d);
@@ -2923,7 +2807,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
            }
        });
     };
-    getRecommendations(angular.copy($rootScope.clientData));
 
     var init = function () {
         $http({
@@ -2939,25 +2822,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             alert(response.data.d)
         });
     };
-    //if ($rootScope.currentMenu === undefined) { init(); }
-
-    // new
-    if ($rootScope.currentMenu === undefined) {
-        init();
-    } else {
-        var oldMeals = $rootScope.currentMenu.data.meals;
-        $rootScope.currentMenu.data.meals = angular.copy($rootScope.clientData.meals);
-        angular.forEach($rootScope.currentMenu.data.meals, function (value, key) {
-            if (key >= $rootScope.currentMenu.data.meals.length || key >= oldMeals.length) { return false; }
-            if (oldMeals[key].code == value.code && $rootScope.currentMenu.data.selectedFoods.length > 0) {
-                value.description = oldMeals[key].description;
-            }
-        })
-
-        $rootScope.currentMenu.client = $rootScope.client;
-        $rootScope.currentMenu.client.clientData = $rootScope.clientData;  //TODO sredit
-    }
-
+    
     var initMenuDetails = function () {
         $http({
             url: $sessionStorage.config.backend + 'Menues.asmx/Init',
@@ -2965,6 +2830,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             data: {}
         })
         .then(function (response) {
+            debugger;
             $rootScope.currentMenu = JSON.parse(response.data.d);
             $rootScope.currentMenu.client = $rootScope.client;
             $rootScope.currentMenu.client.clientData = $rootScope.clientData;  //TODO sredit
@@ -2973,9 +2839,18 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             angular.forEach($rootScope.currentMenu.data.meals, function (value, key) {
                 $rootScope.currentMenu.data.meals[key].description = '';
             })
-           // $rootScope.currentMeal = 'B';  //TODO my Meals
-            $rootScope.currentMeal = $rootScope.currentMenu.data.meals[0].code
+
+            $rootScope.currentMeal = 'B';
+            if ($rootScope.currentMenu !== undefined) {
+                if ($rootScope.currentMenu.data !== null) {
+                    if ($rootScope.currentMenu.data.meals.length > 0) {
+                        $rootScope.currentMeal = $rootScope.currentMenu.data.meals[0].code;
+                    }
+                }
+            }
+
             getTotals($rootScope.currentMenu);
+            getRecommendations($rootScope.currentMenu.client.clientData);
         },
         function (response) {
             alert(response.data.d)
@@ -2986,30 +2861,29 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $rootScope.currentMeal = x;
     };
 
+
+    debugger;
     if ($rootScope.mealsAreChanged) {
         $rootScope.mealsAreChanged = false;
         init();
-    }
-
-    $rootScope.currentMeal = 'B';
-    if ($rootScope.currentMenu !== undefined) {
-        if ($rootScope.currentMenu.data !== null) {
-            if ($rootScope.currentMenu.data.meals.length > 0) {
-                $rootScope.currentMeal = $rootScope.currentMenu.data.meals[0].code;
-            }
+    } else {
+        // new
+        if ($rootScope.currentMenu === undefined) {
+            init();
+        } else {
+            var oldMeals = $rootScope.currentMenu.data.meals;
+            $rootScope.currentMenu.data.meals = angular.copy($rootScope.clientData.meals);
+            angular.forEach($rootScope.currentMenu.data.meals, function (value, key) {
+                if (key >= $rootScope.currentMenu.data.meals.length || key >= oldMeals.length) { return false; }
+                if (oldMeals[key].code == value.code && $rootScope.currentMenu.data.selectedFoods.length > 0) {
+                    value.description = oldMeals[key].description;
+                }
+            })
+            $rootScope.currentMenu.client = $rootScope.client;
+            $rootScope.currentMenu.client.clientData = $rootScope.clientData;  //TODO sredit
         }
     }
-    
-    //if (angular.isDefined($rootScope.isMyMeals)) {
-    //    if ($rootScope.isMyMeals) {
-    //        $rootScope.currentMeal = 'MM0';
-    //    } else {
-    //        $rootScope.currentMeal = 'B'
-    //    }
-    //} else {
-    //    $rootScope.currentMeal = 'B'
-    //}
-    
+
     $scope.toggleAnalytics = function (x) {
         $scope.loading = true;
         $timeout(function () {
@@ -3105,7 +2979,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         }
 
         var isEditMode = false;
-        //if (d.food === undefined || d.food.length == 0) {
         if (d.food == null) {
             $scope.food = null;
             initFood = null;
@@ -3140,7 +3013,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
         $scope.showMyFoods = function (x) {
             $scope.isShowMyFood = x;
-           // $scope.limit = 100;
         }
 
         $scope.getFoodDetails = function (x) {
@@ -3363,7 +3235,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             targetEvent: '',
             clickOutsideToClose: true,
             fullscreen: $scope.customFullscreen,
-            d: { currentMenu: $rootScope.currentMenu, clientData: $rootScope.clientData, client: $rootScope.client, totals: $rootScope.totals, settings: $rootScope.printSettings }
+            d: { currentMenu: $rootScope.currentMenu, clientData: $rootScope.clientData, client: $rootScope.client, totals: $rootScope.totals, settings: $rootScope.printSettings, config: $rootScope.config }
         })
         .then(function () {
         }, function () {
@@ -3376,6 +3248,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.client = d.client;
         $scope.totals = d.totals;
         $scope.settings = d.settings;
+        $scope.config = d.config;
 
         $scope.cancel = function () {
             $mdDialog.cancel();
@@ -3465,23 +3338,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         }
     }
 
-    var getMyMealsForOpenMenu = function (id) {
-        debugger;
-        $http({
-            url: $sessionStorage.config.backend + 'Menues.asmx/GetMyMeals',
-            method: "POST",
-            data: { userId: $rootScope.user.userGroupId, id: id }
-        })
-       .then(function (response) {
-           $rootScope.clientData.myMeals = JSON.parse(response.data.d);
-           $rootScope.myMeals = angular.copy($rootScope.clientData.myMeals);
-       },
-       function (response) {
-           alert(response.data.d)
-       });
-    }
-
-    var getMenuPopup = function (x) {
+    var getMenuPopup = function () {
         $mdDialog.show({
             controller: getMenuPopupCtrl,
             templateUrl: 'assets/partials/popup/getmenu.html',
@@ -3490,15 +3347,23 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             data: { config: $rootScope.config, clientData: $rootScope.clientData }
         })
         .then(function (x) {
-            $rootScope.currentMenu = x;
-            $rootScope.clientData.meals = x.data.meals;
-            $rootScope.currentMenu.client = $rootScope.client;
-            $rootScope.currentMenu.client.clientData = $rootScope.clientData;  //TODO sredit
-            getTotals($rootScope.currentMenu);
-            $rootScope.currentMeal = x.data.meals[0].code; // 'B';  // TODO myMeals get first from list
-            if ($rootScope.currentMeal != 'B') {
-                getMyMealsForOpenMenu($rootScope.currentMenu.id);
+            $rootScope.currentMenu.data = x.data;
+            $rootScope.currentMenu.client.clientData = $rootScope.clientData;
+            $rootScope.currentMenu.client.clientData.meals = x.data.meals;
+            $rootScope.currentMenu.client.clientData.myMeals = x.client.clientData.myMeals;
+            debugger;
+            $rootScope.isMyMeals = false;
+            if ($rootScope.currentMenu.client.clientData.myMeals != null) {
+                if ($rootScope.currentMenu.client.clientData.myMeals.data != null) {
+                    if ($rootScope.currentMenu.client.clientData.myMeals.data.meals.length >= 2) {
+                        $rootScope.isMyMeals = true;
+                    }
+                }
             }
+            
+            getRecommendations(angular.copy($rootScope.currentMenu.client.clientData));
+            getTotals($rootScope.currentMenu);
+            $rootScope.currentMeal = x.data.meals[0].code; 
         }, function () {
         });
     };
@@ -3572,7 +3437,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         };
 
         var get = function (x) {
-           // $rootScope.isMyMeals = false;
             $http({
                 url: $sessionStorage.config.backend + 'Menues.asmx/Get',
                 method: "POST",
@@ -3689,7 +3553,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             }
             currentMenu.diet = d.client.clientData.diet.diet;
             $mdDialog.hide($scope.d.currentMenu);
-            debugger;
             var myMeals = null;
             if (currentMenu.data.meals.length > 2) {
                 if (currentMenu.data.meals[0].code != 'B') {
@@ -3728,7 +3591,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
         var saveAppMenu = function (currentMenu) {
             if (functions.isNullOrEmpty(currentMenu.title)) {
-            //if (currentMenu.title == '' || currentMenu.title == undefined) {
                 document.getElementById("txtMenuTitle").focus();
                 functions.alert($translate.instant('enter menu title'), '');
                 openSaveMenuPopup();
@@ -3838,17 +3700,25 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
     var displayCharts = function () {
-        if (!angular.isDefined($rootScope.totals)) { return false; }
+        if ($rootScope.recommendations === undefined || $rootScope.totals === undefined) { return false; }
         $scope.mealsTotals = [];
         $scope.mealsMin = [];
         $scope.mealsMax = [];
         $scope.mealsTitles = [];
         angular.forEach($rootScope.currentMenu.data.meals, function (value, key) {
             if (value.isSelected == true && angular.isDefined($rootScope.totals)) {
-                $scope.mealsTotals.push($rootScope.totals.mealsTotalEnergy.length > 0 ? $rootScope.totals.mealsTotalEnergy[key].meal.energy : 0);
-                $scope.mealsMin.push($rootScope.recommendations.mealsRecommendationEnergy[key].meal.energyMin);
-                $scope.mealsMax.push($rootScope.recommendations.mealsRecommendationEnergy[key].meal.energyMax);
-                $scope.mealsTitles.push($translate.instant($rootScope.getMealTitle(value)));
+                if (angular.isDefined($rootScope.totals.mealsTotalEnergy)) {
+                    if (key < $rootScope.recommendations.mealsRecommendationEnergy.length) {
+                        $scope.mealsTotals.push($rootScope.totals.mealsTotalEnergy.length > 0 ? $rootScope.totals.mealsTotalEnergy[key].meal.energy : 0);
+                        if ($rootScope.recommendations !== undefined) {
+                            if (angular.isDefined($rootScope.recommendations.mealsRecommendationEnergy)) {
+                                $scope.mealsMin.push($rootScope.recommendations.mealsRecommendationEnergy[key].meal.energyMin);
+                                $scope.mealsMax.push($rootScope.recommendations.mealsRecommendationEnergy[key].meal.energyMax);
+                            }
+                        }
+                        $scope.mealsTitles.push($translate.instant($rootScope.getMealTitle(value)));
+                    }
+                }
             }
         })
 
@@ -3887,29 +3757,12 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 ],
                 false
         );
-        //$rootScope.energyGraphData = charts.createGraph(
-        //        ['energetska vrijednost'],
-        //        [
-        //            [t.energy],
-        //            [r.energy]
-        //        ],
-        //        ['energija'],
-        //        ['#45b7cd', '#ff6384', '#ff8e72']
-        //);
         $rootScope.pieGraphData = charts.createGraph(
-                [$translate.instant('nutrients')], //['nutrijenti'],
+                [$translate.instant('nutrients')],
                 [t.carbohydratesPercentage, t.proteinsPercentage, t.fatsPercentage],
                 [$translate.instant('carbohydrates'), $translate.instant('proteins'), $translate.instant('fats')],
-               // ['ugljikohidrati', 'bjelančevine', 'masti'],
                 true
         );
-        //$rootScope.otherFoodsGraphData = charts.createGraph(
-        //        ['energetska vrijednost'],
-        //        [t.otherFoodsEnergy],
-        //        ['energija']
-        //);
-
-
         $rootScope.mealsGraphData = charts.createGraph(
                [$translate.instant('meals')], //['obroci'],
                [ $scope.mealsTotals, $scope.mealsMin, $scope.mealsMax ],
@@ -4045,9 +3898,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                [
                    [
                        t.saturatedFats, t.trifluoroaceticAcid, t.cholesterol
-                       //t.saturatedFats / r.saturatedFats.ui * 100,
-                       //t.trifluoroaceticAcid / r.trifluoroaceticAcid.ui * 100,
-                       //t.cholesterol / r.cholesterol.ui * 100
                    ],
                    [r.saturatedFats.ui, r.trifluoroaceticAcid.ui, r.cholesterol.ui]
                ],
@@ -4073,11 +3923,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $rootScope.parametersGraphDataMDA = charts.createGraph(
                ['parametri'],
                [
-                   [t.sodium, t.potassium, t.chlorine
-                       //t.sodium / r.sodium.mda * 100,
-                       //t.potassium / r.potassium.mda * 100,
-                       //t.chlorine / r.chlorine.mda * 100
-                   ],
+                   [t.sodium, t.potassium, t.chlorine],
                    [r.sodium.ui],
                    [r.sodium.mda, r.potassium.mda, r.chlorine.mda]
                ],
@@ -4115,8 +3961,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
         var options = {
             title: 'energy',
-            //width: 220,
-            //height: 150,
             min: 0,
             max: recommended + (recommended * 0.06),
             greenFrom: recommended - (recommended * 0.02),
@@ -4152,8 +3996,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
         var options = {
             title: 'energy',
-            //width: 220,
-            //height: 150,
             min: 0,
             max: suggested + (suggested * 0.5),
             greenFrom: 0,
@@ -4164,18 +4006,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             redTo: suggested + (suggested * 0.5),
             minorTicks: 5
         };
-
-        //var title = 'Energija';
-        //var min = 0;
-        //var max = suggested + (suggested * 0.5);
-        //var greenFrom = 0;
-        //var greenTo = suggested - (suggested * 0.02);
-        //var yellowFrom = suggested - (suggested * 0.02);
-        //var yellowTo = suggested;
-        //var redFrom = suggested;
-        //var redTo = max;
-        //var minorTicks = 5;
-
         google.charts.load('current', { 'packages': ['gauge'] });
         google.charts.setOnLoadCallback(charts.guageChart(id, value, unit, options));
 
@@ -4195,8 +4025,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
         var options = {
             title: 'carbohidrates',
-            //width: 220,
-            //height: 150,
             min: 0,
             max: 100,
             greenFrom: recommended.from,
@@ -4235,8 +4063,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
         var options = {
             title: 'proteins',
-            //width: 220,
-            //height: 150,
             min: 0,
             max: 100,
             greenFrom: recommended.from,
@@ -4275,8 +4101,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
         var options = {
             title: 'fats',
-            //width: 220,
-            //height: 150,
             min: 0,
             max: 100,
             greenFrom: recommended.from,
@@ -4310,8 +4134,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         unit = 'mg';
         var options = {
             title: 'saturated fats',
-            //width: 220,
-            //height: 150,
             min: 0,
             max: Math.round($rootScope.recommendations.saturatedFats.ui + $rootScope.recommendations.saturatedFats.ui * 0.4),
             greenFrom: 0,
@@ -4331,8 +4153,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         unit = 'mg';
         var options = {
             title: 'trifluoroacetic acid',
-            //width: 220,
-            //height: 150,
             min: 0,
             max: Math.round($rootScope.recommendations.trifluoroaceticAcid.ui + $rootScope.recommendations.trifluoroaceticAcid.ui * 0.4),
             greenFrom: 0,
@@ -4352,8 +4172,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         unit = 'mg';
         var options = {
             title: 'cholesterol',
-            //width: 220,
-            //height: 150,
             min: 0,
             max: Math.round($rootScope.recommendations.cholesterol.ui + $rootScope.recommendations.cholesterol.ui * 0.4),
             greenFrom: 0,
@@ -4452,6 +4270,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
     var openRecipePopup = function () {
+        if ($rootScope.user.licenceStatus == 'demo') {
+            functions.demoAlert('this function is not available in demo version');
+            return false;
+        }
         $mdDialog.show({
             controller: getRecipePopupCtrl,
             templateUrl: 'assets/partials/popup/getrecipe.html',
@@ -4743,255 +4565,28 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $rootScope.currentMealForRecipe = currentMeal;
     }
 
-}])
-
-.controller('analyticsCtrl', ['$scope', '$http', '$window', '$rootScope', '$mdDialog', 'charts', 'functions', '$translate', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, charts, functions, $translate) {
-
-    $scope.toggleTpl = function (x) {
-        $scope.analyticsTpl = x;
-    };
-    $scope.toggleTpl('tablesTpl');
-
-    $scope.printPreview = function () {
-        $mdDialog.show({
-            controller: $scope.printPreviewCtrl,
-            templateUrl: 'assets/partials/popup/printmenu.html',
-            parent: angular.element(document.body),
-            clickOutsideToClose: true,
-            d: { currentMenu: $rootScope.currentMenu }
+    $scope.getMealTotal = function (x) {
+        var total = null;
+        angular.forEach($rootScope.totals.mealsTotalEnergy, function (value, key) {
+            if (value.meal.code == x) {
+                total = value.meal;
+            }
         })
-        .then(function () {
-        }, function () {
-        });
-    };
-
-    $scope.printPreviewCtrl = function ($scope, $mdDialog, d, $http) {
-        $scope.d = d.currentMenu.data.selectedFoods;
-        $scope.meals = d.currentMenu.data.meals;
-        $scope.cancel = function () {
-            $mdDialog.cancel();
-        };
-    };
-
-    var displayCharts = function () {
-        var t = $rootScope.totals;
-        var r = $rootScope.recommendations;
-        $rootScope.servGraphData = charts.createGraph(
-                $translate.instant('unit servings'), //['jedinična serviranja'],
-                [
-                    [t.servings.cerealsServ, t.servings.vegetablesServ, t.servings.fruitServ, t.servings.meatServ, t.servings.milkServ, t.servings.fatsServ],
-                    [r.servings.cerealsServ, r.servings.vegetablesServ, r.servings.fruitServ, r.servings.meatServ, r.servings.milkServ, r.servings.fatsServ]
-                ],
-                [$translate.instant('carbohytrates'), $translate.instant('fruit'), $translate.instant('vegetables'), $translate.instant('meat'), $translate.instant('milk'), $translate.instant('fat')],
-               // ['ugljikohidrati', 'povrće', 'voće', 'meso', 'mlijeko', 'masti'],
-                ['#45b7cd', '#ff6384', '#ff8e72'],
-                [
-                     {
-                         label: $translate.instant('choosen'), //"Odabrano",
-                         borderWidth: 1,
-                         type: 'bar'
-                     },
-                     {
-                         label: $translate.instant('recommended'), // "Preporučeno",
-                         borderWidth: 3,
-                         hoverBackgroundColor: "rgba(255,99,132,0.4)",
-                         hoverBorderColor: "rgba(255,99,132,1)",
-                         type: 'line'
-                     }
-                ],
-                false
-        );
-        $rootScope.energyGraphData = charts.createGraph(
-                ['energetska vrijednost'],
-                [
-                    [t.energy],
-                    [r.energy]
-                ],
-                ['energija'],
-                ['#45b7cd', '#ff6384', '#ff8e72'],
-                false
-        );
-        $rootScope.pieGraphData = charts.createGraph(
-                ['nutrijenti'],
-                [t.carbohydratesPercentage, t.proteinsPercentage, t.fatsPercentage],
-                ['ugljikohidrati', 'bjelančevine', 'masti'],
-                false
-        );
-        $rootScope.otherFoodsGraphData = charts.createGraph(
-                ['energetska vrijednost'],
-                [t.otherFoodsEnergy],
-                ['energija'],
-                false
-        );
-        //TODO
-        $rootScope.parametersGraphData = charts.createGraph(
-               ['parametri'],
-               [
-                   [
-                    t.fibers,
-                    t.monounsaturatedFats,
-                    t.polyunsaturatedFats,
-                    t.calcium,
-                    t.magnesium,
-                    t.phosphorus,
-                    t.iron,
-                    t.copper,
-                    t.zinc,
-                    t.manganese,
-                    t.selenium,
-                    t.iodine,
-                    t.retinol,
-                    t.vitaminD,
-                    t.vitaminE,
-                    t.vitaminB1,
-                    t.vitaminB2,
-                    t.vitaminB3,
-                    t.vitaminB6,
-                    t.vitaminB12,
-                    t.folate,
-                    t.pantothenicAcid,
-                    t.biotin,
-                    t.vitaminC,
-                    t.vitaminK],
-                   [
-                    r.fibers.rda,
-                    r.monounsaturatedFats.rda,
-                    r.polyunsaturatedFats.rda,
-                    r.calcium.rda,
-                    r.magnesium.rda,
-                    r.phosphorus.rda,
-                    r.iron.rda,
-                    r.copper.rda,
-                    r.zinc.rda,
-                    r.manganese.rda,
-                    r.selenium.rda,
-                    r.iodine.rda,
-                    r.retinol.rda,
-                    r.vitaminD.rda,
-                    r.vitaminE.rda,
-                    r.vitaminB1.rda,
-                    r.vitaminB2.rda,
-                    r.vitaminB3.rda,
-                    r.vitaminB6.rda,
-                    r.vitaminB12.rda,
-                    r.folate.rda,
-                    r.pantothenicAcid.rda,
-                    r.biotin.rda,
-                    r.vitaminC.rda,
-                    r.vitaminK.rda]
-               ],
-               [
-                'fibers',
-                'monounsaturatedFats',
-                'polyunsaturatedFats',
-                'calcium',
-                'magnesium',
-                'phosphorus',
-                'iron',
-                'copper',
-                'zinc',
-                'manganese',
-                'selenium',
-                'iodine',
-                'retinol',
-                'vitaminD',
-                'vitaminE',
-                'vitaminB1',
-                'vitaminB2',
-                'vitaminB3',
-                'vitaminB6',
-                'vitaminB12',
-                'folate',
-                'pantothenicAcid',
-                'biotin',
-                'vitaminC',
-                'vitaminK'],
-               ['#45b7cd', '#2fed4f', '#ff8e72'],
-               [
-                    {
-                        label: "Odabrano",
-                        borderWidth: 1,
-                        type: 'bar'
-                    },
-                    {
-                        label: "RDA",
-                        borderWidth: 3,
-                        hoverBackgroundColor: "rgba(255,99,132,0.4)",
-                        hoverBorderColor: "rgba(255,99,132,1)",
-                        type: 'line'
-                    }
-               ],
-               false
-        );
-
-        //TODO
-        $rootScope.parametersGraphDataUI = charts.createGraph(
-               ['parametri'],
-               [
-                   [
-                       t.saturatedFats, t.trifluoroaceticAcid, t.cholesterol
-                       //t.saturatedFats / r.saturatedFats.ui * 100,
-                       //t.trifluoroaceticAcid / r.trifluoroaceticAcid.ui * 100,
-                       //t.cholesterol / r.cholesterol.ui * 100
-                   ],
-                   [r.saturatedFats.ui, r.trifluoroaceticAcid.ui, r.cholesterol.ui]
-               ],
-               ['saturatedFats', 'trifluoroaceticAcid', 'cholesterol'],
-               ['#f44242', '#ff6384'],
-               [
-                    {
-                        label: "Odabrano",
-                        borderWidth: 1,
-                        type: 'bar',
-                        backgroundColor: "rgb(244, 66, 66)",
-                        hoverBackgroundColor: "rgb(244, 66, 66)",
-                    },
-                    {
-                        label: "UI",
-                        borderWidth: 3,
-                        type: 'line'
-                    }
-               ],
-               false
-        );
-
-        //TODO
-        $rootScope.parametersGraphDataMDA = charts.createGraph(
-               ['parametri'],
-               [
-                   [t.sodium, t.potassium, t.chlorine
-                       //t.sodium / r.sodium.mda * 100,
-                       //t.potassium / r.potassium.mda * 100,
-                       //t.chlorine / r.chlorine.mda * 100
-                   ],
-                   [r.sodium.ui],
-                   [r.sodium.mda, r.potassium.mda, r.chlorine.mda]
-               ],
-               ['sodium', 'potassium', 'chlorine'],
-               ['#49a5af', '#f44242', '#2fed4f'],
-               [
-                    {
-                        label: "Odabrano",
-                        borderWidth: 1,
-                        type: 'bar',
-                        backgroundColor: "rgb(244, 66, 66)",
-                        hoverBackgroundColor: "rgb(244, 66, 66)",
-                    },
-                    {
-                        label: "UI",
-                        borderWidth: 10,
-                        type: 'line',
-                        backgroundColor: "rgb(244, 66, 66)",
-                    },
-                    {
-                        label: "MDA",
-                        borderWidth: 3,
-                        type: 'line'
-                    },
-               ],
-               false
-        );
+        return total
     }
+
+    $scope.getMealRecommendation = function (x) {
+        var recommendations = null;
+        angular.forEach($rootScope.recommendations.mealsRecommendationEnergy, function (value, key) {
+            if (value.meal.code == x) {
+                recommendations = value.meal;
+            }
+        })
+        return recommendations
+    }
+
+
+
 }])
 
 .controller('myFoodsCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate) {
@@ -5181,9 +4776,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.confirm = function (x) {
             get(x);
         }
-
     };
-
 
 }])
 
@@ -5374,7 +4967,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         })
         .then(function (response) {
             init();
-            //alert(response.data.d);
         },
         function (response) {
             alert(response.data.d);
@@ -5449,7 +5041,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.confirm = function (x) {
             get(x);
         }
-
     };
 
 }])
@@ -5544,7 +5135,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             data: { userId: $rootScope.user.userGroupId, x: x }
         })
        .then(function (response) {
-         //  functions.alert($translate.instant(response.data.d), '');
            load();
        },
        function (response) {
@@ -5553,198 +5143,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
 }])
-
-    /*
-.controller('printCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate) {
-    $scope.consumers = 1;
-
-    $scope.printWindow = function () {
-        window.print();
-    };
-
-    $scope.pdfLink = null;
-    var printMenuPdf = function () {
-        if (angular.isDefined($rootScope.currentMenu)) {
-            var currentMenu = angular.copy($rootScope.currentMenu);
-            currentMenu.data.selectedFoods = $scope.foods;
-            $http({
-                url: $sessionStorage.config.backend + 'PrintPdf.asmx/MenuPdf',
-                method: "POST",
-                data: { userId: $sessionStorage.usergroupid, currentMenu: currentMenu, clientData: $rootScope.clientData, totals: $rootScope.totals, consumers: $scope.consumers, lang: $rootScope.config.language }
-            })
-              .then(function (response) {
-                  var fileName = response.data.d;
-                  $scope.pdfLink = $sessionStorage.config.backend + 'upload/users/' + $rootScope.user.userGroupId + '/pdf/' + fileName + '.pdf';
-                 // $scope.openPdf();
-              },
-              function (response) {
-                  alert(response.data.d)
-              });
-        }
-    }
-
-    var printMenuDetailsPdf = function () {
-        if (angular.isDefined($rootScope.currentMenu)) {
-            var currentMenu = angular.copy($rootScope.currentMenu);
-            $http({
-                url: $sessionStorage.config.backend + 'PrintPdf.asmx/MenuDetailsPdf',
-                method: "POST",
-                data: { userId: $sessionStorage.usergroupid, currentMenu: currentMenu, calculation: $rootScope.calculation, totals: $rootScope.totals, recommendations: $rootScope.recommendations, lang: $rootScope.config.language }
-            })
-              .then(function (response) {
-                  var fileName = response.data.d;
-                  $scope.pdfLink = $sessionStorage.config.backend + 'upload/users/' + $rootScope.user.userGroupId + '/pdf/' + fileName + '.pdf';
-              },
-              function (response) {
-                  alert(response.data.d)
-              });
-        }
-    }
-
-    $scope.creatingPdf = false;
-    var printClientPdf = function () {
-        $scope.creatingPdf = true;
-        $http({
-            url: $sessionStorage.config.backend + 'PrintPdf.asmx/ClientPdf',
-            method: "POST",
-            data: { userId: $sessionStorage.usergroupid, client: $rootScope.client, clientData: $rootScope.clientData, clientLog: $rootScope.clientLog,  lang: $rootScope.config.language }
-        })
-          .then(function (response) {
-              var fileName = response.data.d;
-              $scope.creatingPdf = false;
-              $scope.pdfLink = $sessionStorage.config.backend + 'upload/users/' + $rootScope.user.userGroupId + '/pdf/' + fileName + '.pdf';
-           //   $scope.openPdf();
-          },
-          function (response) {
-              $scope.creatingPdf = false;
-              alert(response.data.d)
-          });
-    }
-
-    $scope.printPdf = function () {
-        if ($scope.printTpl == 'menuTpl') { printMenuPdf(); }
-        if ($scope.printTpl == 'menuAnalysisTpl') { printMenuDetailsPdf(); }
-        if ($scope.printTpl == 'clientTpl') { printClientPdf(); }
-    }
-
-    $scope.openPdf = function () {
-        if ($scope.pdfLink != null) {
-            window.open($scope.pdfLink, window.innerWidth <= 800 && window.innerHeight <= 600 ? '_self' : '_blank');
-        }
-    }
-
-    $scope.type = 0;
-    $scope.setType = function (x) {
-        $scope.type = x;
-        $rootScope.setClientLogGraphData($scope.type);
-    }
-
-    var getClientLog = function (x) {
-        $http({
-            url: $sessionStorage.config.backend + 'ClientsData.asmx/GetClientLog',
-            method: "POST",
-            data: { userId: $sessionStorage.usergroupid, clientId: x.clientId }
-        })
-        .then(function (response) {
-            $rootScope.clientLog = JSON.parse(response.data.d);
-            $rootScope.setClientLogGraphData($scope.type);
-        },
-        function (response) {
-            alert(response.data.d)
-        });
-   }
-
-    var getClient = function () {
-        $http({
-            url: $sessionStorage.config.backend + 'Clients.asmx/Get',
-            method: "POST",
-            data: { userId: $sessionStorage.userid, clientId: $rootScope.client.clientId }
-        })
-        .then(function (response) {
-            $scope.client = JSON.parse(response.data.d);
-            getClientLog($scope.client);
-        },
-        function (response) {
-            alert(response.data.d)
-        });
-    }
-    if ($rootScope.client != undefined) { getClient(); }
-
-    $scope.toggleTpl = function (x) {
-        $scope.pdfLink = null;
-        $scope.printTpl = x;
-        $scope.printPdf();
-        if (x == 'weeklyMenuTpl') {
-            $scope.loading = true;
-            $http({
-                url: $sessionStorage.config.backend + 'Menues.asmx/Load',
-                method: "POST",
-                data: { userId: $rootScope.user.userGroupId }
-            })
-           .then(function (response) {
-               $scope.menues = JSON.parse(response.data.d);
-               $scope.loading = false;
-           },
-           function (response) {
-               $scope.loading = false;
-               alert(response.data.d);
-           });
-        }
-    };
-
-    $scope.changeNumberOfConsumers = function (x) {
-        $scope.consumers = x;
-        $http({
-            url: $sessionStorage.config.backend + 'Foods.asmx/ChangeNumberOfConsumers',
-            method: "POST",
-            data: { foods: $rootScope.currentMenu.data.selectedFoods, number: x }
-        })
-       .then(function (response) {
-           $scope.foods = JSON.parse(response.data.d);
-           $scope.toggleTpl('menuTpl');
-       },
-       function (response) {
-           //   alert(response.data.d)
-       });
-    }
-    if (angular.isDefined($rootScope.currentMenu)) { $scope.changeNumberOfConsumers($scope.consumers); }
-
-    $scope.menuList = [];
-    $scope.getMenuList = function (id1, id2, id3, id4, id5, id6, id7) {
-        $scope.menuList = [id1, id2, id3, id4, id5, id6, id7];
-    }
-
-    $scope.creatingPdf = false;
-    $scope.pageSizes = ['A4', 'A3', 'A2', 'A1'];
-    $rootScope.printSettings.pageSize = 'A3';
-    $rootScope.printSettings.showDescription = false;
-    $rootScope.printSettings.orientation = 'L';
-
-    $scope.printWeeklyMenu = function (consumers, printSettings) {
-        if ($scope.menuList.length == 0) {
-            functions.alert($translate.instant('select menus'), '');
-            return false;
-        }
-        $scope.pdfLink = null;
-        $scope.creatingPdf = true;
-        $http({
-            url: $sessionStorage.config.backend + 'PrintPdf.asmx/WeeklyMenuPdf',
-            method: "POST",
-            data: { userId: $sessionStorage.usergroupid, menuList: $scope.menuList, clientData: $rootScope.clientData, consumers: consumers, lang: $rootScope.config.language, settings: printSettings }
-        })
-          .then(function (response) {
-              var fileName = response.data.d;
-              $scope.pdfLink = $sessionStorage.config.backend + 'upload/users/' + $rootScope.user.userGroupId + '/pdf/' + fileName + '.pdf';
-              $scope.creatingPdf = false;
-          },
-          function (response) {
-              $scope.creatingPdf = false;
-              alert(response.data.d)
-          });
-    }
-
-}])
-*/
 
 .controller('orderCtrl', ['$scope', '$http', '$rootScope', '$translate', 'functions', function ($scope, $http, $rootScope, $translate, functions) {
     $scope.application = $translate.instant('nutrition program');
@@ -5971,7 +5369,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
      });
     }
 
-
 }])
 
 .controller('weeklyMenuCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate) {
@@ -6066,6 +5463,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     $scope.creatingPdf = false;
     $scope.pageSizes = ['A4', 'A3', 'A2', 'A1'];
     $rootScope.printSettings.pageSize = 'A3';
+    $rootScope.printSettings.showTitle = false;
     $rootScope.printSettings.showDescription = false;
     $rootScope.printSettings.orientation = 'L';
 
@@ -6080,7 +5478,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             url: $sessionStorage.config.backend + 'PrintPdf.asmx/WeeklyMenuPdf',
             method: "POST",
             data: { userId: $sessionStorage.usergroupid, weeklyMenu: $scope.weeklyMenu, consumers: consumers, lang: $rootScope.config.language, settings: printSettings }
-            //data: { userId: $sessionStorage.usergroupid, menuList: $scope.menuList, clientData: $rootScope.clientData, consumers: consumers, lang: $rootScope.config.language, settings: printSettings }
         })
           .then(function (response) {
               var fileName = response.data.d;
@@ -6388,7 +5785,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.confirm = function () {
             send();
         }
-
     };
 
 }])
