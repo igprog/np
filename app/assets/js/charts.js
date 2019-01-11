@@ -6,42 +6,32 @@ angular.module('charts', [])
 
 .factory('charts', [function () {
     return {
-        'createGraph': function (s, d, l, c, dso, legend) {
+        'createGraph': function (series, data, labels, colors, options, datasetOverride) {
             return {
-                series: s,
-                data: d,
-                labels: l,
-                colors: c,
+                series: series,
+                data: data,
+                labels: labels,
+                colors: colors,
+                options: options,
+                datasetOverride: datasetOverride
+            }
+        },
+        'stackedChart': function (series, data, labels, colors, title) {
+            return {
+                series: series, data: data, labels: labels, colors: colors, type: 'horizontalBar',
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    legend: {
-                        display: legend
-                    },
+                    title: { display: true, text: title },
+                    tooltips: { mode: 'index', intersect: false },
+                    responsive: true, maintainAspectRatio: true, legend: { display: true },
                     scales: {
                         xAxes: [{
-                            display: true,
-                            scaleLabel: {
-                                display: true,
-                            },
-                            ticks: {
-                                beginAtZero: true,
-                                stepSize: 10
-                            }
+                            stacked: true,
                         }],
                         yAxes: [{
-                            display: true,
-                            scaleLabel: {
-                                display: true,
-                            },
-                            ticks: {
-                                beginAtZero: true,
-                                stepSize: 10
-                            }
+                            stacked: true
                         }]
                     }
-                },
-                datasetOverride: dso
+                }
             }
         },
         'guageChart': function (id, value, unit, options) {

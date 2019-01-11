@@ -1107,6 +1107,8 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
     $scope.logo = '../upload/users/' + $rootScope.user.userGroupId + '/logo.png?v=' + new Date().getTime();
     $scope.upload = function () {
+        debugger;
+        if ($rootScope.user.adminType != 0) { return false; }
         var content = new FormData(document.getElementById("formUpload"));
         $http({
             url: $sessionStorage.config.backend + '/UploadHandler.ashx',
@@ -1127,6 +1129,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
     $scope.removeLogo = function (x) {
+        if (x.adminType != 0) { return false; }
         $http({
             url: $sessionStorage.config.backend + 'Files.asmx/DeleteLogo',
             method: 'POST',
@@ -1235,6 +1238,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             $rootScope.calculation = [];
             $rootScope.initMyCalculation();
             $scope.d = $rootScope.client;
+            $rootScope.goalWeightValue_ = null;
             $scope.openPopup();
         },
         function (response) {
@@ -1445,6 +1449,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 if ($rootScope.unitSystem == 0 && $rootScope.config.language == 'en') {
                     $rootScope.convertToStandardSystem();
                 }
+                $rootScope.goalWeightValue_ = null;
             } else {
                 init(x);
             }
@@ -1482,9 +1487,16 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             data: { userId: $sessionStorage.usergroupid, clientId: x.clientId }
         })
         .then(function (response) {
-            getCalculation();
             $scope.toggleTpl('clientStatictic');
             $scope.clientLog = JSON.parse(response.data.d);
+            angular.forEach($scope.clientLog, function (x, key) {
+                x.date = new Date(x.date);
+            });
+            if ($rootScope.goalWeightValue_ == null) {
+                getCalculation();
+            } else {
+                setClientLogGraphData($scope.displayType, $scope.clientLogsDays);
+            }
         },
         function (response) {
             alert(response.data.d)
@@ -1519,10 +1531,12 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
     $scope.updateClientLog = function (x) {
+        var cd = angular.copy(x);
+        cd.date = cd.date.toISOString();
         $http({
             url: $sessionStorage.config.backend + 'ClientsData.asmx/UpdateClientLog',
             method: "POST",
-            data: { userId: $sessionStorage.usergroupid, clientData: x }
+            data: { userId: $sessionStorage.usergroupid, clientData: cd }
         })
         .then(function (response) {
             $scope.getClientLog(x);
@@ -1540,7 +1554,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         })
         .then(function (response) {
             $rootScope.calculation = JSON.parse(response.data.d);
-            setClientLogGraphData($scope.displayType);
+            setClientLogGraphData($scope.displayType, $scope.clientLogsDays);
         },
         function (response) {
             if (response.data.d === undefined) {
@@ -1579,8 +1593,8 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
     initChartDays();
 
-    $scope.changeDisplayType = function (type, days) {
-        setClientLogGraphData(type, days);
+    $scope.changeDisplayType = function (type, clientLogsDays) {
+        setClientLogGraphData(type, clientLogsDays);
     }
 
     var getRecommendedWeight = function (h) {
@@ -1590,53 +1604,73 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         }
     }
 
-    var setClientLogGraphData = function (type, days) {
+    $scope.changeGoalWeightValue = function (value, type, clientLogsDays) {
+        $rootScope.goalWeightValue_ = parseInt(value);
+        setClientLogGraphData(type, clientLogsDays);
+    }
+
+    var getGoalLog = function (deficit, key, x, firstWeight, firstDate, currDate) {
+        var goal = (firstWeight + (functions.getTwoDateDiff(firstDate, currDate)) * deficit / 7000).toFixed(1);
+        var value = 0;
+        var goalLimit = $rootScope.goalWeightValue_ !== undefined ? parseInt($rootScope.goalWeightValue_) : 0;
+        if (goalLimit == 0) {
+            if (deficit == 0) {
+                goalLimit = x.weight;
+            } else if (deficit > 0) {
+                goalLimit = (getRecommendedWeight(x.height).min + getRecommendedWeight(x.height).max) / 2;
+            } else {
+                goalLimit = getRecommendedWeight(x.height).max;
+            }
+        }
+        if (key == 0) {
+            value = x.weight;
+        }
+        if (deficit > 0) {
+            if (goal <= goalLimit) {
+                value = goal;
+            } else {
+                value = goalLimit;
+            }
+        } else {
+            if (goal >= goalLimit) {
+                value = goal;
+            } else {
+                value = goalLimit;
+            }
+        }
+        return value;
+    }
+
+    var setClientLogGraphData = function (type, clientLogsDays) {
         $scope.clientLog_ = [];
         var clientLog = [];
         var goalFrom = [];
         var goalTo = [];
+        var goalWeight = [];
         var labels = [];
-        $rootScope.clientLogGraphData = charts.createGraph(
-            [$translate.instant('tracking of anthropometric measures')],
-            [
-                clientLog,
-                goalFrom,
-                goalTo
-            ],
-            labels,
-            ['#3399ff', '#ff3333', '#33ff33'],
-            [
-                   {
-                       label: $translate.instant("measured value"),
-                       borderWidth: 5,
-                       type: 'line',
-                       fill: true
-                   },
-                   {
-                       label: $translate.instant("lower limit"),
-                       borderWidth: 2,
-                       backgroundColor: '#e6e6ff',
-                       fill: false,
-                       type: 'line'
-                   },
-                   {
-                       label: $translate.instant("upper limit"),
-                       borderWidth: 2,
-                       backgroundColor: '#e6e6ff',
-                       fill: false,
-                       type: 'line'
-                   }
-            ],
-            true
-        )
 
-        //TODO - goal
+        //TODO - goal (depending of type, reduction increase, fixed Goal)
         if (angular.isDefined($rootScope.calculation.recommendedWeight)) {
-            if (days === undefined) { days = 30; }
+            var days = 30;
+            var goal = 0;
+            debugger;
+            var deficit = ($rootScope.calculation.recommendedEnergyIntake - $rootScope.calculation.recommendedEnergyExpenditure) - $rootScope.calculation.tee;
+            if (clientLogsDays !== undefined) {
+                days = clientLogsDays.days;
+                $scope.clientLogsDays = clientLogsDays;
+            }
             angular.forEach($scope.clientLog, function (x, key) {
                 if (functions.getDateDiff(x.date) <= days) {
                     $scope.clientLog_.push(x);
-                    if (type == 0) { clientLog.push(x.weight); goalFrom.push(getRecommendedWeight(x.height).min); goalTo.push(getRecommendedWeight(x.height).max); }
+                    if (type == 0) {
+                        clientLog.push(x.weight);
+                        goalFrom.push(getRecommendedWeight(x.height).min);
+                        goalTo.push(getRecommendedWeight(x.height).max);
+                        /********** goal **********/
+                        goal = getGoalLog(deficit, key, x, $scope.clientLog[0].weight, $scope.clientLog[0].date, x.date);
+                        goalWeight.push(goal);
+                        /**************************/
+                    }
                     if (type == 1) { clientLog.push(x.waist); goalFrom.push(95); }
                     if (type == 2) { clientLog.push(x.hip); goalFrom.push(97); }
                     if (key % (Math.floor($scope.clientLog.length / 31) + 1) === 0) {
@@ -1648,10 +1682,35 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             });
         }
         
+        $rootScope.clientLogGraphData = charts.createGraph(
+            [$translate.instant("measured value"), $translate.instant("lower limit"), $translate.instant("upper limit"), $translate.instant("goal")],
+            [
+                clientLog,
+                goalFrom,
+                goalTo,
+                goalWeight
+            ],
+            labels,
+            ['#3399ff', '#ff3333', '#33ff33', '#ffd633'],
+            {
+                responsive: true, maintainAspectRatio: true, legend: { display: true },
+                scales: {
+                    xAxes: [{ display: true, scaleLabel: { display: true }, ticks: { beginAtZero: false } }],
+                    yAxes: [{ display: true, scaleLabel: { display: true }, ticks: { beginAtZero: false } }]
+                }
+            },
+            [
+                { label: $translate.instant("measured value"), borderWidth: 1, type: 'bar', fill: true },
+                { label: $translate.instant("lower limit"), borderWidth: 2, type: 'line', fill: false },
+                { label: $translate.instant("upper limit"), borderWidth: 2, type: 'line', fill: false },
+                { label: $translate.instant("goal") + ' (2 ' + $translate.instant("kg") + '/' + $translate.instant("mo") + ')', borderWidth: 3, type: 'line', fill: false, strokeColor: "#33ff33", fillColor: "#43ff33" }
+            ]
+        )
+
     };
 
-    $rootScope.setClientLogGraphData = function (type, days) {
-        setClientLogGraphData(type, days);
+    $rootScope.setClientLogGraphData = function (type, clientLogsDays) {
+        setClientLogGraphData(type, clientLogsDays);
     }
 
     $scope.getDateFormat = function (x) {
@@ -1731,6 +1790,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
     $scope.clientLogDiff = function (type, clientLog, x, idx) {
+        if (x === undefined) { return false; }
         var diff = 0;
         if (clientLog.length - idx == 1) return {
             diff: diff.toFixed(1),
@@ -1768,8 +1828,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
 }])
-
-
 
 .controller('detailCalculationOfEnergyExpenditureCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', '$timeout', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate, $timeout) {
     $rootScope.totalDailyEnergyExpenditure = {
@@ -1938,33 +1996,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 .controller('calculationCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'charts', '$timeout', 'functions', '$translate', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, charts, $timeout, functions, $translate) {
     var webService = 'Calculations.asmx';
 
-    var getCalculation = function () {
-        $http({
-            url: $sessionStorage.config.backend + webService + '/GetCalculation',
-            method: "POST",
-            data: { client: $rootScope.clientData }
-        })
-        .then(function (response) {
-            $rootScope.calculation = JSON.parse(response.data.d);
-            $rootScope.appCalculation = JSON.parse(response.data.d);
-
-            if ($rootScope.clientData.goal.code == undefined || $rootScope.clientData.goal.code == null || $rootScope.clientData.goal.code == 0) {
-                $rootScope.clientData.goal.code = $rootScope.calculation.goal.code;
-            }
-
-            getCharts();
-            getGoals();
-        },
-        function (response) {
-            if (response.data.d === undefined) {
-                functions.alert($translate.instant('you have to refresh the page. press Ctrl+F5') + '.', '');
-            } else {
-                functions.alert(response.data.d, '');
-            }
-        });
-    };
-    getCalculation();
-
     $scope.getBmiClass = function (x) {
         if (x < 18.5) { return { text: 'text-info', icon: 'fa fa-exclamation' }; }
         if (x >= 18.5 && x <= 25) { return { text: 'text-success', icon: 'fa fa-check' }; }
@@ -2064,10 +2095,15 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         });
     };
 
-    $scope.getGoal = function (x) {
+    if ($rootScope.goalWeightValue_ === undefined) { $rootScope.goalWeightValue_ = 0; }
+    $scope.changeGoalWeightValue = function (x) {
+        $rootScope.goalWeightValue_ = angular.copy(x);
+    }
 
+    $scope.getGoal = function (x) {
         var energy = 0;
         var activity = 0;
+        $rootScope.goalWeightValue = 0;
         switch (x) {
             case "G1":  // redukcija tjelesne mase
                 if ($rootScope.appCalculation.goal.code == "G1") {
@@ -2082,6 +2118,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                     energy = $rootScope.appCalculation.recommendedEnergyIntake + 300;
                     activity = $rootScope.appCalculation.recommendedEnergyExpenditure;
                 }
+                $rootScope.goalWeightValue = Math.round(angular.copy($rootScope.calculation.recommendedWeight.max));
                 break;
             case "G2":  // zadrzavanje postojece tjelesne mase
                 if ($rootScope.appCalculation.goal.code == "G1") {
@@ -2096,14 +2133,15 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                     energy = $rootScope.appCalculation.recommendedEnergyIntake - 300;
                     activity = $rootScope.appCalculation.recommendedEnergyExpenditure;
                 }
+                $rootScope.goalWeightValue =  Math.round(angular.copy($rootScope.clientData.weight));
                 break;
             case "G3":  // povecanje tjelesne mase
-                if ($rootScope.appCalculation.goal.code == "G2") {
+                if ($rootScope.appCalculation.goal.code == "G1") {
                     energy = $rootScope.appCalculation.recommendedEnergyIntake;
                     activity = $rootScope.appCalculation.recommendedEnergyExpenditure;
                 }
                 if ($rootScope.appCalculation.goal.code == "G2") {
-                    energy = $rootScope.appCalculation.recommendedEnergyIntake + 300;
+                    energy = $rootScope.appCalculation.recommendedEnergyIntake + 300 + $rootScope.appCalculation.recommendedEnergyExpenditure;
                     activity = $rootScope.appCalculation.recommendedEnergyExpenditure;
                 }
                 if ($rootScope.appCalculation.goal.code == "G3") {
@@ -2114,6 +2152,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                     energy = $rootScope.appCalculation.recommendedEnergyIntake + 500;
                     activity = $rootScope.appCalculation.recommendedEnergyExpenditure + 200;
                 }
+                $rootScope.goalWeightValue = $rootScope.clientData.weight < $rootScope.calculation.recommendedWeight.min ?  Math.round(angular.copy($rootScope.calculation.recommendedWeight.min)) :  Math.round(angular.copy($rootScope.clientData.weight + 10));  //TODO
                 break;
             case "G4":  // povecanje misicne mase
                 if ($rootScope.appCalculation.goal.code == "G1") {
@@ -2128,33 +2167,34 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                     energy = $rootScope.appCalculation.recommendedEnergyIntake + 400;
                     activity = $rootScope.appCalculation.recommendedEnergyExpenditure + 100;
                 }
+                $rootScope.goalWeightValue =  Math.round(angular.copy($rootScope.clientData.weight));
                 break;
             default:
                 energy = 0;
                 activity = 0;
                 break;
         }
-
+        $scope.changeGoalWeightValue($rootScope.goalWeightValue);
 
         angular.forEach($rootScope.goals, function (value, key) {
             if (value.code == x) {
                 $rootScope.clientData.goal.code = value.code;
                 $rootScope.clientData.goal.title = value.title;
+                $rootScope.calculation.goal.code = x;
             }
         })
 
         $rootScope.calculation.recommendedEnergyIntake = Math.round(energy);
         $rootScope.calculation.recommendedEnergyExpenditure = Math.round(activity);
-
     }
 
     var isGoalDisabled = function () {
-            if ($rootScope.calculation.bmi.value < 18.5) {
-                $rootScope.goals[0].isDisabled = true;
-            }
-            if ($rootScope.calculation.bmi.value > 25) {
-                $rootScope.goals[2].isDisabled = true;
-            }
+        if ($rootScope.calculation.bmi.value < 18.5) {
+            $rootScope.goals[0].isDisabled = true;
+        }
+        if ($rootScope.calculation.bmi.value > 25) {
+            $rootScope.goals[2].isDisabled = true;
+        }
     }
 
     $scope.creatingPdf = false;
@@ -2163,7 +2203,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $http({
             url: $sessionStorage.config.backend + 'PrintPdf.asmx/CalculationPdf',
             method: "POST",
-            data: { userId: $sessionStorage.usergroupid, client: $rootScope.client, clientData: $rootScope.clientData, calculation: $rootScope.calculation, myCalculation: $rootScope.myCalculation, lang: $rootScope.config.language }
+            data: { userId: $sessionStorage.usergroupid, client: $rootScope.client, clientData: $rootScope.clientData, calculation: $rootScope.calculation, myCalculation: $rootScope.myCalculation, goal: $rootScope.goalWeightValue_, lang: $rootScope.config.language }
         })
         .then(function (response) {
             var fileName = response.data.d;
@@ -2204,6 +2244,35 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             functions.alert($translate.instant(response.data.d), '');
         }); 
     }
+
+    var getCalculation = function () {
+        $http({
+            url: $sessionStorage.config.backend + webService + '/GetCalculation',
+            method: "POST",
+            data: { client: $rootScope.clientData }
+        })
+        .then(function (response) {
+            $rootScope.calculation = JSON.parse(response.data.d);
+            $rootScope.appCalculation = JSON.parse(response.data.d);
+
+            if ($rootScope.clientData.goal.code == undefined || $rootScope.clientData.goal.code == null || $rootScope.clientData.goal.code == 0) {
+                $rootScope.clientData.goal.code = $rootScope.calculation.goal.code;
+            }
+
+            getCharts();
+            getGoals();
+            $scope.getGoal($rootScope.clientData.goal.code);
+
+        },
+        function (response) {
+            if (response.data.d === undefined) {
+                functions.alert($translate.instant('you have to refresh the page. press Ctrl+F5') + '.', '');
+            } else {
+                functions.alert(response.data.d, '');
+            }
+        });
+    };
+    getCalculation();
 
 }])
 
@@ -2689,7 +2758,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         .then(function (response) {
             $rootScope.myMeals = response;
             $rootScope.clientData.myMeals = angular.copy($rootScope.myMeals);
-            debugger;
             $rootScope.clientData.meals = $rootScope.clientData.myMeals.data.meals;
             $rootScope.isMyMeals = true;
             $rootScope.mealsAreChanged = true;
@@ -2778,9 +2846,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
     var getRecommendations = function (clientData) {
-        debugger;
-
-
         var energyPerc = null;
         if (clientData.myMeals !== undefined && clientData.myMeals != null) {
             if (clientData.myMeals.data != null) {
@@ -2830,7 +2895,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             data: {}
         })
         .then(function (response) {
-            debugger;
             $rootScope.currentMenu = JSON.parse(response.data.d);
             $rootScope.currentMenu.client = $rootScope.client;
             $rootScope.currentMenu.client.clientData = $rootScope.clientData;  //TODO sredit
@@ -2861,13 +2925,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $rootScope.currentMeal = x;
     };
 
-
-    debugger;
     if ($rootScope.mealsAreChanged) {
         $rootScope.mealsAreChanged = false;
         init();
     } else {
-        // new
         if ($rootScope.currentMenu === undefined) {
             init();
         } else {
@@ -3347,11 +3408,14 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             data: { config: $rootScope.config, clientData: $rootScope.clientData }
         })
         .then(function (x) {
+            $rootScope.currentMenu.id = x.id;
+            $rootScope.currentMenu.title = x.title;
+            $rootScope.currentMenu.note = x.note;
+            $rootScope.currentMenu.userId = x.userId;
             $rootScope.currentMenu.data = x.data;
             $rootScope.currentMenu.client.clientData = $rootScope.clientData;
             $rootScope.currentMenu.client.clientData.meals = x.data.meals;
             $rootScope.currentMenu.client.clientData.myMeals = x.client.clientData.myMeals;
-            debugger;
             $rootScope.isMyMeals = false;
             if ($rootScope.currentMenu.client.clientData.myMeals != null) {
                 if ($rootScope.currentMenu.client.clientData.myMeals.data != null) {
@@ -3552,7 +3616,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 return false;
             }
             currentMenu.diet = d.client.clientData.diet.diet;
-            $mdDialog.hide($scope.d.currentMenu);
             var myMeals = null;
             if (currentMenu.data.meals.length > 2) {
                 if (currentMenu.data.meals[0].code != 'B') {
@@ -3567,6 +3630,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
           .then(function (response) {
               if (response.data.d != 'error') {
                   $scope.d.currentMenu = JSON.parse(response.data.d);
+                  $mdDialog.hide($scope.d.currentMenu);
               } else {
                   functions.alert($translate.instant('there is already a menu with the same name'), '');
               }
@@ -3709,7 +3773,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             if (value.isSelected == true && angular.isDefined($rootScope.totals)) {
                 if (angular.isDefined($rootScope.totals.mealsTotalEnergy)) {
                     if (key < $rootScope.recommendations.mealsRecommendationEnergy.length) {
-                        $scope.mealsTotals.push($rootScope.totals.mealsTotalEnergy.length > 0 ? $rootScope.totals.mealsTotalEnergy[key].meal.energy : 0);
+                        $scope.mealsTotals.push($rootScope.totals.mealsTotalEnergy.length > 0 ? $rootScope.totals.mealsTotalEnergy[key].meal.energy.toFixed(1) : 0);
                         if ($rootScope.recommendations !== undefined) {
                             if (angular.isDefined($rootScope.recommendations.mealsRecommendationEnergy)) {
                                 $scope.mealsMin.push($rootScope.recommendations.mealsRecommendationEnergy[key].meal.energyMin);
@@ -3734,68 +3798,117 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         var t = $rootScope.totals;
         var r = $rootScope.recommendations
         $rootScope.servGraphData = charts.createGraph(
-                $translate.instant('unit servings'),
+                [$translate.instant('cereals'), $translate.instant('vegetables'), $translate.instant('fruit'), $translate.instant('meat'), $translate.instant('milk'), $translate.instant('fats')],
                 [
                     [t.servings.cerealsServ, t.servings.vegetablesServ, t.servings.fruitServ, t.servings.meatServ, t.servings.milkServ, t.servings.fatsServ],
                     [r.servings.cerealsServ, r.servings.vegetablesServ, r.servings.fruitServ, r.servings.meatServ, r.servings.milkServ, r.servings.fatsServ]
                 ],
                 [$translate.instant('cereals'), $translate.instant('vegetables'), $translate.instant('fruit'), $translate.instant('meat'), $translate.instant('milk'), $translate.instant('fats')],
                 ['#45b7cd', '#33cc33', '#33cc33'],
+                {
+                    responsive: true, maintainAspectRatio: true, legend: { display: true },
+                    scales: {
+                        xAxes: [{ display: true, scaleLabel: { display: false }, ticks: { beginAtZero: true } }],
+                        yAxes: [{ display: true, scaleLabel: { display: false }, ticks: { beginAtZero: true } }]
+                    }
+                },
                 [
                      {
                          label: $translate.instant('choosen'),
                          borderWidth: 1,
-                         type: 'bar'
+                         type: 'bar',
+                         fill: true
                      },
                      {
                          label: $translate.instant('recommended'),
                          borderWidth: 3,
                          hoverBackgroundColor: "rgba(255,99,132,0.4)",
                          hoverBorderColor: "rgba(255,99,132,1)",
-                         type: 'line'
+                         type: 'line',
+                         fill: true
                      }
-                ],
-                false
+                ]
         );
+
         $rootScope.pieGraphData = charts.createGraph(
-                [$translate.instant('nutrients')],
-                [t.carbohydratesPercentage, t.proteinsPercentage, t.fatsPercentage],
                 [$translate.instant('carbohydrates'), $translate.instant('proteins'), $translate.instant('fats')],
-                true
+                [t.carbohydratesPercentage, t.proteinsPercentage, t.fatsPercentage],
+                [$translate.instant('carbohydrates') + ' (%)', $translate.instant('proteins') + ' (%)', $translate.instant('fats') + ' (%)'],
+                ['#45b7cd', '#ff6384', '#33cc33'],
+                { responsive: true, maintainAspectRatio: true, legend: { display: true },
+                scales: {
+                    xAxes: [{ display: false, scaleLabel: { display: false }, ticks: { beginAtZero: true } }],
+                    yAxes: [{ display: false, scaleLabel: { display: false }, ticks: { beginAtZero: true } }]}
+                },
+                []
         );
-        $rootScope.mealsGraphData = charts.createGraph(
-               [$translate.instant('meals')], //['obroci'],
-               [ $scope.mealsTotals, $scope.mealsMin, $scope.mealsMax ],
-               $scope.mealsTitles,
-               ['#45b7cd', '#ff6384', '#33cc33'],
-               [
+
+        var mealsGraphData = function (displayLegend) {
+            return charts.createGraph(
+              $scope.mealsTitles,
+              [$scope.mealsTotals, $scope.mealsMin, $scope.mealsMax],
+              $scope.mealsTitles,
+              ['#45b7cd', '#ff6384', '#33cc33'],
+              {
+                  responsive: true, maintainAspectRatio: true, legend: { display: displayLegend },
+                  scales: {
+                      xAxes: [{ display: true, scaleLabel: { display: true }, ticks: { beginAtZero: true } }],
+                      yAxes: [{ display: true, scaleLabel: { display: true }, ticks: { beginAtZero: true, stepSize: 200 } }]
+                  }
+              },
+              [
+                   {
+                       label: $translate.instant('choosen') + ' (' + $translate.instant('kcal') + ')',
+                       borderWidth: 1,
+                       type: 'bar',
+                       fill: true
+                   },
+                   {
+                       label: $translate.instant('recommended') + ' ' + $translate.instant('from') + ' (' + $translate.instant('kcal') + ')',
+                       borderWidth: 3,
+                       hoverBackgroundColor: "rgba(255,99,132,0.4)",
+                       hoverBorderColor: "rgba(255,99,132,1)",
+                       type: 'line',
+                       fill: false
+                   },
                     {
-                        label: $translate.instant('choosen'),
-                        borderWidth: 1,
-                        type: 'bar'
-                    },
-                    {
-                        label: $translate.instant('recommended'),
+                        label: $translate.instant('recommended') + ' ' + $translate.instant('to') + ' (' + $translate.instant('kcal') + ')',
                         borderWidth: 3,
                         hoverBackgroundColor: "rgba(255,99,132,0.4)",
                         hoverBorderColor: "rgba(255,99,132,1)",
-                        type: 'line'
-                    },
-                     {
-                         label: $translate.instant('recommended'),
-                        borderWidth: 3,
-                        hoverBackgroundColor: "rgba(255,99,132,0.4)",
-                        hoverBorderColor: "rgba(255,99,132,1)",
-                        type: 'line'
+                        type: 'line',
+                        fill: false
                     }
-               ],
-               false
-       );
+              ]
+            );
+
+        }  
+        $rootScope.mealsGraphData_menu = mealsGraphData(false);
+        $rootScope.mealsGraphData_analysis = mealsGraphData(true);
+
+
+        $scope.parametersGraphDataOther = charts.stackedChart(
+            [$translate.instant('choosen')],
+            [
+                [t.starch, t.totalSugar, t.glucose, t.fructose, t.saccharose, t.maltose, t.lactose]
+            ],
+            [
+                $translate.instant('starch') + ' (' + $translate.instant('g') + ')',
+                $translate.instant('total sugar') + ' (' + $translate.instant('g') + ')',
+                $translate.instant('glucose') + ' (' + $translate.instant('g') + ')',
+                $translate.instant('fructose') + ' (' + $translate.instant('g') + ')',
+                $translate.instant('saccharose') + ' (' + $translate.instant('g') + ')',
+                $translate.instant('maltose') + ' (' + $translate.instant('g') + ')',
+                $translate.instant('lactose') + ' (' + $translate.instant('g') + ')'
+            ],
+            ['#33cc33'],
+            '');
+
         //TODO
-        $rootScope.parametersGraphData = charts.createGraph(
-               [$translate.instant('parameters')],
-               [
-                   [
+        $scope.parametersGraphData = charts.stackedChart(
+            [$translate.instant('choosen'), $translate.instant('recommended dietary allowance') + ' (' + $translate.instant('rda').toUpperCase() + ')'],
+            [
+                [
                     t.fibers,
                     t.monounsaturatedFats,
                     t.polyunsaturatedFats,
@@ -3820,8 +3933,9 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                     t.pantothenicAcid,
                     t.biotin,
                     t.vitaminC,
-                    t.vitaminK],
-                   [
+                    t.vitaminK
+                ],
+                [
                     r.fibers.rda,
                     r.monounsaturatedFats.rda,
                     r.polyunsaturatedFats.rda,
@@ -3846,111 +3960,69 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                     r.pantothenicAcid.rda,
                     r.biotin.rda,
                     r.vitaminC.rda,
-                    r.vitaminK.rda]
-               ],
-               [
-                'fibers',
-                'monounsaturatedFats',
-                'polyunsaturatedFats',
-                'calcium',
-                'magnesium',
-                'phosphorus',
-                'iron',
-                'copper',
-                'zinc',
-                'manganese',
-                'selenium',
-                'iodine',
-                'retinol',
-                'vitaminD',
-                'vitaminE',
-                'vitaminB1',
-                'vitaminB2',
-                'vitaminB3',
-                'vitaminB6',
-                'vitaminB12',
-                'folate',
-                'pantothenicAcid',
-                'biotin',
-                'vitaminC',
-                'vitaminK'],
-               ['#45b7cd', '#2fed4f', '#ff8e72'],
-               [
-                    {
-                        label: "Odabrano",
-                        borderWidth: 1,
-                        type: 'bar'
-                    },
-                    {
-                        label: "RDA",
-                        borderWidth: 3,
-                        hoverBackgroundColor: "rgba(255,99,132,0.4)",
-                        hoverBorderColor: "rgba(255,99,132,1)",
-                        type: 'line'
-                    }
-               ],
-               false
-        );
+                    r.vitaminK.rda
+                ]
+            ],
+            [
+                $translate.instant('fibers') + ' (' + $translate.instant('g') + ')',
+                $translate.instant('monounsaturated fats') + ' (' + $translate.instant('g') + ')',
+                $translate.instant('polyunsaturated fats') + ' (' + $translate.instant('g') + ')',
+                $translate.instant('calcium') + ' (' + $translate.instant('mg') + ')',
+                $translate.instant('magnesium') + ' (' + $translate.instant('mg') + ')',
+                $translate.instant('phosphorus') + ' (' + $translate.instant('mg') + ')',
+                $translate.instant('iron') + ' (' + $translate.instant('mg') + ')',
+                $translate.instant('copper') + ' (' + $translate.instant('mg') + ')',
+                $translate.instant('zinc') + ' (' + $translate.instant('mg') + ')',
+                $translate.instant('manganese') + ' (' + $translate.instant('mg') + ')',
+                $translate.instant('selenium') + ' (' + $translate.instant('ug') + ')',
+                $translate.instant('iodine') + ' (' + $translate.instant('ug') + ')',
+                $translate.instant('retinol') + ' (' + $translate.instant('ug') + ')',
+                $translate.instant('vitamin D') + ' (' + $translate.instant('ug') + ')',
+                $translate.instant('vitamin E') + ' (' + $translate.instant('mg') + ')',
+                $translate.instant('vitamin B1') + ' (' + $translate.instant('mg') + ')',
+                $translate.instant('vitamin B2') + ' (' + $translate.instant('mg') + ')',
+                $translate.instant('vitamin B3') + ' (' + $translate.instant('mg') + ')',
+                $translate.instant('vitamin B6') + ' (' + $translate.instant('mg') + ')',
+                $translate.instant('vitamin B12') + ' (' + $translate.instant('ug') + ')',
+                $translate.instant('folate') + ' (' + $translate.instant('ug') + ')',
+                $translate.instant('pantothenic acid') + ' (' + $translate.instant('mg') + ')',
+                $translate.instant('biotin') + ' (' + $translate.instant('ug') + ')',
+                $translate.instant('vitamin C') + ' (' + $translate.instant('mg') + ')',
+                $translate.instant('vitamin K') + ' (' + $translate.instant('ug') + ')',
+            ],
+            ['#45b7cd', '#33cc33'],
+            $translate.instant('parameters'));
+
+        $scope.parametersGraphDataUI = charts.stackedChart(
+            [$translate.instant('choosen'), $translate.instant('upper intake level') + ' (' + $translate.instant('ul').toUpperCase() + ')'],
+            [
+                [t.saturatedFats, t.trifluoroaceticAcid, t.cholesterol],
+                [r.saturatedFats.ui, r.trifluoroaceticAcid.ui, r.cholesterol.ui]
+            ],
+            [
+                $translate.instant('saturated fats') + ' (' + $translate.instant('g') + ')',
+                $translate.instant('trifluoroacetic acid') + ' (' + $translate.instant('g') + ')',
+                $translate.instant('cholesterol') + ' (' + $translate.instant('mg') + ')'
+            ],
+            ['#f44242', '#33cc33'],
+            '');
 
         //TODO
-        $rootScope.parametersGraphDataUI = charts.createGraph(
-               [$translate.instant('parameters')],
-               [
-                   [
-                       t.saturatedFats, t.trifluoroaceticAcid, t.cholesterol
-                   ],
-                   [r.saturatedFats.ui, r.trifluoroaceticAcid.ui, r.cholesterol.ui]
-               ],
-               ['saturatedFats', 'trifluoroaceticAcid', 'cholesterol'],
-               ['#f44242', '#ff6384'],
-               [
-                    {
-                        label: "Odabrano",
-                        borderWidth: 1,
-                        type: 'bar',
-                        backgroundColor: "rgb(244, 66, 66)",
-                        hoverBackgroundColor: "rgb(244, 66, 66)",
-                    },
-                    {
-                        label: "UI",
-                        borderWidth: 3,
-                        type: 'line'
-                    }
-               ]
-        );
+        $scope.parametersGraphDataMDA = charts.stackedChart(
+            [$translate.instant('choosen'), $translate.instant('upper intake level') + ' (' + $translate.instant('ul').toUpperCase() + ')', $translate.instant('minimum dietary allowance') + ' (' + $translate.instant('mda').toUpperCase() + ')'],
+            [
+                [t.sodium, t.potassium, t.chlorine],
+                [r.sodium.ui],
+                [r.sodium.mda, r.potassium.mda, r.chlorine.mda]
+            ],
+            [
+                $translate.instant('sodium') + ' (' + $translate.instant('mg') + ')',
+                $translate.instant('potassium') + ' (' + $translate.instant('mg') + ')',
+                $translate.instant('chlorine') + ' (' + $translate.instant('mg') + ')'
+            ],
+            ['#45b7cd', '#33cc33'],
+            '');
 
-        //TODO
-        $rootScope.parametersGraphDataMDA = charts.createGraph(
-               ['parametri'],
-               [
-                   [t.sodium, t.potassium, t.chlorine],
-                   [r.sodium.ui],
-                   [r.sodium.mda, r.potassium.mda, r.chlorine.mda]
-               ],
-               ['sodium', 'potassium', 'chlorine'],
-               ['#49a5af', '#f44242', '#2fed4f'],
-               [
-                    {
-                        label: "Odabrano",
-                        borderWidth: 1,
-                        type: 'bar',
-                        backgroundColor: "rgb(244, 66, 66)",
-                        hoverBackgroundColor: "rgb(244, 66, 66)",
-                    },
-                    {
-                        label: "UI",
-                        borderWidth: 10,
-                        type: 'line',
-                        backgroundColor: "rgb(244, 66, 66)",
-                    },
-                    {
-                        label: "MDA",
-                        borderWidth: 3,
-                        type: 'line'
-                    },
-               ],
-               false
-        );
     }
 
     var totalEnergyChart = function () {
@@ -4501,15 +4573,15 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                         method: "POST",
                         data: { userId: $sessionStorage.usergroupid, currentMenu: currentMenu, totals: $rootScope.totals, consumers: consumers, lang: $rootScope.config.language, settings: $scope.settings }
                     })
-                      .then(function (response) {
-                          var fileName = response.data.d;
-                          $scope.creatingPdf = false;
-                          $scope.pdfLink = $sessionStorage.config.backend + 'upload/users/' + $rootScope.user.userGroupId + '/pdf/' + fileName + '.pdf';
-                      },
-                      function (response) {
-                          $scope.creatingPdf = false;
-                          alert(response.data.d)
-                      });
+                    .then(function (response) {
+                        var fileName = response.data.d;
+                        $scope.creatingPdf = false;
+                        $scope.pdfLink = $sessionStorage.config.backend + 'upload/users/' + $rootScope.user.userGroupId + '/pdf/' + fileName + '.pdf';
+                    },
+                    function (response) {
+                        $scope.creatingPdf = false;
+                        alert(response.data.d)
+                    });
                 },
                 function (response) {
                     alert(response.data.d)
@@ -4585,7 +4657,52 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         return recommendations
     }
 
+    $scope.toggleParamTpl = function (x) {
+        $scope.parametersTpl = x;
+    }
+    $scope.toggleParamTpl('parametersChartTpl');
 
+    $scope.checkTotal = function (total, min, max) {
+        var icon = 'pull-right fa fa-';
+        if (total > max) {
+            return icon + 'chevron-circle-right text-danger';
+        } else if (total < min) {
+            return icon + 'chevron-circle-left text-info';
+        } else {
+            return icon + 'check-circle text-success';
+        }
+    }
+
+    $scope.checkEnergy = function (total, r) {
+        var icon = 'pull-right fa fa-';
+        if ((total / r) - 1 > 0.05) {
+            return icon + 'chevron-circle-right text-danger';
+        } else if ((total / r) - 1 < -0.05) {
+            return icon + 'chevron-circle-left text-info';
+        } else {
+            return icon + 'check-circle text-success';
+        }
+    }
+
+    $scope.checkServ = function (total, r) {
+        var icon = 'pull-right fa fa-';
+        if ((total - r) > 1) {
+            return icon + 'chevron-circle-right text-danger';
+        } else if ((total - r) < -1) {
+            return icon + 'chevron-circle-left text-info';
+        } else {
+            return icon + 'check-circle text-success';
+        }
+    }
+
+    $scope.checkOtherFoods = function (total, r) {
+        var icon = 'pull-right fa fa-';
+        if (total > r) {
+            return icon + 'chevron-circle-right text-danger';
+        } else {
+            return icon + 'check-circle text-success';
+        }
+    }
 
 }])
 
@@ -5926,15 +6043,13 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 } else if ([8, 13, 27, 37, 38, 39, 40].indexOf(event.which) > -1) {
                     // to allow backspace, enter, escape, arrows  
                     return true;
-                }
-                else if (event.which == 110 || event.which == 188 || event.which == 190) {
+                } else if (event.which == 110 || event.which == 188 || event.which == 190) {
                     // to allow ',' and '.'
                     return true;
                 } else if (event.which == 46) {
                     // to allow delete
                     return true;
-                }
-                else {
+                } else {
                     event.preventDefault();
                     // to stop others  
                     return false;

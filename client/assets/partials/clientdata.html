@@ -94,10 +94,9 @@
         <a href="" ng-click="showClientLog()">{{'tracking of anthropometric measures' | translate}} <i class="fa fa-chevron-{{showLog?'up':'down'}}" aria-hidden="true"></i></a>
     </div>
     <div ng-if="showLog" class="mt10">
-        <!--<label class="text-capitalize">{{'tracking of anthropometric measures' | translate}}</label>-->
         <div class="row mt10">
             <div class="col-sm-3">
-                <select ng-model="clientLogsDays" class="form-control" ng-options="x.title | translate for x in chartDays" ng-change="setClientLogGraphData(0, clientLogsDays.days)"></select>
+                <select ng-model="clientLogsDays" class="form-control" ng-options="x.title | translate for x in chartDays" ng-change="setClientLogGraphData(0, clientLogsDays)"></select>
             </div>
         </div>
         <ul class="nav nav-tabs mt10">
@@ -182,7 +181,19 @@
 
 <script type="text/ng-template" id="clientLogChart">
     <div class="p10" ng-cloak>
-        <div>
+        <div class="row">
+            <div class="col-sm-2">
+                <span>{{'goal' | translate}}</span>
+                <div class="input-group">
+                    <input type="text" ng-model="goalWeightValue_" class="form-control text-right" style="min-width:75px" allow-only-numbers ng-change="changeGoalWeightValue(goalWeightValue_, 0, clientLogsDays)">
+                    <!--<button ng-click="changeGoalWeightValue(goalWeightValue_, 0, clientLogsDays)">confirm</button>-->
+                    <div class="input-group-addon">
+                        <div class="input-group-text" style="width:25px">{{'kg' | translate}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mt10">
             {{'weight' | translate}} ({{'kg' | translate}})
         </div>
         <div class="mt10">

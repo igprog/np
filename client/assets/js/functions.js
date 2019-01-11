@@ -1,6 +1,6 @@
 ﻿/*!
 functions.js
-(c) 2018 IG PROG, www.igprog.hr
+(c) 2019 IG PROG, www.igprog.hr
 */
 angular.module('functions', [])
 
@@ -15,8 +15,13 @@ angular.module('functions', [])
         },
         'getDateDiff': function (x) {
             var today = new Date();
-            var date2 = today;
             var date1 = new Date(x);
+            var diffDays = Math.abs(parseInt((today - date1) / (1000 * 60 * 60 * 24)));
+            return diffDays;
+        },
+        'getTwoDateDiff': function (x, y) {
+            var date1 = new Date(x);
+            var date2 = new Date(y);
             var diffDays = Math.abs(parseInt((date2 - date1) / (1000 * 60 * 60 * 24)));
             return diffDays;
         }
