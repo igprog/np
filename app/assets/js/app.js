@@ -1,6 +1,6 @@
 ﻿/*!
 app.js
-(c) 2018 IG PROG, www.igprog.hr
+(c) 2017-2019 IG PROG, www.igprog.hr
 */
 angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'chart.js', 'ngStorage', 'functions', 'charts'])
 
@@ -358,7 +358,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             return false;
         }
         x.userId = $rootScope.user.userId;
-        x.clientId = x.clientId == null ? $rootScope.client.clientId : x.clientId;
+        x.clientId = x.clientId == null ? $rootScope.client.clientId: x.clientId;
         $http({
             url: $sessionStorage.config.backend + 'ClientsData.asmx/Save',
             method: 'POST',
@@ -4729,15 +4729,15 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     };
     init();
 
-    $scope.new = function(){
+    $scope.new = function () {
         init();
     }
 
-    $scope.delete = function (x) {
+    $scope.remove = function (x) {
         var confirm = $mdDialog.confirm()
             .title($translate.instant('delete food') + '?')
-            .textContent()
-            .targetEvent()
+            .textContent(x.food)
+            .targetEvent(x)
             .ok($translate.instant('yes'))
             .cancel($translate.instant('no'));
         $mdDialog.show(confirm).then(function () {
@@ -4750,7 +4750,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $http({
             url: $sessionStorage.config.backend + webService + '/Delete',
             method: "POST",
-            data: { userId: $rootScope.user.userGroupId, x: x }
+            data: { userId: $rootScope.user.userGroupId, id: x.id }
         })
      .then(function (response) {
          loadMyFoods();
@@ -4785,6 +4785,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             functions.alert($translate.instant('food title is required'), '');
             return false;
         }
+        if (functions.isNullOrEmpty(x.unit)) {
+            functions.alert($translate.instant('choose unit'), '');
+            return false;
+        }
         if (checkIsOtherFood(x) == true) {
             x.servings.cerealsServ = 0;
             x.servings.vegetablesServ = 0;
@@ -4812,17 +4816,23 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         function (response) {
             functions.alert($translate.instant(response.data.d), '');
         });
+
     };
 
     var checkIsOtherFood = function (x) {
-        if (x.foodGroup.code == 'OF') { return true;}
-        if ( x.servings.cerealsServ > 0 ||
+        if (x.foodGroup.code == 'OF') {
+            return true;
+        }
+        if (x.servings.cerealsServ > 0 ||
              x.servings.vegetablesServ > 0 ||
              x.servings.fruitServ > 0 ||
              x.servings.meatServ > 0 ||
              x.servings.milkServ > 0 ||
-             x.servings.fatsServ > 0
-            ) { return false; } else { return true; }
+             x.servings.fatsServ > 0) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
     $scope.search = function () {
@@ -4890,6 +4900,36 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
         $scope.confirm = function (x) {
             get(x);
+        }
+
+        $scope.remove = function (x) {
+            var confirm = $mdDialog.confirm()
+                .title($translate.instant('delete food') + '?')
+                .textContent(x.food)
+                .targetEvent(x)
+                .ok($translate.instant('yes'))
+                .cancel($translate.instant('no'));
+            $mdDialog.show(confirm).then(function () {
+                remove(x);
+                openMyFoodsPopup();
+            }, function () {
+                openMyFoodsPopup();
+            });
+        };
+
+        var remove = function (x) {
+            $http({
+                url: $sessionStorage.config.backend + webService + '/Delete',
+                method: "POST",
+                data: { userId: $rootScope.user.userGroupId, id: x.id }
+            })
+             .then(function (response) {
+                 loadMyFoods();
+                 init();
+             },
+             function (response) {
+                 functions.alert($translate.instant(response.data.d), '');
+             });
         }
     };
 
@@ -5059,8 +5099,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         });
     }
 
-//TODO remove recipes
-
     $scope.remove = function (x) {
         var confirm = $mdDialog.confirm()
             .title($translate.instant('delete recipe') + '?')
@@ -5156,7 +5194,131 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.confirm = function (x) {
             get(x);
         }
+
+        $scope.remove = function (x) {
+            var confirm = $mdDialog.confirm()
+                .title($translate.instant('delete recipe') + '?')
+                .textContent(x.title)
+                .targetEvent(x)
+                .ok($translate.instant('yes'))
+                .cancel($translate.instant('no'));
+            $mdDialog.show(confirm).then(function () {
+                remove(x);
+                openMyRecipesPopup();
+            }, function () {
+                openMyRecipesPopup();
+            });
+        };
+
+        var remove = function (x) {
+            $http({
+                url: $sessionStorage.config.backend + webService + '/Delete',
+                method: "POST",
+                data: { userId: $rootScope.user.userGroupId, id: x.id }
+            })
+            .then(function (response) {
+                init();
+            },
+            function (response) {
+                alert(response.data.d);
+            });
+        }
+
     };
+
+    $scope.saveRecipeAsMyFood = function (recipe) {
+        if (recipe.data.selectedFoods.length == 0) { return false; }
+        saveRecipeAsMyFoodPopup(recipe);
+    }
+
+    var saveRecipeAsMyFoodPopup = function (recipe) {
+        $mdDialog.show({
+            controller: saveRecipeAsMyFoodPopupCtrl,
+            templateUrl: 'assets/partials/popup/saverecipeasmyfood.html',
+            parent: angular.element(document.body),
+            clickOutsideToClose: true,
+            data: recipe
+        })
+        .then(function (recipe) {
+            $scope.recipe = recipe;
+        }, function () {
+        });
+    }
+
+    var saveRecipeAsMyFoodPopupCtrl = function ($scope, $mdDialog, $http, data, functions, $rootScope) {
+        $scope.d = {
+            recipe: data,
+            units: [],
+            unit: null,
+            titleAlert: false,
+            unitAlert: false
+        }
+
+        var init = function () {
+            $http({
+                url: $sessionStorage.config.backend + 'Foods.asmx/Init',
+                method: "POST",
+                data: ''
+            })
+            .then(function (response) {
+                var res = JSON.parse(response.data.d);
+                $scope.d.units = res.units;
+            },
+            function (response) {
+                alert(response.data.d)
+            });
+        };
+        init();
+
+        $scope.cancel = function () {
+            $mdDialog.cancel();
+        };
+
+        $scope.confirm = function (x) {
+            if ($rootScope.user.licenceStatus == 'demo') {
+                functions.demoAlert('the saving function is disabled in demo version');
+                return false;
+            }
+            if (functions.isNullOrEmpty(x.recipe.title)) {
+                $scope.d.titleAlert = true;
+            } else if (functions.isNullOrEmpty(x.unit)) {
+                $scope.d.unitAlert = true;
+            } else {
+                save(x);
+            }
+        }
+
+        var save = function (x) {
+            $http({
+                url: $sessionStorage.config.backend + 'Recipes.asmx/SaveAsFood',
+                method: "POST",
+                data: { userId: $rootScope.user.userGroupId, recipe: x.recipe, unit: x.unit }
+            })
+            .then(function (response) {
+                loadMyFoods();
+                $mdDialog.hide(x.recipe);
+                functions.alert($translate.instant(response.data.d), '');
+            },
+            function (response) {
+                functions.alert($translate.instant(response.data.d), '');
+            });
+        }
+
+        var loadMyFoods = function () {
+            $http({
+                url: $sessionStorage.config.backend + 'MyFoods.asmx/Load',
+                method: "POST",
+                data: { userId: $rootScope.user.userGroupId }
+            })
+            .then(function (response) {
+                var data = JSON.parse(response.data.d);
+                $rootScope.myFoods = data.foods;
+            },
+            function (response) {
+                functions.alert($translate.instant(response.data.d), '');
+            });
+        }
+    }
 
 }])
 
