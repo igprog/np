@@ -1,7 +1,7 @@
 ﻿{
   "debug": true,
   "backend": "../",
-  "title": "NutriProg.com",
+  "title": "Nutri Prog",
   "shortDescription": "meal planning web app",
   "apppage": "app.programprehrane.com",
   "apppageurl": "/app/",
