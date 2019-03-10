@@ -214,11 +214,11 @@ angular.module('app', [])
         });
     }
 
-    $scope.info = function (userId) {
+    $scope.info = function (userGroupId, userId, userType, adminType) {
         $http({
             url: $rootScope.config.backend + 'Users.asmx/GetUserSum',
             method: 'POST',
-            data: { userId: userId }
+            data: { userGroupId: userGroupId, userId: userId, userType: userType, adminType: adminType }
         })
         .then(function (response) {
             $scope.userTotal = JSON.parse(response.data.d);
@@ -334,13 +334,14 @@ angular.module('app', [])
         $scope.total = total;
         return total;
     }
-    //if (angular.isDefined($rootScope.i)) {
-    //    $scope.getTotal($rootScope.i.items);
-    //}
 
     var getLocalDateAndTime = function () {
+        debugger;
         var date = new Date();
-        return date.getDate() + '.' + date.getMonth() + 1 + '.' + date.getFullYear() + ', ' + date.getHours() + ':' + date.getMinutes();
+        var month = parseInt(date.getMonth()) + 1;
+        var min = parseInt(date.getMinutes()) < 10 ? '0' + date.getMinutes() : date.getMinutes();
+        var res = date.getDate() + '.' + month + '.' + date.getFullYear() + ', ' + date.getHours() + ':' + min;
+        return res;
     }
 
     var initForm = function () {

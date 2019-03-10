@@ -1,9 +1,18 @@
-﻿<div ng-cloak ng-controller="userCtrl" class="mt20">
+﻿<div ng-controller="userCtrl" class="mt20" ng-cloak>
     <fieldset class="fieldset-border">
         <legend class="fieldset-border text-capitalize">{{'users' | translate}}:</legend>
         <div class="text-right">
-            <a href="" ng-click="toggleTpl('newuser.html', 10)" class="btn btn-primary text-capitalize"><i class="fa fa-user-plus fa-fw"></i> {{'new user' | translate}}</a>
-            <a href="" class="btn btn-default text-capitalize m10" ng-click="isLogin?toggleTpl('dashboard.html'):toggleTpl('login.html')" title={{'close' | translate}}><i class="fa fa-times"></i><span class="hidden-xs"> {{'cancel' | translate}}</span></a>
+            <a href="" ng-click="toggleTpl('newuser', 10)" class="btn btn-primary text-capitalize"><i class="fa fa-user-plus fa-fw"></i> {{'new user' | translate}}</a>
+            <a href="" class="btn btn-default text-capitalize m10" ng-click="isLogin?toggleTpl('dashboard'):toggleTpl('login')" title="{{'close' | translate}}"><i class="fa fa-times"></i><span class="hidden-xs"> {{'cancel' | translate}}</span></a>
+        </div>
+        <div>
+            <label>{{'number of users' | translate}}: <span class="badge">{{users.length}}</span> <em>({{'maximum number of users' | translate}}: {{user.maxNumberOfUsers}})</em></label>
+            <div class="progress">
+                <div class="progress-bar progress-bar-striped active" role="progressbar"
+                     aria-valuenow="{{((users.length/user.maxNumberOfUsers)*100).toFixed(0)}}" aria-valuemin="0" aria-valuemax="100" style="width:{{((users.length/user.maxNumberOfUsers)*100).toFixed(0)}}%">
+                    {{((users.length/user.maxNumberOfUsers)*100).toFixed(0)}}%
+                </div>
+            </div>
         </div>
         <div class="table-responsive">
             <table class="table table-condensed table-hover">
@@ -23,7 +32,8 @@
                         <td ng-if="config.debug">{{x.userId}}</td>
                         <td ng-if="config.debug">{{x.userGroupId}}</td>
                         <td>
-                            <a href="" class="btn btn-circle btn-primary" ng-click="showUser(x)"><i class="fa fa-info"></i></a>
+                            <!--<a href="" class="btn btn-circle btn-primary" ng-click="showUser(x)"><i class="fa fa-info"></i></a>-->
+                            <a href="" class="btn btn-circle btn-primary" ng-click="showUser(x.userId)"><i class="fa fa-info"></i></a>
                         </td>
                         <td>{{x.firstName}} {{x.lastName}}</td>
                         <!--<td>{{x.userType}}</td>-->

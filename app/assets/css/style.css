@@ -1,6 +1,6 @@
 ﻿ /*!
 style.css
-(c) 2017-2018 IG PROG, www.igprog.hr
+(c) 2017-2019 IG PROG, www.igprog.hr
 */
 
 .dashboardBox {
@@ -126,10 +126,10 @@ md-dialog {
     }
 }
 
-.panel-heading {
+/*.panel-heading {
     background-color:#e6e6e6 !important;
     color:black !important;
-}
+}*/
 
 .navbar{
     background-color: #337ab7;
@@ -277,6 +277,27 @@ a[class*="btn-default"], button[class*="btn-default"], input[class*="search"] {
     opacity: 1;
 }
 
+.stroke {
+   color: black;
+  -webkit-text-fill-color: white; /* Will override color (regardless of order) */
+  -webkit-text-stroke-width: 1px;
+  -webkit-text-stroke-color: black;
+}
+
+.badge-info {
+    min-width: 10px;
+    padding: 3px 7px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: top;
+    background-color: #d9534f;
+    border-radius: 10px;
+}
+
 @media (max-width: 767px) {
     .loginBox {
         padding:20px;
@@ -318,6 +339,7 @@ a[class*="btn-default"], button[class*="btn-default"], input[class*="search"] {
         min-height:90%;
     }
 }
+
 
 
 
