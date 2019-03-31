@@ -48,7 +48,6 @@ h4 {
         .jumbotron {
             height:100vh;
             padding:20px;
-
         }
 
     }
@@ -299,9 +298,9 @@ h4 {
     background-color: lightgray !important;
 }
 
-li a {
+/*li a {
     display:block;
-}
+}*/
 
 .main-content {
     margin-left: 360px; /* Same as the width of the sidenav */
@@ -350,6 +349,11 @@ legend.fieldset-border {
         float:none;
         padding: 0px 0px 20px 0px;
     }
+}
+
+.box-shadow {
+    box-shadow: 5px 10px 8px #888888;
+    margin: 20px
 }
 
 

@@ -10,7 +10,7 @@
         <md-dialog-content>
             <div class="md-dialog-content">
                 <div class="text-right">
-                    <button ng-click="copyToClipboard('container')" class="btn btn-default"><span class="text-capitalize"><i class="fa fa-files-o"></i> {{'copy to clipboard' | translate}}</span></button>
+                    <button ng-click="copyToClipboard('menu_container')" class="btn btn-default"><span class="text-capitalize"><i class="fa fa-files-o"></i> {{'copy to clipboard' | translate}}</span></button>
                 </div>
                 <div>
                     <fieldset class="fieldset-border">
@@ -60,7 +60,7 @@
                     </fieldset>
                 </div>
                 <hr />
-                <div id="container" class="well">
+                <div id="menu_container" class="well">
                     <div ng-if="settings.showClientData">
                         <p>{{currentMenu.client.firstName}} {{currentMenu.client.lastName}}</p>
                         <p>
@@ -86,7 +86,7 @@
                         </div>
                         <div ng-if="settings.showFoods" class="mt10">
                             <div ng-if="y.meal.code==x.code" ng-repeat="y in foods track by $index">
-                                - {{y.food}}<span ng-if="settings.showQty">, {{y.quantity}} {{y.unit}}</span><span ng-if="settings.showMass">, {{y.mass}} g</span> <span ng-if="settings.showServ&&getServDescription(y.servings)!=''">, ({{getServDescription(y.servings)}})</span>
+                                - {{y.food}}<span ng-if="settings.showQty">, {{y.quantity}} {{y.unit}}</span><span ng-if="settings.showMass">, {{y.mass>999?(y.mass/1000).toFixed(1):y.mass}} {{y.mass>999?('kg' | translate):('g' | translate)}}</span> <span ng-if="settings.showServ&&getServDescription(y.servings)!=''">, ({{getServDescription(y.servings)}})</span>
                             </div>
                         </div>
                     </div>

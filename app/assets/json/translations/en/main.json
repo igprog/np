@@ -1641,7 +1641,7 @@
   "recipe": "recipe",
   "recipes": "recipes",
   "enter recipe title": "Enter recipe title",
-  "you do not have any recipes": "you do not have any recipes",
+  "you do not have any recipes": "You do not have any recipes",
   "create recipe": "create recipe",
   "first name is required": "first name is required",
   "birth date is required": "birth date is required",
@@ -1828,6 +1828,20 @@
   "number of clinets": "Number of clinets",
   "total appointments": "Total appointments",
   "add appointment": "Add appointment",
-  "license": "License"
+  "license": "License",
+  "report a bug": "Report a BUG",
+  "description is required": "Description is required",
+  "if you are satisfied with our app we would be grateful if you would have recommended us to your colleagues or share the link on social networks": "If You are satisfied with our app we would be grateful if you would have recommended us to your colleagues or share the link on social networks",
+  "if you are unsatisfied or have a suggestion to improve the application or want to report a BUG, you can do so by clicking": "If You are unsatisfied or have a suggestion to improve the application or want to report a BUG, you can do so by clicking",
+  "shopping list": "Shopping list",
+  "total price": "Total price",
+  "save as menu": "Save as menu",
+  "this function is available only in premium package": "This function is available only in PREMIUM package",
+  "loaf": "loaf",
+  "meal group": "Meal group",
+  "general": "General",
+  "snack": "Snack",
+  "choose food": "Choose food",
+  "pack": "pack"
 
 }
