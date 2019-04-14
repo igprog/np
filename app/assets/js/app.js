@@ -600,7 +600,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             }
         })
         .then(function (response) {
-            if (JSON.parse(response.data.d).userName == u) {
+            if (JSON.parse(response.data.d).userId != null) {
                 $rootScope.user = JSON.parse(response.data.d);
                 if ($rootScope.user.userId !== $rootScope.user.userGroupId && $rootScope.user.isActive === false) {
                     $rootScope.loading = false;
@@ -2994,7 +2994,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $http({
             url: $sessionStorage.config.backend + webService + '/Init',
             method: "POST",
-            data: ''
+            data: { lang: $rootScope.config.language }
         })
         .then(function (response) {
             $scope.food = response.data.d.food;
@@ -3128,7 +3128,17 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         .then(function (x) {
             $scope.addFoodBtnIcon = 'fa fa-plus';
             $scope.addFoodBtn = false;
-            $scope.addFoodToMeal(x.food, x.initFood, idx);
+            if (x.openAsMyFood !== undefined) {
+                if (x.openAsMyFood == true) {
+                    $rootScope.newTpl = './assets/partials/myfoods.html';
+                    $rootScope.selectedNavItem = 'myfoods';
+                    $rootScope.myFood_ = x.initFood;
+                } else {
+                    $scope.addFoodToMeal(x.food, x.initFood, idx);
+                }
+            } else {
+                $scope.addFoodToMeal(x.food, x.initFood, idx);
+            }
         }, function () {
             $scope.addFoodBtnIcon = 'fa fa-plus';
             $scope.addFoodBtn = false;
@@ -3341,6 +3351,11 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
         $scope.loadMore = function () {
             $scope.limit = $scope.limit + $scope.foods.length;
+        }
+
+        $scope.openAsMyFood = function (x) {
+            var data = { food: x, initFood: initFood, openAsMyFood: true }
+            $mdDialog.hide(data);
         }
 
     };
@@ -4948,11 +4963,20 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $http({
             url: $sessionStorage.config.backend + 'Foods.asmx/Init',
             method: "POST",
-            data: ''
+            data: { lang: $rootScope.config.language }
         })
         .then(function (response) {
             var res = JSON.parse(response.data.d);
-            $scope.myFood = res.food;
+            if ($rootScope.myFood_ !== undefined) {
+                if ($rootScope.myFood_ != null) {
+                    $scope.myFood = $rootScope.myFood_;
+                    $rootScope.myFood_ = null;
+                } else {
+                    $scope.myFood = res.food;
+                }
+            } else {
+                $scope.myFood = res.food;
+            }
             $scope.units = res.units;
             $scope.mainFoodGroups = res.foodGroups;
             $('.selectpicker').selectpicker({
@@ -4965,6 +4989,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         });
     };
     init();
+
 
     $scope.new = function () {
         init();
@@ -5520,7 +5545,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             $http({
                 url: $sessionStorage.config.backend + 'Foods.asmx/Init',
                 method: "POST",
-                data: ''
+                data: { lang: $rootScope.config.language }
             })
             .then(function (response) {
                 var res = JSON.parse(response.data.d);
@@ -5709,7 +5734,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         })
         .then(function (response) {
             var user = JSON.parse(response.data.d);
-            if (user.userName == u) {
+            if (user.userId != null) {
                 $scope.user.firstName = user.firstName;
                 $scope.user.lastName = user.lastName;
                 $scope.user.companyName = user.companyName;
@@ -5725,13 +5750,13 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 $scope.calculatePrice();
             } else {
                 $scope.showErrorAlert = true;
-                $scope.errorMesage = 'Korisnik nije pronađen.'
+                $scope.errorMesage = $translate.instant('wrong user name or password');
             }
         },
         function (response) {
             $scope.errorLogin = true;
             $scope.showErrorAlert = true;
-            $scope.errorMesage = 'Korisnik nije pronađen.'
+            $scope.errorMesage = $translate.instant('user was not found');
             $scope.showUserDetails = false;
         });
     }
@@ -5828,13 +5853,13 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.showErrorAlert = false;
         if (user.email == '' || user.firstName == '' || user.lastName == '' || user.address == '' || user.postalCode == '' || user.city == '' || user.country == '') {
             $scope.showErrorAlert = true;
-            $scope.errorMesage = $translate.instant('all fields are required');;
+            $scope.errorMesage = $translate.instant('all fields are required');
             return false;
         }
         if ($scope.userType == 1) {
             if (user.companyName == '' || user.pin == '') {
                 $scope.showErrorAlert = true;
-                $scope.errorMesage = $translate.instant('all fields are required');;
+                $scope.errorMesage = $translate.instant('all fields are required');
                 return false;
             }
         }
