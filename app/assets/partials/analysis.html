@@ -1,11 +1,19 @@
 ﻿<div ng-controller="menuCtrl">
     <div>
         <div class="mt10">
-            <div class="text-right">
-                <a ng-if="pdfLink==null" href="" ng-click="printMenuDetailsPdf()" class="btn btn-default text-capitalize" ng-disabled="creatingPdf1==true"><span class="text-danger"><i class="fa fa-{{creatingPdf1==true?'spinner fa-spin':'file-pdf-o'}}"></i> {{'create pdf' | translate}}</span></a>
-                <a ng-if="pdfLink!=null" href="{{pdfLink}}" class="btn btn-success text-capitalize" download ng-click="hidePdfLink()">
-                    <i class="fa fa-file-pdf-o"></i> {{'take pdf' | translate}}
-                </a>
+            <div class="row">
+                <div class="col-sm-6 text-uppercase">
+                    <label ng-if="menuTpl=='dailyMenuTpl'">{{'daily menu' | translate}}</label>
+                    <label ng-if="menuTpl=='weeklyMenuTpl'">{{'weekly menu' | translate}} ({{'average' | translate}})</label>
+                </div>
+                <div class="col-sm-6">
+                    <div class="text-right">
+                        <a ng-if="pdfLink==null" href="" ng-click="printMenuDetailsPdf()" class="btn btn-default text-capitalize" ng-disabled="creatingPdf1==true"><span class="text-danger"><i class="fa fa-{{creatingPdf1==true?'spinner fa-spin':'file-pdf-o'}}"></i> {{'create pdf' | translate}}</span></a>
+                        <a ng-if="pdfLink!=null" href="{{pdfLink}}" class="btn btn-success text-capitalize" download ng-click="hidePdfLink()">
+                            <i class="fa fa-file-pdf-o"></i> {{'take pdf' | translate}}
+                        </a>
+                    </div>
+                </div>
             </div>
             <div class="row">
                 <div class="col-sm-5">
@@ -30,10 +38,9 @@
                         <th>{{'choosen' | translate}}</th>
                         <th>{{'recommended' | translate}}</th>
                     </tr>
-                    <tr ng-repeat="x in currentMenu.data.meals | filter: { 'isSelected': true }">
-                        <td class="nowrap">{{getMealTitle(x)}}</td>
-                        <!--<td class="text-bold">{{getMealTotal(x.code).energy | number:1}} {{'kcal' | translate}} ({{getMealTotal(x.code).energyPercentage | number:1}} %) <i class="{{checkTotal(getMealTotal(x.code).energyPercentage, getMealRecommendation(x.code).energyMinPercentage, getMealRecommendation(x.code).energyMaxPercentage)}}"></i></td>-->
-                        <td class="text-bold">{{getMealTotal(x.code).energy.val | number:1}} {{'kcal' | translate}} ({{getMealTotal(x.code).energy.perc | number:1}} %) <i class="{{checkTotal(getMealTotal(x.code).energy.perc, getMealRecommendation(x.code).energyMinPercentage, getMealRecommendation(x.code).energyMaxPercentage)}}"></i></td>
+                    <tr ng-repeat="x in totals.mealsTotal">
+                        <td class="nowrap">{{x.title}}</td>
+                        <td class="text-bold">{{x.energy.val | number:1}} {{'kcal' | translate}} ({{x.energy.perc | number:1}} %) <i class="{{checkTotal(x.energy.perc, getMealRecommendation(x.code).energyMinPercentage, getMealRecommendation(x.code).energyMaxPercentage)}}"></i></td>
                         <td>{{getMealRecommendation(x.code).energyMin}} - {{getMealRecommendation(x.code).energyMax}} {{'kcal' | translate}} ({{getMealRecommendation(x.code).energyMinPercentage}} - {{getMealRecommendation(x.code).energyMaxPercentage}} %)</td>
                     </tr>
                     <tr>
@@ -119,7 +126,7 @@
                 <table class="table table-condensed text-small">
                     <tr>
                         <th></th>
-                        <th>{{'choosen' | translate}}</th>
+                        <th style="width:30%">{{'choosen' | translate}}</th>
                         <th>{{'recommended' | translate}}</th>
                     </tr>
                     <tr>
@@ -164,7 +171,6 @@
         <div ng-include="parametersTpl" style="padding-top:20px"></div>
     </fieldset>
 </script>
-
 
 <script type="text/ng-template" id="parametersChartTpl">
     <div>

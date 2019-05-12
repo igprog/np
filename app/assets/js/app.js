@@ -1250,6 +1250,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
 }])
+
 .controller('dashboardCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions) {
 	var getUser = function () {
         $http({
@@ -2608,8 +2609,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
     defineMealsType();
 
-    
-    
 }])
 
 .controller('standardMealsCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate) {
@@ -3045,16 +3044,20 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         if ($rootScope.currentMenu === undefined) {
             init();
         } else {
-            var oldMeals = $rootScope.currentMenu.data.meals;
-            $rootScope.currentMenu.data.meals = angular.copy($rootScope.clientData.meals);
-            angular.forEach($rootScope.currentMenu.data.meals, function (value, key) {
-                if (key >= $rootScope.currentMenu.data.meals.length || key >= oldMeals.length) { return false; }
-                if (oldMeals[key].code == value.code && $rootScope.currentMenu.data.selectedFoods.length > 0) {
-                    value.description = oldMeals[key].description;
-                }
-            })
-            $rootScope.currentMenu.client = $rootScope.client;
-            $rootScope.currentMenu.client.clientData = $rootScope.clientData;  //TODO sredit
+            if ($rootScope.currentMenu.data.selectedFoods.length == 0) {
+                init();
+            } else {
+                var oldMeals = $rootScope.currentMenu.data.meals;
+                $rootScope.currentMenu.data.meals = angular.copy($rootScope.clientData.meals);
+                angular.forEach($rootScope.currentMenu.data.meals, function (value, key) {
+                    if (key >= $rootScope.currentMenu.data.meals.length || key >= oldMeals.length) { return false; }
+                    if (oldMeals[key].code == value.code && $rootScope.currentMenu.data.selectedFoods.length > 0) {
+                        value.description = oldMeals[key].description;
+                    }
+                })
+                $rootScope.currentMenu.client = $rootScope.client;
+                $rootScope.currentMenu.client.clientData = $rootScope.clientData;  //TODO sredit
+            }
         }
     }
 
@@ -3063,7 +3066,11 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $timeout(function () {
             $scope.loading = false;
             $scope.analyticsTpl = x;
-            getTotals($rootScope.currentMenu);
+            if ($rootScope.menuTpl == 'dailyMenuTpl') {
+                getTotals($rootScope.currentMenu);
+            } else {
+                getWeeklyMenuTotals($rootScope.weeklyMenu.menuList)
+            }
         }, 700);
     };
     $scope.toggleAnalytics('chartsTpl');
@@ -4722,21 +4729,40 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
     };
 
+    var getWeeklyMenuTotals = function (x) {
+        $http({
+            url: $sessionStorage.config.backend + 'WeeklyMenus.asmx/GetWeeklyMenusTotals',
+            method: "POST",
+            data: { userId: $sessionStorage.usergroupid, menuList: x }
+        })
+        .then(function (response) {
+            $rootScope.totals = JSON.parse(response.data.d);
+            $rootScope.totals.price.currency = $rootScope.config.currency;
+            displayCharts();
+        },
+        function (response) {
+            alert(response.data.d);
+        });
+    }
+    $scope.getWeeklyMenuTotals = function (x) {
+        return getWeeklyMenuTotals(x);
+    }
+
     $scope.toggleMenu = function (x) {
         $scope.loading = true;
         $timeout(function () {
             $scope.loading = false;
-            $scope.menuTpl = x;
+            $rootScope.menuTpl = x;
             if (x == 'dailyMenuTpl') {
                 getTotals($rootScope.currentMenu);
-            }
+            } 
         }, 700);
     }
-    $scope.toggleMenu('dailyMenuTpl');
+    if ($rootScope.menuTpl !== 'weeklyMenuTpl') {
+        $rootScope.menuTpl = 'dailyMenuTpl';
+    }
 
-    $scope.pdfLink == null;
-    $scope.creatingPdf1 = false;
-    $scope.printMenuDetailsPdf = function () {
+    var printDailyMenu = function () {
         if ($rootScope.currentMenu.data.selectedFoods.length == 0) {
             functions.alert($translate.instant('menu is empty') + '!', '');
             return false;
@@ -4749,15 +4775,49 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 method: "POST",
                 data: { userId: $sessionStorage.usergroupid, currentMenu: currentMenu, calculation: $rootScope.calculation, totals: $rootScope.totals, recommendations: $rootScope.recommendations, lang: $rootScope.config.language }
             })
-              .then(function (response) {
-                  var fileName = response.data.d;
-                  $scope.creatingPdf1 = false;
-                  $scope.pdfLink = $sessionStorage.config.backend + 'upload/users/' + $rootScope.user.userGroupId + '/pdf/' + fileName + '.pdf';
-              },
-              function (response) {
-                  $scope.creatingPdf1 = false;
-                  alert(response.data.d);
-              });
+            .then(function (response) {
+                var fileName = response.data.d;
+                $scope.creatingPdf1 = false;
+                $scope.pdfLink = $sessionStorage.config.backend + 'upload/users/' + $rootScope.user.userGroupId + '/pdf/' + fileName + '.pdf';
+            },
+            function (response) {
+                $scope.creatingPdf1 = false;
+                alert(response.data.d);
+            });
+        }
+    }
+
+    var printWeeklyMenu = function () {
+        $scope.creatingPdf1 = true;
+        if (angular.isDefined($rootScope.currentMenu)) {
+            var currentMenu = angular.copy($rootScope.currentMenu);
+            currentMenu.title = $rootScope.weeklyMenu.title;
+            currentMenu.note = $rootScope.weeklyMenu.note;
+            currentMenu.diet = $rootScope.weeklyMenu.diet.diet;
+            $http({
+                url: $sessionStorage.config.backend + 'PrintPdf.asmx/MenuDetailsPdf',
+                method: "POST",
+                data: { userId: $sessionStorage.usergroupid, currentMenu: currentMenu, calculation: $rootScope.calculation, totals: $rootScope.totals, recommendations: $rootScope.recommendations, lang: $rootScope.config.language }
+            })
+            .then(function (response) {
+                var fileName = response.data.d;
+                $scope.creatingPdf1 = false;
+                $scope.pdfLink = $sessionStorage.config.backend + 'upload/users/' + $rootScope.user.userGroupId + '/pdf/' + fileName + '.pdf';
+            },
+            function (response) {
+                $scope.creatingPdf1 = false;
+                alert(response.data.d);
+            });
+        }
+    }
+
+    $scope.pdfLink == null;
+    $scope.creatingPdf1 = false;
+    $scope.printMenuDetailsPdf = function () {
+        if ($rootScope.menuTpl == 'dailyMenuTpl') {
+            printDailyMenu();
+        } else {
+            printWeeklyMenu();
         }
     }
 
@@ -4783,7 +4843,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 total = value;
             }
         })
-        return total
+        return total;
     }
 
     $scope.getMealRecommendation = function (x) {
@@ -4793,7 +4853,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 recommendations = value.meal;
             }
         })
-        return recommendations
+        return recommendations;
     }
 
     $scope.toggleParamTpl = function (x) {
@@ -5967,7 +6027,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             data: { user: $rootScope.user, client: $rootScope.client, lang: $rootScope.config.language }
         })
        .then(function (response) {
-           $scope.weeklyMenu = JSON.parse(response.data.d);
+           $rootScope.weeklyMenu = JSON.parse(response.data.d);
            $scope.loading = false;
        },
        function (response) {
@@ -5975,7 +6035,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
            alert(response.data.d);
        });
     }
-    init();
+    if (!angular.isDefined($rootScope.weeklyMenu)) { init(); }
 
     $scope.new = function () {
         init();
@@ -6032,7 +6092,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $http({
             url: $sessionStorage.config.backend + 'PrintPdf.asmx/WeeklyMenuPdf',
             method: "POST",
-            data: { userId: $sessionStorage.usergroupid, weeklyMenu: $scope.weeklyMenu, consumers: consumers, lang: $rootScope.config.language, settings: printSettings }
+            data: { userId: $sessionStorage.usergroupid, weeklyMenu: $rootScope.weeklyMenu, consumers: consumers, lang: $rootScope.config.language, settings: printSettings }
         })
           .then(function (response) {
               var fileName = response.data.d;
@@ -6063,9 +6123,9 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             d: {}
         })
        .then(function (response) {
-           $scope.weeklyMenu = response;
-           $scope.weeklyMenu.client = $rootScope.client;
-           $scope.weeklyMenu.diet = $rootScope.clientData.diet;
+           $rootScope.weeklyMenu = response;
+           $rootScope.weeklyMenu.client = $rootScope.client;
+           $rootScope.weeklyMenu.diet = $rootScope.clientData.diet;
        }, function () {
        });
     }
@@ -6173,10 +6233,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             templateUrl: 'assets/partials/popup/saveweeklymenu.html',
             parent: angular.element(document.body),
             clickOutsideToClose: true,
-            d: { weeklyMenu: $scope.weeklyMenu }
+            d: { weeklyMenu: $rootScope.weeklyMenu }
         })
        .then(function (response) {
-           $scope.weeklyMenu = response;
+           $rootScope.weeklyMenu = response;
        }, function () {
        });
     }
