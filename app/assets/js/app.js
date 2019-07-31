@@ -36,16 +36,20 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     $scope.today = new Date();
     $rootScope.unitSystem = 1;
 
-    if ((navigator.userAgent.indexOf("MSIE") != -1 ) || (!!document.documentMode == true )) {
+    window.onbeforeunload = function () {
+        return "Your work will be lost.";
+    };
+
+    if ((navigator.userAgent.indexOf("MSIE") !== -1 ) || (!!document.documentMode === true )) {
         $rootScope.browserMsg = {
-            title: 'you are currently using internet explorer',
+            title: 'you are currently using internet explorer. some functionality may not work properly',
             description: 'for a better experience in using the application, please use some of the modern browsers such as google chrome, mozilla firefox, microsoft edge etc.'
         };
     }
 
     if (angular.isDefined($sessionStorage.user)) {
-        if ($sessionStorage.user != null) {
-            if ($sessionStorage.user.licenceStatus == 'demo') {
+        if ($sessionStorage.user !== null) {
+            if ($sessionStorage.user.licenceStatus === 'demo') {
                 $rootScope.mainMessage = $translate.instant('you are currently working in a demo version') + '. ' + $translate.instant('some functions are disabled') + '.';
                 $rootScope.mainMessageBtn = $translate.instant('activate full version');
             }
@@ -149,7 +153,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         })
         .then(function (response) {
             var data = JSON.parse(response.data.d);
-            $rootScope.foods = data.foods;
+            $rootScope.foods = data.foods.concat(data.myFoods);
             $rootScope.myFoods = data.myFoods;
             $rootScope.foodGroups = data.foodGroups;
             $rootScope.loading = false;
@@ -760,12 +764,14 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             functions.alert($translate.instant('you must agree to the terms and conditions'), '');
             return false;
         }
+        $scope.signingUp = true;
         $http({
             url: $sessionStorage.config.backend + webService + '/Signup',
             method: "POST",
             data: { x: $scope.newUser, lang: $rootScope.config.language }
         })
         .then(function (response) {
+            $scope.signingUp = false;
             if (response.data.d == 'registration completed successfully') {
                 $scope.alertMessage = response.data.d;
                 $scope.showAlert = true;
@@ -776,6 +782,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         function (response) {
             $scope.showAlert = false;
             $scope.signupdisabled = false;
+            $scope.signingUp = false;
             functions.alert($translate.instant(response.data.d), '');
         });
     }
@@ -1071,7 +1078,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             functions.alert($translate.instant('passwords are not the same'), '');
             return false;
         }
-
+        $scope.creatingNewUser = true;
         $http({
             url: $sessionStorage.config.backend + webService + '/Signup',
             method: "POST",
@@ -1079,9 +1086,11 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         })
         .then(function (response) {
             load();
+            $scope.creatingNewUser = false;
             functions.alert($translate.instant(response.data.d));
         },
         function (response) {
+            $scope.creatingNewUser = false;
             functions.alert($translate.instant(response.data.d));
         });
     }
@@ -1370,12 +1379,13 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             $rootScope.client = response;
             $rootScope.currTpl = './assets/partials/main.html';
             $scope.toggleNewTpl('clientsdata');
-            if ($rootScope.user.licenceStatus == 'demo') {
-                init($rootScope.client);
-                $rootScope.client.clientId = 'demo';
-            } else {
-                $scope.get($rootScope.client);
-            }
+            //if ($rootScope.user.licenceStatus == 'demo') {
+            //    init($rootScope.client);
+            //    $rootScope.client.clientId = 'demo';
+            //} else {
+            //    $scope.get($rootScope.client);
+            //}
+            $scope.get($rootScope.client);
         }, function () {
         });
     };
@@ -1861,7 +1871,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $http({
             url: $sessionStorage.config.backend + 'PrintPdf.asmx/ClientPdf',
             method: "POST",
-            data: { userId: $sessionStorage.usergroupid, client: $rootScope.client, clientData: $rootScope.clientData, lang: $rootScope.config.language }
+            data: { userId: $sessionStorage.usergroupid, client: $rootScope.client, clientData: $rootScope.clientData, lang: $rootScope.config.language, headerInfo: $rootScope.user.headerInfo }
         }).then(function (response) {
             $scope.creatingPdf = false;
             var fileName = response.data.d;
@@ -1891,7 +1901,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $http({
             url: $sessionStorage.config.backend + 'PrintPdf.asmx/ClientLogPdf',
             method: "POST",
-            data: { userId: $sessionStorage.usergroupid, client: $rootScope.client, clientData: $rootScope.clientData, clientLog: $scope.clientLog_, lang: $rootScope.config.language, imageData: img }
+            data: { userId: $sessionStorage.usergroupid, client: $rootScope.client, clientData: $rootScope.clientData, clientLog: $scope.clientLog_, lang: $rootScope.config.language, imageData: img, headerInfo: $rootScope.user.headerInfo }
         })
         .then(function (response) {
             $scope.creatingPdf = false;
@@ -2317,7 +2327,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $http({
             url: $sessionStorage.config.backend + 'PrintPdf.asmx/CalculationPdf',
             method: "POST",
-            data: { userId: $sessionStorage.usergroupid, client: $rootScope.client, clientData: $rootScope.clientData, calculation: $rootScope.calculation, myCalculation: $rootScope.myCalculation, goal: $rootScope.goalWeightValue_, lang: $rootScope.config.language }
+            data: { userId: $sessionStorage.usergroupid, client: $rootScope.client, clientData: $rootScope.clientData, calculation: $rootScope.calculation, myCalculation: $rootScope.myCalculation, goal: $rootScope.goalWeightValue_, lang: $rootScope.config.language, headerInfo: $rootScope.user.headerInfo }
         })
         .then(function (response) {
             var fileName = response.data.d;
@@ -3206,6 +3216,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             $scope.isShowMyFood = x;
         }
 
+        // TOOD: translate on server side
         $scope.getFoodDetails = function (x) {
             if ($scope.isShowMyFood == true) {
                 getMyFoodDetails(x);
@@ -3218,14 +3229,18 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             })
             .then(function (response) {
                 $scope.food = JSON.parse(response.data.d);
-                $scope.food.food = $translate.instant($scope.food.food);
-                $scope.food.unit = $translate.instant($scope.food.unit);
-                $scope.food.foodGroup.title = $translate.instant($scope.food.foodGroup.title);
-                $scope.food.meal.title = $translate.instant($scope.food.meal.title);
-                angular.forEach($scope.food.thermalTreatments, function (value, key) {
-                    $scope.food.thermalTreatments[key].thermalTreatment.title = $translate.instant($scope.food.thermalTreatments[key].thermalTreatment.title);
-                })
-                initFood = angular.copy($scope.food);
+                if ($scope.food.id === null) {
+                    getMyFoodDetails(x);
+                } else {
+                    $scope.food.food = $translate.instant($scope.food.food);
+                    $scope.food.unit = $translate.instant($scope.food.unit);
+                    $scope.food.foodGroup.title = $translate.instant($scope.food.foodGroup.title);
+                    $scope.food.meal.title = $translate.instant($scope.food.meal.title);
+                    angular.forEach($scope.food.thermalTreatments, function (value, key) {
+                        $scope.food.thermalTreatments[key].thermalTreatment.title = $translate.instant($scope.food.thermalTreatments[key].thermalTreatment.title);
+                    })
+                    initFood = angular.copy($scope.food);
+                }
             },
             function (response) {
                 alert(response.data.d)
@@ -3241,6 +3256,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             .then(function (response) {
                 $scope.food = JSON.parse(response.data.d);
                 $scope.food.unit = $translate.instant($scope.food.unit);
+                $scope.food.foodGroup.title = $translate.instant($scope.food.foodGroup.title);
                 initFood = angular.copy($scope.food);
             },
             function (response) {
@@ -3331,7 +3347,11 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.changeFoodGroup = function (x) {
             $scope.searchFood = '';
             $scope.limit = $scope.foods.length + 1;
-            $scope.showMyFoods(false);
+            if (x.code === 'MYF') {
+                $scope.showMyFoods(true);
+            } else {
+                $scope.showMyFoods(false);
+            }
             $scope.currentGroup = {
                 code: x.code,
                 title: x.title
@@ -3431,7 +3451,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             targetEvent: '',
             clickOutsideToClose: true,
             fullscreen: $scope.customFullscreen,
-            d: { currentMenu: $rootScope.currentMenu, clientData: $rootScope.clientData, client: $rootScope.client, totals: $rootScope.totals, settings: $rootScope.printSettings, config: $rootScope.config }
+            d: { currentMenu: $rootScope.currentMenu, clientData: $rootScope.clientData, client: $rootScope.client, totals: $rootScope.totals, settings: $rootScope.printSettings, config: $rootScope.config, user: $rootScope.user }
         })
         .then(function () {
         }, function () {
@@ -3445,6 +3465,9 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.totals = d.totals;
         $scope.settings = d.settings;
         $scope.config = d.config;
+        $scope.date = new Date(new Date($scope.currentMenu.date)).toLocaleDateString();
+        $scope.author = d.user.firstName + ' ' + d.user.lastName;
+
 
         $scope.cancel = function () {
             $mdDialog.cancel();
@@ -3522,7 +3545,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.settings = d.settings;
         $scope.pdfLink == null;
         $scope.creatingPdf = false;
-        $scope.printMenuPdf = function (consumers) {
+        $scope.printMenuPdf = function (consumers, date, author) {
             if (angular.isDefined($rootScope.currentMenu)) {
                 $scope.creatingPdf = true;
                 $http({
@@ -3537,7 +3560,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                     $http({
                         url: $sessionStorage.config.backend + 'PrintPdf.asmx/MenuPdf',
                         method: "POST",
-                        data: { userId: $sessionStorage.usergroupid, currentMenu: currentMenu, totals: $rootScope.totals, consumers: consumers, lang: $rootScope.config.language, settings: $scope.settings }
+                        data: { userId: $sessionStorage.usergroupid, currentMenu: currentMenu, totals: $rootScope.totals, consumers: consumers, lang: $rootScope.config.language, settings: $scope.settings, date: date, author: author, headerInfo: d.user.headerInfo }
                     })
                     .then(function (response) {
                         var fileName = response.data.d;
@@ -3557,6 +3580,14 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
         $scope.hidePdfLink = function () {
             $scope.pdfLink = null;
+        }
+
+        $scope.setAuthor = function (x) {
+            $scope.author = x;
+        }
+
+        $scope.setDate = function (x) {
+            $scope.date = x;
         }
 
     };
@@ -4773,7 +4804,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             $http({
                 url: $sessionStorage.config.backend + 'PrintPdf.asmx/MenuDetailsPdf',
                 method: "POST",
-                data: { userId: $sessionStorage.usergroupid, currentMenu: currentMenu, calculation: $rootScope.calculation, totals: $rootScope.totals, recommendations: $rootScope.recommendations, lang: $rootScope.config.language }
+                data: { userId: $sessionStorage.usergroupid, currentMenu: currentMenu, calculation: $rootScope.calculation, totals: $rootScope.totals, recommendations: $rootScope.recommendations, lang: $rootScope.config.language, headerInfo: $rootScope.user.headerInfo }
             })
             .then(function (response) {
                 var fileName = response.data.d;
@@ -4797,7 +4828,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             $http({
                 url: $sessionStorage.config.backend + 'PrintPdf.asmx/MenuDetailsPdf',
                 method: "POST",
-                data: { userId: $sessionStorage.usergroupid, currentMenu: currentMenu, calculation: $rootScope.calculation, totals: $rootScope.totals, recommendations: $rootScope.recommendations, lang: $rootScope.config.language }
+                data: { userId: $sessionStorage.usergroupid, currentMenu: currentMenu, calculation: $rootScope.calculation, totals: $rootScope.totals, recommendations: $rootScope.recommendations, lang: $rootScope.config.language, headerInfo: $rootScope.user.headerInfo }
             })
             .then(function (response) {
                 var fileName = response.data.d;
@@ -4975,7 +5006,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 $http({
                     url: $sessionStorage.config.backend + 'PrintPdf.asmx/ShoppingList',
                     method: "POST",
-                    data: { userId: $sessionStorage.usergroupid, shoppingList: sl, currentMenu: $scope.currentMenu, consumers: n, lang: $rootScope.config.language, settings: s }
+                    data: { userId: $sessionStorage.usergroupid, shoppingList: sl, currentMenu: $scope.currentMenu, consumers: n, lang: $rootScope.config.language, settings: s, headerInfo: $rootScope.user.headerInfo }
                 })
                 .then(function (response) {
                     var fileName = response.data.d;
@@ -5063,7 +5094,8 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             data: { userId: $rootScope.user.userGroupId, id: x.id }
         })
      .then(function (response) {
-         loadMyFoods();
+         $rootScope.loadFoods();
+         //loadMyFoods();
          init();
      },
      function (response) {
@@ -5118,7 +5150,8 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         .then(function (response) {
             if (response.data.d != 'there is already a food with the same name') {
                 functions.alert($translate.instant(response.data.d), '');
-                loadMyFoods();
+                $rootScope.loadFoods();
+                //loadMyFoods();
             } else {
                 functions.alert($translate.instant('there is already a food with the same name'), '');
             }
@@ -5130,15 +5163,14 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     };
 
     var checkIsOtherFood = function (x) {
-        if (x.foodGroup.code == 'OF') {
-            return true;
-        }
         if (x.servings.cerealsServ > 0 ||
-             x.servings.vegetablesServ > 0 ||
-             x.servings.fruitServ > 0 ||
-             x.servings.meatServ > 0 ||
-             x.servings.milkServ > 0 ||
-             x.servings.fatsServ > 0) {
+            x.servings.vegetablesServ > 0 ||
+            x.servings.fruitServ > 0 ||
+            x.servings.meatServ > 0 ||
+            x.servings.milkServ > 0 ||
+            x.servings.fatsServ > 0) {
+            x.servings.otherFoodsServ = 0;
+            x.servings.otherFoodsEnergy = 0;
             return false;
         } else {
             return true;
@@ -5234,7 +5266,8 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 data: { userId: $rootScope.user.userGroupId, id: x.id }
             })
              .then(function (response) {
-                 loadMyFoods();
+                 $rootScope.loadFoods();
+                 //loadMyFoods();
                  init();
              },
              function (response) {
@@ -5259,6 +5292,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         .then(function (response) {
             $scope.recipe = JSON.parse(response.data.d);
             $scope.currentRecipe = null;
+            $rootScope.totals = null;
             recipeFromMenu();
             load();
         },
@@ -5311,13 +5345,13 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.recipe.push(x);
     }
 
-    $scope.getTotEnergy = function (x) {
-        var sum = 0;
-        angular.forEach(x, function (value, key) {
-            sum += value.energy;
-        })
-        return sum;
-    }
+    //$scope.getTotEnergy = function (x) {
+    //    var sum = 0;
+    //    angular.forEach(x, function (value, key) {
+    //        sum += value.energy;
+    //    })
+    //    return sum;
+    //}
 
     $scope.openFoodPopup = function (food, idx) {
         $scope.addFoodBtn = true;
@@ -5338,6 +5372,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             $scope.recipe.data.selectedFoods[idx] = x.food;
             $scope.recipe.data.selectedInitFoods[idx] = x.initFood;
         }
+        getTotals($scope.recipe);
         $scope.addFoodBtnIcon = 'fa fa-plus';
         $scope.addFoodBtn = false;
         }, function () {
@@ -5362,6 +5397,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         })
         .then(function (response) {
             $scope.recipe = JSON.parse(response.data.d);
+            getTotals($scope.recipe);
         },
         function (response) {
             alert(response.data.d);
@@ -5409,6 +5445,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $mdDialog.show(confirm).then(function () {
             $scope.recipe.data.selectedFoods.splice(idx, 1);
             $scope.recipe.data.selectedInitFoods.splice(idx, 1);
+            getTotals($scope.recipe);
         }, function () {
         });
     }
@@ -5454,6 +5491,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         })
         .then(function (recipe) {
             $scope.recipe = recipe;
+            getTotals($scope.recipe);
         }, function () {
         });
     };
@@ -5630,7 +5668,8 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 data: { userId: $rootScope.user.userGroupId, recipe: x.recipe, unit: x.unit }
             })
             .then(function (response) {
-                loadMyFoods();
+                $rootScope.loadFoods();
+               // loadMyFoods();
                 $mdDialog.hide(x.recipe);
                 functions.alert($translate.instant(response.data.d), '');
             },
@@ -5654,6 +5693,174 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             });
         }
     }
+
+    //TODO: Print recipe
+    $scope.printRecipePreview = function (x) {
+        if ($rootScope.user.userType < 2 || $rootScope.user.licenceStatus == 'demo') {
+            functions.demoAlert('this function is available only in premium package');
+            return false;
+        }
+        $mdDialog.show({
+            controller: $scope.printRecipePreviewCtrl,
+            templateUrl: 'assets/partials/popup/printrecipe.html',
+            parent: angular.element(document.body),
+            targetEvent: '',
+            clickOutsideToClose: true,
+            fullscreen: $scope.customFullscreen,
+            d: { recipe: x, totals: $scope.totals, settings: $rootScope.printSettings, config: $rootScope.config, user: $rootScope.user }
+        })
+        .then(function () {
+        }, function () {
+        });
+    };
+
+    $scope.printRecipePreviewCtrl = function ($scope, $mdDialog, d, $http) {
+        $scope.recipe = d.recipe;
+        $scope.totals = d.totals;
+        $scope.settings = d.settings;
+        $scope.config = d.config;
+        $scope.author = d.user.firstName + ' ' + d.user.lastName;
+        $scope.date = new Date(new Date()).toLocaleDateString();
+
+
+        $scope.cancel = function () {
+            $mdDialog.cancel();
+        };
+
+        $scope.consumers = 1;
+        $scope.changeNumberOfConsumers = function (x) {
+            if (x < 1 || functions.isNullOrEmpty(x)) { return false }
+            $scope.consumers = x;
+            $http({
+                url: $sessionStorage.config.backend + 'Foods.asmx/ChangeNumberOfConsumers',
+                method: "POST",
+                data: { foods: $scope.recipe.data.selectedInitFoods, number: x }
+            })
+           .then(function (response) {
+               $scope.recipe.data.selectedFoods = JSON.parse(response.data.d);
+           },
+           function (response) {
+               alert(response.data.d)
+           });
+        }
+        if (angular.isDefined($scope.recipe)) { $scope.changeNumberOfConsumers($scope.consumers); }
+
+        $scope.copyToClipboard = function (id) {
+            return functions.copyToClipboard(id);
+        }
+
+        //$scope.getMealTitle = function (x) {
+        //    return $rootScope.getMealTitle(x);
+        //}
+
+        $scope.getServDescription = function (x) {
+            var des = "";
+            if (x.cerealsServ > 0) { des = servDes(des, x.cerealsServ, "cereals_"); }
+            if (x.vegetablesServ > 0) { des = servDes(des, x.vegetablesServ, "vegetables_"); }
+            if (x.fruitServ > 0) { des = servDes(des, x.fruitServ, "fruit_"); }
+            if (x.meatServ > 0) { des = servDes(des, x.meatServ, "meat_"); }
+            if (x.milkServ > 0) { des = servDes(des, x.milkServ, "milk_"); }
+            if (x.fatsServ > 0) { des = servDes(des, x.fatsServ, "fats_"); }
+            return des;
+        }
+
+        function servDes(des, serv, title) {
+            return (functions.isNullOrEmpty(des) ? '' : (des + ', ')) + serv + ' serv. ' + $translate.instant(title);
+        }
+
+        //$scope.isSeparatedDes = function (x) {
+        //    return x.includes('~');
+        //}
+
+        //var currDes = null;
+        //$scope.list = [];
+        //var currList = [];
+        //$scope.getTitleDes = function (x) {
+        //    if (currList === x) { return currList; }
+        //    if (!functions.isNullOrEmpty(x) && !$scope.list.includes(x)) {
+        //        $scope.list.push(x);
+        //        var desList = x.split('|');
+        //        var list = [];
+        //        angular.forEach(desList, function (value, key) {
+        //            list.push({
+        //                title: value.split('~')[0],
+        //                description: value.split('~')[1],
+        //            })
+        //        });
+        //        currDes = x;
+        //        currList = list;
+        //        return list.length > 0 ? list : x;
+        //    } else {
+        //        currList = x;
+        //        return x;
+        //    }
+        //}
+
+      //  $scope.settings = d.settings;
+        $scope.pdfLink == null;
+        $scope.creatingPdf = false;
+        $scope.printRecipePdf = function (consumers, date, author) {
+            if (angular.isDefined($scope.recipe)) {
+                $scope.creatingPdf = true;
+                $http({
+                    url: $sessionStorage.config.backend + 'Foods.asmx/ChangeNumberOfConsumers',
+                    method: "POST",
+                    data: { foods: $scope.recipe.data.selectedInitFoods, number: consumers }
+                })
+                .then(function (response) {
+                    //var foods = JSON.parse(response.data.d);
+                    //var currentMenu = angular.copy($rootScope.currentMenu);
+                    //currentMenu.data.selectedFoods = foods;
+                    $http({
+                        url: $sessionStorage.config.backend + 'PrintPdf.asmx/RecipePdf',
+                        method: "POST",
+                        data: { userId: $sessionStorage.usergroupid, recipe: $scope.recipe, totals: $scope.totals, consumers: consumers, lang: $rootScope.config.language, settings: $scope.settings, date: date, author: author, headerInfo: d.user.headerInfo }
+                    })
+                    .then(function (response) {
+                        var fileName = response.data.d;
+                        $scope.creatingPdf = false;
+                        $scope.pdfLink = $sessionStorage.config.backend + 'upload/users/' + $rootScope.user.userGroupId + '/pdf/' + fileName + '.pdf';
+                    },
+                    function (response) {
+                        $scope.creatingPdf = false;
+                        alert(response.data.d)
+                    });
+                },
+                function (response) {
+                    alert(response.data.d)
+                });
+            }
+        }
+
+        $scope.hidePdfLink = function () {
+            $scope.pdfLink = null;
+        }
+
+        $scope.setAuthor = function (x) {
+            $scope.author = x;
+        }
+
+        $scope.setDate = function (x) {
+            $scope.date = x;
+        }
+
+    };
+
+    var getTotals = function (x) {
+        $http({
+            url: $sessionStorage.config.backend + 'Foods.asmx/GetTotals',
+            method: "POST",
+            data: { selectedFoods: x.data.selectedFoods, meals: null }
+        })
+       .then(function (response) {
+           $scope.totals = JSON.parse(response.data.d);
+           $scope.totals.price.currency = $rootScope.config.currency;
+       },
+       function (response) {
+           alert(response.data.d)
+       });
+    }
+
 
 }])
 
@@ -5990,6 +6197,8 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 .controller('weeklyMenuCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate) {
     var webService = 'WeeklyMenus.asmx';
     $scope.consumers = 1;
+    $scope.date = new Date(new Date($rootScope.currentMenu.date)).toLocaleDateString();
+    $scope.author = $rootScope.user.firstName + ' ' + $rootScope.user.lastName;
 
     $scope.getDay = function (x) {
         switch(x) {
@@ -6082,7 +6291,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     $rootScope.printSettings.showDescription = false;
     $rootScope.printSettings.orientation = 'L';
 
-    $scope.printWeeklyMenu = function (consumers, printSettings) {
+    $scope.printWeeklyMenu = function (consumers, printSettings, date, author) {
         if (emptyMenuList) {
             functions.alert($translate.instant('select menus'), '');
             return false;
@@ -6092,7 +6301,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $http({
             url: $sessionStorage.config.backend + 'PrintPdf.asmx/WeeklyMenuPdf',
             method: "POST",
-            data: { userId: $sessionStorage.usergroupid, weeklyMenu: $rootScope.weeklyMenu, consumers: consumers, lang: $rootScope.config.language, settings: printSettings }
+            data: { userId: $sessionStorage.usergroupid, weeklyMenu: $rootScope.weeklyMenu, consumers: consumers, lang: $rootScope.config.language, settings: printSettings, date: date, author: author, headerInfo: $rootScope.user.headerInfo }
         })
           .then(function (response) {
               var fileName = response.data.d;
@@ -6430,7 +6639,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             $http({
                 url: $sessionStorage.config.backend + 'PrintPdf.asmx/WeeklyMenuShoppingList',
                 method: "POST",
-                data: { userId: $sessionStorage.usergroupid, shoppingList: sl, consumers: n, lang: $rootScope.config.language, settings: s }
+                data: { userId: $sessionStorage.usergroupid, shoppingList: sl, consumers: n, lang: $rootScope.config.language, settings: s, headerInfo: $rootScope.user.headerInfo }
             })
             .then(function (response) {
                 var fileName = response.data.d;
@@ -6446,6 +6655,14 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
     $scope.hidePdfSLLink = function () {
         $scope.pdfSLLink = null;
+    }
+
+    $scope.setAuthor = function (x) {
+        $scope.author = x;
+    }
+
+    $scope.setDate = function (x) {
+        $scope.date = x;
     }
 
 }])
