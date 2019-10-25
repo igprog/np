@@ -4,8 +4,8 @@
     <title>NutriProg - Admin</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="assets/css/vendor/font-awesome.min.css">
+    <link rel="stylesheet" href="assets/css/vendor/bootstrap.min.css">
     <link rel="stylesheet" href="../assets/css/style.css">
     <script src="../assets/js/vendor/jquery.min.js"></script>
     <script src="../assets/js/vendor/bootstrap.min.js"></script>
@@ -53,11 +53,11 @@
                         <legend class="fieldset-border">Login</legend>
                         <form id="loginform">
                             <div class="input-group" style="margin:5px 0px 0px 0px">
-                                <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+                                <span class="input-group-addon"><i class="fa fa-user-o"></i></span>
                                 <input ng-model="user.username" type="text" class="form-control" name="email" placeholder="Email">
                             </div>
                             <div class="input-group" style="margin:5px 0px 0px 0px">
-                                <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
+                                <span class="input-group-addon"><i class="fa fa-unlock"></i></span>
                                 <input ng-model="user.password" type="password" class="form-control" name="password" placeholder="Password">
                             </div>
                         </form>
@@ -71,7 +71,7 @@
     </script>
 
     <script type="text/ng-template" id="programPrehraneWeb">
-        <div ng-controller="webAppCtrl" class="container" style="padding-bottom:40px">
+        <div ng-controller="webAppCtrl" class="container-fluid" style="padding-bottom:40px">
             <h2>Program Prehrane Web</h2>
             <div>
                 <ul class="nav nav-tabs">
@@ -133,7 +133,7 @@
                             <th class="nowrap" style="min-width:150px">Licenca</th>
                             <th>Max. br. korisnika</th>
                             <th>Broj korisnika</th>
-                            <th colspan="2"></th>
+                            <th colspan="3"></th>
                         </tr>
                         <!--<tr ng-if="$index>=idxStart && $index<idxEnd" ng-repeat="x in d | filter:searchsignup" ng-class="x.userId!=x.userGroupId?'text-muted':''">-->
                         <tr ng-class="x.userId!=x.userGroupId?'text-muted':''" ng-repeat="x in d track by $index">
@@ -170,6 +170,16 @@
                             <td><input ng-disabled="!showDetails||x.userType<2||x.userId!=x.userGroupId" ng-model="x.maxNumberOfUsers" type="number" class="form-control" /></td>
                             <td>{{x.subusers + 1}}</td>
                             <td><button ng-disabled="!showDetails" ng-click="update(x)" class="btn btn-success"><i class="fa fa-floppy-o"></i> Spremi</button></td>
+                            <td>
+                                <div ng-if="config.debug&&x.maxNumberOfUsers>5&&showDetails&&x.userType==2&&x.userId==x.userGroupId" class="input-group">
+                                    <input ng-model="prefix" type="text" class="form-control" placeholder="Prefiks..." style="min-width:100px">
+                                    <div class="input-group-btn">
+                                        <button class="btn btn-warning" ng-click="createSubusers(x, prefix)">
+                                            Kreiraj korisnike
+                                        </button>
+                                    </div>
+                                </div>
+                            </td>
                             <td ng-if="config.debug"><button ng-disabled="!showDetails" ng-click="remove(x)" class="btn btn-danger"><i class="fa fa-thrash-o"></i> Briši</button></td>
                         </tr>
                     </table>
@@ -301,7 +311,11 @@
                                 <li class="list-group-item">Klijenti: <span class="badge">Ukupno: {{userTotal.clients.total}}, Tekući mjesec: {{userTotal.clients.currMonthTotal}} ({{userTotal.clients.maxMonthlyNumberOfClients}})</span></li>
                                 <li class="list-group-item">Jelovnici: <span class="badge">{{userTotal.menues}}</span></li>
 								<li class="list-group-item">Tjedni jelovnici: <span class="badge">{{userTotal.weeklyMenus}}</span></li>
-                                <li class="list-group-item">Namirnice: <span class="badge">{{userTotal.myfoods}}</span></li>
+                                <li class="list-group-item">Namirnice: 
+                                    <button ng-if="userTotal.myfoods>0" ng-click="countMyFoodsWithSameIdAsAppFoods(currUser)" class="btn btn-default"><i class="fa fa-check"></i> Provjeri Moje Namirnice</button> 
+                                    <button ng-if="userTotal.myfoods>0" ng-click="fixMyFoodsId(currUser)" class="btn btn-default"><i class="fa fa-wrench"></i> Popravi ID</button> 
+                                    <span class="badge">{{userTotal.myfoods}}</span>
+                                </li>
                                 <li class="list-group-item">Recepti: <span class="badge">{{userTotal.recipes}}</span></li>
                                 <li class="list-group-item">Obroci: <span class="badge">{{userTotal.meals}}</span></li>
                                 <li class="list-group-item">Kalendar: <span class="badge">{{userTotal.scheduler.total}}</span></li>
@@ -317,7 +331,7 @@
     </script>
 
     <script type="text/ng-template" id="programPrehrane5">
-        <div ng-controller="applicationCtrl" class="container">
+        <div ng-controller="applicationCtrl" class="container-fluid">
             <h2>Program Prehrane 5.0</h2>
             <h3>Instalacije i aktivacije</h3>
             <div class="table-responsive table-scroll" style="max-height:600px">
@@ -344,7 +358,7 @@
     </script>
 
     <script type="text/ng-template" id="orders">
-        <div ng-controller="ordersCtrl" class="container">
+        <div ng-controller="ordersCtrl" class="container-fluid">
             <h2>Narudžbe</h2>
             <div class="row" style="padding-bottom:10px">
                 <div class="col-sm-4">
@@ -401,7 +415,7 @@
     </script>
 
     <script type="text/ng-template" id="invoices">
-        <div ng-controller="invoiceCtrl" class="container">
+        <div ng-controller="invoiceCtrl" class="container-fluid">
             <h2>Računi</h2>
             <div>
                 <ul class="nav nav-tabs">
@@ -416,13 +430,18 @@
                             <option ng-selected="x==year?true:false"  ng-repeat="x in invoices.years">{{x}}</option>
                         </select>
                     </div>
+                    <div class="col-sm-4">
+                        <input ng-model="searchInvoices" class="form-control" placeholder="Pretraži..." />
+                    </div>
                 </div>
                 <div class="table-responsive table-scroll" style="max-height:600px">
                     <table class="table table-condensed text-small">
                         <tr>
                             <td colspan="6"></td>
                             <td class="text-right">Ukupno:</td>
-                            <td class="text-right nowrap"><label class="main p5">{{invoices.total | currency : ""}} kn</label></td>
+                            <td class="text-right nowrap"><label class="bg-info p5">{{invoices.total | currency : ""}} kn</label></td>
+                            <td class="text-right nowrap"><label class="bg-success p5">{{invoices.paidAmount | currency : ""}} kn</label></td>
+                            <td class="text-right nowrap"><label class="bg-{{invoices.restToPaid>=0?'success':'danger'}} p5">{{invoices.restToPaid | currency : ""}} kn</label></td>
                             <td></td>
                         </tr>
                         <tr>
@@ -433,10 +452,12 @@
                             <th>Prezime</th>
                             <th>Tvrtka</th>
                             <th>Proizvod</th>
-                            <th class="nowrap">Uplaćeno (kn)</th>
+                            <th class="nowrap text-right">Iznos (kn)</th>
+                            <th class="nowrap text-right">Uplaćeno (kn)</th>
+                            <th class="nowrap text-right">Ostatak (kn)</th>
                             <th>Datum uplate</th>
                         </tr>
-                        <tr ng-repeat="x in invoices.data" class="{{x.isPaid==0?'bg-danger':''}}">
+                        <tr ng-repeat="x in invoices.data | filter:searchInvoices" class="{{x.isPaid==0?'bg-danger':''}}">
                             <td class="nowrap">
                                 <button class="btn btn-primary m2" ng-click="get(x)" title="Uredi"><i class="fa fa-eye"></i></button>
                                 <a href="{{config.backend + 'upload/invoice/' + x.year + '/'+ x.fileName + '.pdf'}}" class="btn btn-danger m2" download title="PDF"><i class="fa fa-file-pdf-o" style="color:white"></i></a>
@@ -450,7 +471,9 @@
                             <td>
                                 <div ng-repeat="y in x.items"><span>{{$index+1}}.</span> {{y.title}}, {{y.qty}} kom., {{y.unitPrice}} kn</div>
                             </td>
+                            <td class="text-right">{{x.total | currency : ""}}</td>
                             <td class="text-right">{{x.paidAmount | currency : ""}}</td>
+                            <td class="text-right {{x.restToPaid>=0?'':'text-danger'}}">{{x.restToPaid | currency : ""}}</td>
                             <td>{{x.paidDate}}</td>
                         </tr>
                     </table>

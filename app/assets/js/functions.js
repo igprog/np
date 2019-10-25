@@ -18,15 +18,15 @@ angular.module('functions', [])
             });
         },
         demoAlert: function (alert) {
-                var confirm = $mdDialog.confirm()
-                   .title($translate.instant(alert))
-                   .textContent($translate.instant('activate full version'))
-                   .ok($translate.instant('yes'))
-                   .cancel($translate.instant('not now'));
-                $mdDialog.show(confirm).then(function () {
-                    $rootScope.currTpl = './assets/partials/order.html';
-                }, function () {
-                });
+            var confirm = $mdDialog.confirm()
+                .title($translate.instant(alert))
+                .textContent($translate.instant('activate full version'))
+                .ok($translate.instant('yes'))
+                .cancel($translate.instant('not now'));
+            $mdDialog.show(confirm).then(function () {
+                $rootScope.currTpl = './assets/partials/order.html';
+            }, function () {
+            });
         },
         isNullOrEmpty: function (x) {
             var res = false;
@@ -46,6 +46,14 @@ angular.module('functions', [])
             var date2 = new Date(y);
             var diffDays = Math.abs(parseInt((date2 - date1) / (1000 * 60 * 60 * 24)));
             return diffDays;
+        },
+        dateToString: function (x) {
+            var day = x.getDate();
+            day = day < 10 ? '0' + day : day;
+            var mo = x.getMonth();
+            mo = mo + 1 < 10 ? '0' + (mo + 1) : mo + 1;
+            var yr = x.getFullYear();
+            return yr + '-' + mo + '-' + day;
         },
         correctDate: function (date) {
             var offset = date.getTimezoneOffset() / 60;

@@ -2,6 +2,7 @@
   "backend": "",
   "appurl": "/app/",
   "apk": "http://app.appsgeyser.com/5983009/ProgramPrehrane",
+  "domain": "nutriprog.com",
   "debug": false,
   "eur": 7.4,
   "usd": 6.3,
@@ -12,5 +13,7 @@
   "address": "Ludvetov breg 5, 51000 Rijeka, Croatia",
   "oib": 58331314923,
   "email": "nutrition.plan@yahoo.com",
-  "language": "en"
+  "phone": "+385 98 330 966",
+  "language": "en",
+  "freetrial": true
 }

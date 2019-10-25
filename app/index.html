@@ -13,9 +13,9 @@
     <meta property="og:image:width" content="200">
     <meta property="og:image:height" content="200">
     <!--CDN CSS-->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/css/bootstrap-select.min.css">
     <!--CSS-->
+    <link rel="stylesheet" href="assets/css/vendor/font-awesome.min.css">
     <link rel="stylesheet" href="assets/css/vendor/bootstrap.min.css">
     <link rel="stylesheet" href="assets/css/vendor/angular-material.min.css">
     <link rel="stylesheet" type="text/css" href="../assets/css/vendor/jquery.floating-social-share.min.css" />
@@ -70,16 +70,16 @@
                         <li ng-if="isLogin">
                             <a href="#" ng-click="toggleTpl('dashboard')"><i class="fa fa-tachometer fa-fw"></i> <span class="text-capitalize">{{'dashboard' | translate}}</span></a>
                         </li>
-                        <li ng-if="isLogin">
+                        <li ng-if="isLogin&&loginUser.adminType<2">
                             <a href="#" ng-click="toggleTpl('scheduler')"><i class="fa fa-calendar fa-fw"></i> <span class="text-capitalize">{{'scheduler' | translate}}</span><span ng-if="user.datasum.scheduler.appointments>0" class="badge-info" title="{{'appointments' | translate}}">{{user.datasum.scheduler.appointments}}</span></a>
                         </li>
-                        <li ng-if="isLogin">
+                        <li ng-if="isLogin&&loginUser.adminType<2">
                             <a href="#" ng-click="toggleTpl('clientapp')"><i class="fa fa-tablet fa-fw"></i> <span>{{'client app' | translate}}</span></a>
                         </li>
-                        <li ng-if="isLogin&&config.debug">
+                        <li ng-if="isLogin&&loginUser.adminType<2&&config.debug">
                             <a href="#" ng-click="toggleTpl('settings')"><i class="fa fa-cogs fa-fw"></i> <span class="text-capitalize">{{'settings' | translate}}</span></a>
                         </li>
-                        <li>
+                        <li ng-if="loginUser.adminType<2">
                             <a href="#" ng-click="reportABug()"><i class="fa fa-bug fa-fw"></i> <span class="text-capitalize">{{'report a bug' | translate}}</span></a>
                         </li>
                         <li ng-if="config.language!='en'">
@@ -93,7 +93,7 @@
                                 <i class="fa fa-user fa-fw"></i> <span class="text-capitalize">{{'user' | translate}}: {{loginUser.firstName}} {{loginUser.lastName}}</span> <i class="fa fa-caret-down"></i>
                             </a>
                             <ul class="dropdown-menu dropdown-user text-right">
-                                <li>
+                                <li ng-if="loginUser.adminType<2">
                                     <a href="#" ng-click="toggleTpl('user')" class="text-capitalize"><i class="fa fa-user fa-fw"></i> {{'user profile' | translate}}</a>
                                 </li>
                                 <li ng-if="loginUser.adminType==0">
@@ -149,15 +149,17 @@
     <script src="assets/js/charts.js?v=1.0.0"></script>
 
     <script type="text/javascript" src="../assets/js/vendor/jquery.floating-social-share.min.js"></script>
+
     <script>
         $("body").floatingSocialShare({
             buttons: [
               "facebook", "google-plus", "linkedin", "pinterest", "twitter"
             ],
             twitter_counter: true,
-            text: "Podijeli sa: ",
+            text: "Share with: ",
             url: "https://www.nutriprog.com/"
         });
     </script>
+
 </body>
 </html>

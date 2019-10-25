@@ -36,9 +36,11 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     $scope.today = new Date();
     $rootScope.unitSystem = 1;
 
-    window.onbeforeunload = function () {
+    /***** Back button and refresh page Alert *****/
+    /*window.onbeforeunload = function () {
         return "Your work will be lost.";
-    };
+    };*/
+    /*********/
 
     if ((navigator.userAgent.indexOf("MSIE") !== -1 ) || (!!document.documentMode === true )) {
         $rootScope.browserMsg = {
@@ -307,7 +309,9 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                     $rootScope.setMealCode();
                 }
             }
-            $rootScope.saveClientData($rootScope.clientData);
+            if (x !== 'clientsdata') {
+                $rootScope.saveClientData($rootScope.clientData);
+            }
         }
         $rootScope.newTpl = './assets/partials/' + x + '.html';
         $rootScope.selectedNavItem = x;
@@ -362,7 +366,8 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             return false;
         }*/
         x.userId = $rootScope.user.userId;
-        x.clientId = x.clientId == null ? $rootScope.client.clientId: x.clientId;
+        x.clientId = x.clientId == null ? $rootScope.client.clientId : x.clientId;
+        x.date = functions.dateToString(x.date);
         $http({
             url: $sessionStorage.config.backend + 'ClientsData.asmx/Save',
             method: 'POST',
@@ -490,7 +495,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             }
         }
     }
-    socialSharePopup();
+    //socialSharePopup();
     
     var openSocialSharePopup = function () {
         $mdDialog.show({
@@ -558,7 +563,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             $http({
                 url: $sessionStorage.config.backend + 'Mail.asmx/SendMessage',
                 method: "POST",
-                data: { sendTo: $sessionStorage.config.email, messageSubject: 'BUG - ' + x.email, messageBody: body, lang: $rootScope.config.language }
+                data: { sendTo: $sessionStorage.config.email, messageSubject: 'BUG - ' + x.email, messageBody: body, lang: $rootScope.config.language, send_cc: true }
             })
             .then(function (response) {
                 functions.alert(response.data.d, '');
@@ -996,6 +1001,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
        {
            value: 1,
            text: 'Admin'
+       },
+       {
+           value: 2,
+           text: 'Student'
        }
     ];
 
@@ -1007,6 +1016,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         })
         .then(function (response) {
             $scope.newUser = JSON.parse(response.data.d);
+            $scope.newUser.adminType = 1;
             load();
         },
         function (response) {
@@ -1038,6 +1048,9 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             case 1:
                 return 'Admin';
                 break;
+            case 2:
+                return 'Student';
+                break;
             default:
                 return '';
         }
@@ -1067,7 +1080,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.newUser.userGroupId = $rootScope.user.userGroupId;
         $scope.newUser.expirationDate = $rootScope.user.expirationDate;
         $scope.newUser.isActive = true;
-        $scope.newUser.adminType = 1;
+        //$scope.newUser.adminType = 1;
         $scope.newUser.userType = $rootScope.user.userType;
 
         if ($scope.newUser.password == "" || $scope.passwordConfirm == "") {
@@ -1244,7 +1257,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 }])
 
 //-------------- Program Prehrane Controllers---------------
-.controller('mainCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions) {
+.controller('mainCtrl', ['$scope', '$rootScope', function ($scope, $rootScope) {
     if ($rootScope.client) {
         if ($rootScope.client.clientId) {
             $rootScope.newTpl = 'assets/partials/clientsdata.html',
@@ -1260,7 +1273,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
 }])
 
-.controller('dashboardCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions) {
+.controller('dashboardCtrl', ['$scope', '$http', '$sessionStorage', '$rootScope', 'functions', '$translate', '$timeout', function ($scope, $http, $sessionStorage, $rootScope, functions, $translate, $timeout) {
 	var getUser = function () {
         $http({
             url: $sessionStorage.config.backend + 'Users.asmx/Get',
@@ -1276,6 +1289,28 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 	getUser();
 
+	var showHelpAlert = function () {
+	    $timeout(function () {
+	        if ($rootScope.currTpl == './assets/partials/dashboard.html') {
+	            $http({
+	                url: $sessionStorage.config.backend + 'Clients.asmx/Load',
+	                method: 'POST',
+	                data: { userId: $sessionStorage.usergroupid, user: $rootScope.user }
+	            })
+            .then(function (response) {
+                var clients = JSON.parse(response.data.d);
+                if (clients.length == 0) {
+                    functions.alert($translate.instant('need help') + '?', $translate.instant('contact our technical support by email') + ': ' + $rootScope.config.email + ' ' + $translate.instant('or phone') + ': ' + $rootScope.config.phone + '.');
+                    $sessionStorage.showHelpAlert = true;
+                }
+            }, function (response) { });
+	        }
+	    }, 8000);
+	}
+	if ($rootScope.user.licenceStatus == 'demo' && $rootScope.config.language == 'hr' && $sessionStorage.showHelpAlert === undefined) {
+	    showHelpAlert();
+	}
+
 }])
 
 .controller('clientsCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', '$timeout', 'charts', '$filter', 'functions', '$translate', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, $timeout, charts, $filter, functions, $translate) {
@@ -1289,10 +1324,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
     $scope.toggleSubTpl = function (x) {
         $scope.subTpl = x;
-    };
-
-    $scope.toggleCurrTpl = function (x) {
-        $rootScope.currTpl = './assets/partials/' + x + '.html';
     };
 
     var init = function (x) {
@@ -1424,6 +1455,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             //    return false;
             //}
             x.userId = $sessionStorage.userid;
+            x.birthDate = functions.dateToString(x.birthDate);
             $http({
                 url: $sessionStorage.config.backend + webService + '/Save',
                 method: 'POST',
@@ -1616,7 +1648,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             $scope.clientLog = JSON.parse(response.data.d);
             angular.forEach($scope.clientLog, function (x, key) {
                 x.date = new Date(x.date);
-                functions.correctDate(x.date);
             });
             if ($rootScope.goalWeightValue_ == null) {
                 getCalculation();
@@ -1658,7 +1689,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
     $scope.updateClientLog = function (x) {
         var cd = angular.copy(x);
-        cd.date = cd.date.toISOString();
+        cd.date = functions.dateToString(cd.date);
         $http({
             url: $sessionStorage.config.backend + 'ClientsData.asmx/UpdateClientLog',
             method: "POST",
@@ -2412,9 +2443,9 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
     if ($rootScope.activities == undefined) { $rootScope.loadActivities(); };
     if (angular.isDefined($rootScope.appCalculation) && angular.isDefined($rootScope.myCalculation)) {
-        $rootScope.calculation.recommendedEnergyExpenditure = functions.isNullOrEmpty($rootScope.myCalculation.recommendedEnergyExpenditure)
-            ? $rootScope.appCalculation.recommendedEnergyExpenditure
-            : $rootScope.myCalculation.recommendedEnergyExpenditure;
+        if (!functions.isNullOrEmpty($rootScope.myCalculation.recommendedEnergyExpenditure)) {
+            $rootScope.calculation.recommendedEnergyExpenditure = $rootScope.myCalculation.recommendedEnergyExpenditure;
+        }
     } else {
         $rootScope.newTpl = './assets/partials/calculation.html';
         $rootScope.selectedNavItem = 'calculation';
@@ -3659,7 +3690,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                $scope.d = JSON.parse(response.data.d);
                angular.forEach($scope.d, function (x, key) {
                    x.date = new Date(x.date);
-                   functions.correctDate(x.date);
+                   //x.date = functions.correctDate(x.date);
                });
                $scope.loading = false;
            },
@@ -3826,23 +3857,24 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 if (currentMenu.data.meals[0].code != 'B') {
                     myMeals = $scope.d.client.clientData.myMeals;
                 }
-            } 
+            }
+            currentMenu.date = functions.dateToString(currentMenu.date);
             $http({
                 url: $sessionStorage.config.backend + 'Menues.asmx/Save',
                 method: "POST",
                 data: { userId: $rootScope.user.userGroupId, x: currentMenu, user: $scope.d.user, myMeals: myMeals }
             })
-          .then(function (response) {
-              if (response.data.d != 'error') {
-                  $scope.d.currentMenu = JSON.parse(response.data.d);
-                  $mdDialog.hide($scope.d.currentMenu);
-              } else {
-                  functions.alert($translate.instant('there is already a menu with the same name'), '');
-              }
-          },
-          function (response) {
-              functions.alert($translate.instant(response.data.d), '');
-          });
+            .then(function (response) {
+                if (response.data.d != 'error') {
+                    $scope.d.currentMenu = JSON.parse(response.data.d);
+                    $mdDialog.hide($scope.d.currentMenu);
+                } else {
+                    functions.alert($translate.instant('there is already a menu with the same name'), '');
+                }
+            },
+            function (response) {
+                functions.alert($translate.instant(response.data.d), '');
+            });
         }
 
         $scope.cancel = function () {
@@ -6685,6 +6717,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     };
 
     $scope.get = function (x) {
+        $scope.client = x;
         $scope.show = false;
         $scope.showTitle = $translate.instant('show access data');
         $http({
@@ -6761,10 +6794,12 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $http({
             url: $sessionStorage.config.backend + 'Mail.asmx/SendMessage',
             method: "POST",
-            data: { sendTo: client.email, messageSubject: messageSubject, messageBody: messageBody, lang: $rootScope.config.language }
+            data: { sendTo: client.email, messageSubject: messageSubject, messageBody: messageBody, lang: $rootScope.config.language, send_cc: false }
         })
         .then(function (response) {
             $scope.sendingMail = false;
+            $scope.client = null;
+            $scope.show = false;
             functions.alert(response.data.d, '');
         },
         function (response) {
@@ -6772,6 +6807,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             functions.alert($translate.instant(response.data.d), '');
         });
     }
+
+    $scope.toggleCurrTpl = function (x) {
+        $rootScope.currTpl = './assets/partials/' + x + '.html';
+    };
 
     $scope.backToApp = function () {
         $rootScope.currTpl = './assets/partials/dashboard.html';
@@ -6818,7 +6857,23 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             });
         }
     }
-});
+})
+
+.directive('customPopover', function () {
+    return {
+        restrict: 'A',
+        template: '<span><i class="fa fa-info-circle text-info" style="cursor:pointer"></i> {{label}}</span>',
+        link: function (scope, el, attrs) {
+            scope.label = attrs.popoverLabel;
+            $(el).popover({
+                trigger: 'click',
+                html: true,
+                content: attrs.popoverHtml,
+                placement: attrs.popoverPlacement
+            });
+        }
+    };
+})
 
 
 ;
