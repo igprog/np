@@ -794,11 +794,11 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
 }])
 
-.controller("schedulerCtrl", ['$scope', '$localStorage', '$http', '$rootScope', '$timeout', '$sessionStorage', 'functions', '$translate', function ($scope, $localStorage, $http, $rootScope, $timeout, $sessionStorage, functions, $translate) {
+.controller("schedulerCtrl", ['$scope', '$localStorage', '$http', '$rootScope', '$timeout', '$sessionStorage', '$mdDialog', 'functions', '$translate', function ($scope, $localStorage, $http, $rootScope, $timeout, $sessionStorage, $mdDialog, functions, $translate) {
     var webService = 'Scheduler.asmx';
     $scope.id = '#myScheduler';
     $scope.room = 0;
-    $scope.uid = null;
+    $scope.uid = $rootScope.user.userId;
 
     var showScheduler = function () {
         YUI().use('aui-scheduler', function (Y) {
@@ -810,32 +810,13 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 on: {
                     save: function (event) {
                         addEvent(this.getTemplateData(), event);
-                        //  alert('Save Event:' + this.isNew() + ' --- ' + this.getContentNode().val());
                     },
                     edit: function (event) {
                         addEvent(this.getTemplateData(), event);
-                       /* var startDatePrev = null;
-                        var endDatePrev = null;
-                        event.newSchedulerEvent.on("startDateChange", function (event) {
-                            startDatePrev = event.prevVal;
-                          //  var DateNew = event.newVal;
-                            alert(startDatePrev)
-                        });
-                        addEvent(this.getTemplateData(), event, startDatePrev, endDatePrev);*/
-                       //  editEvent(this.getTemplateData(), event);
-                       // alert('Edit Event:' + this.isNew() + ' --- ' + this.getContentNode().val() + ' --- ' + JSON.stringify(this.getTemplateData()));
                     },
                     delete: function (event) {
                         removeEvent(this.getTemplateData(), event);
-                        // alert('Delete Event:' + this.isNew() + ' --- ' + this.getContentNode().val());
-                        //  Note: The cancel event seems to be buggy and occurs at the wrong times, so I commented it out.
                     }
-                    //endDateChange: function (event) {
-                    //    alert('ok')
-                    //}
-                    //          cancel: function(event) {
-                    //              alert('Cancel Event:' + this.isNew() + ' --- ' + this.getContentNode().val());
-                    //}
                 }
             });
 
@@ -871,7 +852,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         })
       .then(function (response) {
           $scope.users = JSON.parse(response.data.d);
-          $scope.getSchedulerEvents(null);
+          $scope.getSchedulerEvents($rootScope.user.userId);
       },
       function (response) {
           functions.alert($translate.instant(response.data.d));
@@ -933,6 +914,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             functions.demoAlert('the saving function is disabled in demo version');
             return false;
         }
+        if ($rootScope.user.userType < 1) {
+            functions.demoAlert('this function is available only in standard and premium package');
+            return false;
+        }
         $http({
             url: $sessionStorage.config.backend + webService + '/Save',
             method: "POST",
@@ -986,6 +971,32 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
        function (response) {
            functions.alert($translate.instant(response.data.d));
        });
+    }
+
+    var removeAllEvents = function () {
+        $http({
+            url: $sessionStorage.config.backend + webService + '/RemoveAllEvents',
+            method: 'POST',
+            data: { userGroupId: $rootScope.user.userGroupId },
+        }).then(function (response) {
+            $scope.uid = null;
+            getAppointmentsCountByUserId();
+            $scope.toggleTpl('dashboard');
+        },
+       function (response) {
+           functions.alert($translate.instant(response.data.d));
+       });
+    }
+
+    $scope.removeAllEvents = function () {
+        var confirm = $mdDialog.confirm()
+              .title($translate.instant('remove all events') + '?')
+              .ok($translate.instant('yes') + '!')
+              .cancel($translate.instant('no'));
+        $mdDialog.show(confirm).then(function () {
+            removeAllEvents();
+        }, function () {
+        });
     }
 
 }])
@@ -3482,7 +3493,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             targetEvent: '',
             clickOutsideToClose: true,
             fullscreen: $scope.customFullscreen,
-            d: { currentMenu: $rootScope.currentMenu, clientData: $rootScope.clientData, client: $rootScope.client, totals: $rootScope.totals, settings: $rootScope.printSettings, config: $rootScope.config, user: $rootScope.user }
+            d: { currentMenu: $rootScope.currentMenu, clientData: $rootScope.clientData, client: $rootScope.client, totals: $rootScope.totals, settings: $rootScope.printSettings, config: $rootScope.config, user: $rootScope.user, loginUser: $rootScope.loginUser }
         })
         .then(function () {
         }, function () {
@@ -3498,7 +3509,9 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.config = d.config;
         $scope.date = new Date(new Date($scope.currentMenu.date)).toLocaleDateString();
         $scope.author = d.user.firstName + ' ' + d.user.lastName;
-
+        $scope.loginUser = d.loginUser;
+        $scope.pdfLink == null;
+        $scope.creatingPdf = false;
 
         $scope.cancel = function () {
             $mdDialog.cancel();
@@ -3574,8 +3587,8 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         }
 
         $scope.settings = d.settings;
-        $scope.pdfLink == null;
-        $scope.creatingPdf = false;
+        //$scope.pdfLink == null;
+        //$scope.creatingPdf = false;
         $scope.printMenuPdf = function (consumers, date, author) {
             if (angular.isDefined($rootScope.currentMenu)) {
                 $scope.creatingPdf = true;
@@ -3620,6 +3633,77 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.setDate = function (x) {
             $scope.date = x;
         }
+
+
+        /**** send menu ***/
+        $scope.send = function () {
+            if ($rootScope.currentMenu.data.selectedFoods.length == 0) {
+                return false;
+            }
+            if ($rootScope.user.licenceStatus == 'demo') {
+                functions.demoAlert('this function is not available in demo version');
+                return false;
+            }
+            if ($rootScope.user.userType < 1) {
+                functions.demoAlert('this function is available only in standard and premium package');
+                return false;
+            }
+            openSendMenuPopup();
+        }
+
+        var openSendMenuPopup = function () {
+            $rootScope.client.clientData = $rootScope.clientData;
+            var pdfLink = $scope.pdfLink === undefined ? null : $scope.pdfLink;
+            $mdDialog.show({
+                controller: openSendMenuPopupCtrl,
+                templateUrl: 'assets/partials/popup/sendmenu.html',
+                parent: angular.element(document.body),
+                clickOutsideToClose: true,
+                d: { currentMenu: $rootScope.currentMenu, client: $rootScope.client, user: $rootScope.user, pdfLink: pdfLink }
+            })
+           .then(function (x) {
+           }, function () {
+           });
+        }
+
+        var openSendMenuPopupCtrl = function ($scope, $mdDialog, $http, d, $translate, functions) {
+            $scope.d = angular.copy(d);
+
+            var send = function (x) {
+                $scope.titlealert = null;
+                $scope.emailalert = null;
+                if (functions.isNullOrEmpty(x.currentMenu.title)) {
+                    $scope.titlealert = $translate.instant('menu title is required');
+                    return false;
+                }
+                if (functions.isNullOrEmpty(x.client.email)) {
+                    $scope.emailalert = $translate.instant('email is required');
+                    return false;
+                }
+                $mdDialog.hide();
+                $http({
+                    url: $sessionStorage.config.backend + 'Mail.asmx/SendMenu',
+                    method: "POST",
+                    data: { email: x.client.email, currentMenu: x.currentMenu, user: $scope.d.user, lang: $rootScope.config.language, pdfLink: $scope.d.pdfLink }
+                })
+                .then(function (response) {
+                    functions.alert(response.data.d, '');
+                },
+                function (response) {
+                    functions.alert($translate.instant(response.data.d), '');
+                });
+            }
+
+            $scope.cancel = function () {
+                $mdDialog.cancel();
+            };
+
+            $scope.confirm = function (x) {
+                send(x);
+            }
+
+        };
+        /*****send menu ***/
 
     };
   
@@ -3673,25 +3757,49 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.toTranslate = false;
         $scope.toLanguage = '';
         $scope.limit = 20;
+        $scope.searchValue = null;
+        var limit = $rootScope.config.showmenuslimit;
+        var offset = 0;
 
-        $scope.loadMore = function () {
-            $scope.limit += 20;
+        $scope.toggle = function (type) {
+            if (type == 'myMenus') {
+                $scope.d = [];
+                limit = $rootScope.config.showmenuslimit;
+                offset = 0;
+                load(null);
+            } else if (type == 'appMenus') {
+                loadAppMenues();
+            }
         }
 
-        var load = function () {
+        $scope.loadMore = function (search) {
+            //$scope.limit += 20;
+            offset += $rootScope.config.showmenuslimit;
+            load(search);
+        }
+
+        $scope.d = [];
+        var load = function (search) {
             $scope.loading = true;
             $scope.appMenues = false;
             $http({
                 url: $sessionStorage.config.backend + 'Menues.asmx/Load',
                 method: "POST",
-                data: { userId: $rootScope.user.userGroupId }
+                //data: { userId: $rootScope.user.userGroupId }
+                data: { userId: $rootScope.user.userGroupId, limit: limit, offset: offset, search: search }
             })
            .then(function (response) {
-               $scope.d = JSON.parse(response.data.d);
-               angular.forEach($scope.d, function (x, key) {
+               //$scope.d = JSON.parse(response.data.d);
+               var d = JSON.parse(response.data.d);
+               angular.forEach(d, function (x, key) {
                    x.date = new Date(x.date);
                    //x.date = functions.correctDate(x.date);
                });
+               //angular.forEach($scope.d, function (x, key) {
+               //    x.date = new Date(x.date);
+               //    //x.date = functions.correctDate(x.date);
+               //});
+               $scope.d = $scope.d.concat(d);
                $scope.loading = false;
            },
            function (response) {
@@ -3699,10 +3807,17 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                alert(response.data.d);
            });
         }
-        load();
+        load(null);
 
-        $scope.load = function () {
-            load();
+        //$scope.load = function (search) {
+        //    load(search);
+        //}
+
+        $scope.search = function (search) {
+            $scope.d = [];
+            limit = $rootScope.config.showmenuslimit;
+            offset = 0;
+            load(search);
         }
 
         $scope.remove = function (x) {
@@ -3751,7 +3866,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             });
         }
 
-        $scope.loadAppMenues = function () {
+        var loadAppMenues = function () {
             $scope.appMenues = true;
             $http({
                 url: $sessionStorage.config.backend + 'Menues.asmx/LoadAppMenues',
@@ -3917,72 +4032,72 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         }
     };
 
-    $scope.send = function () {
-        if ($rootScope.currentMenu.data.selectedFoods.length == 0) {
-            return false;
-        }
-        if ($rootScope.user.licenceStatus == 'demo') {
-            functions.demoAlert('this function is not available in demo version');
-            return false;
-        }
-        if ($rootScope.user.userType < 1) {
-            functions.demoAlert('this function is available only in standard and premium package');
-            return false;
-        }
-        openSendMenuPopup();
-    }
+    //$scope.send = function () {
+    //    if ($rootScope.currentMenu.data.selectedFoods.length == 0) {
+    //        return false;
+    //    }
+    //    if ($rootScope.user.licenceStatus == 'demo') {
+    //        functions.demoAlert('this function is not available in demo version');
+    //        return false;
+    //    }
+    //    if ($rootScope.user.userType < 1) {
+    //        functions.demoAlert('this function is available only in standard and premium package');
+    //        return false;
+    //    }
+    //    openSendMenuPopup();
+    //}
 
-    var openSendMenuPopup = function () {
-        $rootScope.client.clientData = $rootScope.clientData;
-        $mdDialog.show({
-            controller: openSendMenuPopupCtrl,
-            templateUrl: 'assets/partials/popup/sendmenu.html',
-            parent: angular.element(document.body),
-            clickOutsideToClose: true,
-            d: { currentMenu: $rootScope.currentMenu, client: $rootScope.client, user: $rootScope.user }
-        })
-       .then(function (x) {
-       }, function () {
-       });
-    }
+    //var openSendMenuPopup = function () {
+    //    $rootScope.client.clientData = $rootScope.clientData;
+    //    $mdDialog.show({
+    //        controller: openSendMenuPopupCtrl,
+    //        templateUrl: 'assets/partials/popup/sendmenu.html',
+    //        parent: angular.element(document.body),
+    //        clickOutsideToClose: true,
+    //        d: { currentMenu: $rootScope.currentMenu, client: $rootScope.client, user: $rootScope.user }
+    //    })
+    //   .then(function (x) {
+    //   }, function () {
+    //   });
+    //}
 
-    var openSendMenuPopupCtrl = function ($scope, $mdDialog, $http, d, $translate, functions) {
-        $scope.d = angular.copy(d);
+    //var openSendMenuPopupCtrl = function ($scope, $mdDialog, $http, d, $translate, functions) {
+    //    $scope.d = angular.copy(d);
 
-        var send = function (x) {
-            $scope.titlealert = null;
-            $scope.emailalert = null;
-            if (functions.isNullOrEmpty(x.currentMenu.title)) {
-                $scope.titlealert = $translate.instant('menu title is required');
-                return false;
-            }
-            if (functions.isNullOrEmpty(x.client.email)) {
-                $scope.emailalert = $translate.instant('email is required');
-                return false;
-            }
-            $mdDialog.hide();
-            $http({
-                url: $sessionStorage.config.backend + 'Mail.asmx/SendMenu',
-                method: "POST",
-                data: { email: x.client.email, currentMenu: x.currentMenu, user: $scope.d.user, lang: $rootScope.config.language }
-            })
-            .then(function (response) {
-                functions.alert(response.data.d, '');
-            },
-            function (response) {
-                functions.alert($translate.instant(response.data.d), '');
-            });
-        }
+    //    var send = function (x) {
+    //        $scope.titlealert = null;
+    //        $scope.emailalert = null;
+    //        if (functions.isNullOrEmpty(x.currentMenu.title)) {
+    //            $scope.titlealert = $translate.instant('menu title is required');
+    //            return false;
+    //        }
+    //        if (functions.isNullOrEmpty(x.client.email)) {
+    //            $scope.emailalert = $translate.instant('email is required');
+    //            return false;
+    //        }
+    //        $mdDialog.hide();
+    //        $http({
+    //            url: $sessionStorage.config.backend + 'Mail.asmx/SendMenu',
+    //            method: "POST",
+    //            data: { email: x.client.email, currentMenu: x.currentMenu, user: $scope.d.user, lang: $rootScope.config.language }
+    //        })
+    //        .then(function (response) {
+    //            functions.alert(response.data.d, '');
+    //        },
+    //        function (response) {
+    //            functions.alert($translate.instant(response.data.d), '');
+    //        });
+    //    }
 
-        $scope.cancel = function () {
-            $mdDialog.cancel();
-        };
+    //    $scope.cancel = function () {
+    //        $mdDialog.cancel();
+    //    };
 
-        $scope.confirm = function (x) {
-            send(x);
-        }
+    //    $scope.confirm = function (x) {
+    //        send(x);
+    //    }
 
-    };
+    //};
 
     var getTotals = function (x) {
         $http({
@@ -5001,7 +5116,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.settings = d.settings;
         $scope.consumers = 1;
         $scope.pdfLink == null;
-        $scope.creatingPdf1 = false;
+        $scope.creatingPdf = false;
 
         var createShoppingList = function(x, c){
             $http({
@@ -5033,7 +5148,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         }
 
         $scope.printShoppingListPdf = function (sl, n, s) {
-            $scope.creatingPdf1 = true;
+            $scope.creatingPdf = true;
             if (angular.isDefined($scope.currentMenu)) {
                 $http({
                     url: $sessionStorage.config.backend + 'PrintPdf.asmx/ShoppingList',
@@ -5042,11 +5157,11 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 })
                 .then(function (response) {
                     var fileName = response.data.d;
-                    $scope.creatingPdf1 = false;
+                    $scope.creatingPdf = false;
                     $scope.pdfLink = $sessionStorage.config.backend + 'upload/users/' + $rootScope.user.userGroupId + '/pdf/' + fileName + '.pdf';
                 },
                 function (response) {
-                    $scope.creatingPdf1 = false;
+                    $scope.creatingPdf = false;
                     alert(response.data.d);
                 });
             }
@@ -5069,6 +5184,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
 .controller('myFoodsCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate) {
     var webService = 'MyFoods.asmx';
+    $scope.unit = null;
 
     var init = function () {
         $http({
@@ -5159,10 +5275,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             functions.alert($translate.instant('food title is required'), '');
             return false;
         }
-        if (functions.isNullOrEmpty(x.unit)) {
-            functions.alert($translate.instant('choose unit'), '');
-            return false;
-        }
+        x.unit = $scope.unit;
         if (checkIsOtherFood(x) == true) {
             x.servings.cerealsServ = 0;
             x.servings.vegetablesServ = 0;
@@ -5300,7 +5413,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
              .then(function (response) {
                  $rootScope.loadFoods();
                  //loadMyFoods();
-                 init();
              },
              function (response) {
                  functions.alert($translate.instant(response.data.d), '');
@@ -6294,27 +6406,200 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             window.open($scope.pdfLink, window.innerWidth <= 800 && window.innerHeight <= 600 ? '_self' : '_blank');
         }
     }
-  
-    var getMenues = function () {
-        $scope.loading = true;
-        $http({
-            url: $sessionStorage.config.backend + 'Menues.asmx/Load',
-            method: "POST",
-            data: { userId: $rootScope.user.userGroupId }
-        })
-       .then(function (response) {
-           $scope.menus = JSON.parse(response.data.d);
-           if ($scope.menus.length == 0) {
-               functions.alert($translate.instant('first you need to create daily menus'), '');
-           }
-           $scope.loading = false;
-       },
-       function (response) {
-           $scope.loading = false;
-           alert(response.data.d);
-       });
+
+    $scope.get = function (idx) {
+        if ($rootScope.user.licenceStatus == 'demo') {
+            functions.demoAlert('this function is not available in demo version');
+        } else {
+            getMenuPopup(idx);
+        }
     }
-    getMenues();
+
+    var getMenuPopup = function (idx) {
+        $mdDialog.show({
+            controller: getMenuPopupCtrl,
+            templateUrl: 'assets/partials/popup/getmenu.html',
+            parent: angular.element(document.body),
+            clickOutsideToClose: true,
+            data: { config: $rootScope.config, clientData: $rootScope.clientData }
+        })
+        .then(function (x) {
+            $scope.weeklyMenu.menuList[idx] = x.id;
+            $scope.weeklyMenu.menuDes[idx].title = x.title;
+            $scope.weeklyMenu.menuDes[idx].diet = $translate.instant(x.diet);
+            $scope.weeklyMenu.menuDes[idx].energy = x.energy;
+        }, function () {
+        });
+    };
+
+    var getMenuPopupCtrl = function ($scope, $mdDialog, $http, data, $translate, $translatePartialLoader, $timeout) {
+        $scope.config = data.config;
+        $scope.clientData = data.clientData;
+        $scope.loadType = 0;
+        $scope.type = 0;
+        $scope.appMenues = false;
+        $scope.toTranslate = false;
+        $scope.toLanguage = '';
+        $scope.limit = 20;
+        $scope.searchValue = null;
+        var limit = $rootScope.config.showmenuslimit;
+        var offset = 0;
+
+        $scope.toggle = function (type) {
+            if (type == 'myMenus') {
+                $scope.d = [];
+                limit = $rootScope.config.showmenuslimit;
+                offset = 0;
+                load(null);
+            } else if (type == 'appMenus') {
+                loadAppMenues();
+            }
+        }
+
+        $scope.loadMore = function (search) {
+            offset += $rootScope.config.showmenuslimit;
+            load(search);
+        }
+
+        $scope.d = [];
+        var load = function (search) {
+            $scope.loading = true;
+            $scope.appMenues = false;
+            $http({
+                url: $sessionStorage.config.backend + 'Menues.asmx/Load',
+                method: "POST",
+                data: { userId: $rootScope.user.userGroupId, limit: limit, offset: offset, search: search }
+            })
+           .then(function (response) {
+               var d = JSON.parse(response.data.d);
+               angular.forEach(d, function (x, key) {
+                   x.date = new Date(x.date);
+               });
+               $scope.d = $scope.d.concat(d);
+               $scope.loading = false;
+           },
+           function (response) {
+               $scope.loading = false;
+               alert(response.data.d);
+           });
+        }
+        load(null);
+
+        $scope.search = function (search) {
+            $scope.d = [];
+            limit = $rootScope.config.showmenuslimit;
+            offset = 0;
+            load(search);
+        }
+
+        $scope.remove = function (x) {
+            var confirm = $mdDialog.confirm()
+                 .title($translate.instant('remove menu') + '?')
+                 .textContent(x.title)
+                 .targetEvent(x)
+                 .ok($translate.instant('yes'))
+                 .cancel($translate.instant('no'));
+            $mdDialog.show(confirm).then(function () {
+                remove(x);
+            }, function () {
+            });
+        }
+
+        var remove = function (x) {
+            $http({
+                url: $sessionStorage.config.backend + 'Menues.asmx/Delete',
+                method: "POST",
+                data: { userId: $rootScope.user.userGroupId, id: x.id }
+            })
+          .then(function (response) {
+              $scope.d = JSON.parse(response.data.d);
+          },
+          function (response) {
+              alert(response.data.d)
+          });
+        }
+
+        $scope.cancel = function () {
+            $mdDialog.cancel();
+        };
+
+        var get = function (x) {
+            $http({
+                url: $sessionStorage.config.backend + 'Menues.asmx/Get',
+                method: "POST",
+                data: { userId: $rootScope.user.userGroupId, id: x.id, }
+            })
+            .then(function (response) {
+                var menu = JSON.parse(response.data.d);
+                $mdDialog.hide(menu);
+            },
+            function (response) {
+                alert(response.data.d)
+            });
+        }
+
+        var loadAppMenues = function () {
+            $scope.appMenues = true;
+            $http({
+                url: $sessionStorage.config.backend + 'Menues.asmx/LoadAppMenues',
+                method: "POST",
+                data: { lang: $rootScope.config.language }
+            })
+           .then(function (response) {
+               $scope.d = JSON.parse(response.data.d);
+           },
+           function (response) {
+               alert(response.data.d)
+           });
+        }
+
+        var getAppMenu = function (x) {
+            $http({
+                url: $sessionStorage.config.backend + 'Menues.asmx/GetAppMenu',
+                method: "POST",
+                data: { id: x.id, lang: $rootScope.config.language, toTranslate: $scope.toTranslate }
+            })
+            .then(function (response) {
+                var menu = JSON.parse(response.data.d);
+                if ($scope.toTranslate == true) {
+                    translateFoods(menu);
+                }
+                $mdDialog.hide(menu);
+            },
+            function (response) {
+                alert(response.data.d)
+            });
+        }
+
+        $scope.confirm = function (x) {
+            $scope.appMenues == true ? getAppMenu(x) : get(x);
+        }
+
+        $scope.setToTranslate = function (x) {
+            $scope.toTranslate = x;
+        }
+
+        $scope.setToLanguage = function (x) {
+            $scope.toLanguage = x;
+        }
+
+        var translateFoods = function (menu) {
+            $rootScope.setLanguage($scope.toLanguage);
+            $timeout(function () {
+                angular.forEach(menu.data.selectedFoods, function (value, key) {
+                    value.food = $translate.instant(value.food);
+                    value.unit = $translate.instant(value.unit);
+                })
+                angular.forEach(menu.data.selectedInitFoods, function (value, key) {
+                    value.food = $translate.instant(value.food);
+                    value.unit = $translate.instant(value.unit);
+                })
+                $mdDialog.hide(menu);
+                $rootScope.setLanguage('hr');
+            }, 500);
+        }
+
+    };
 
     $scope.creatingPdf = false;
     $scope.pageSizes = ['A4', 'A3', 'A2', 'A1'];
@@ -6420,7 +6705,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             $http({
                 url: $sessionStorage.config.backend + webService + '/Delete',
                 method: "POST",
-                data: { userId: $rootScope.user.userGroupId, id: x.id }
+                data: { userId: $rootScope.user.userGroupId, id: x.id, lang: $rootScope.config.language }
             })
           .then(function (response) {
               $scope.d = JSON.parse(response.data.d);
@@ -6568,7 +6853,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $http({
             url: $sessionStorage.config.backend + webService + '/Delete',
             method: "POST",
-            data: { userId: $rootScope.user.userGroupId, id: x.id }
+            data: { userId: $rootScope.user.userGroupId, id: x.id, lang: $rootScope.config.language }
         })
       .then(function (response) {
           $scope.d = JSON.parse(response.data.d);
@@ -6874,6 +7159,25 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         }
     };
 })
+
+.directive('jsonDirective', function () {
+    return {
+        restrict: 'E',
+        scope: {
+            data: '=',
+            desc: '='
+        },
+        templateUrl: './assets/partials/directive/json.html',
+        controller: 'jsonCtrl'
+    };
+})
+.controller('jsonCtrl', ['$scope', '$rootScope', function ($scope, $rootScope) {
+    $scope.isShow = false;
+    $scope.debug = $rootScope.config.debug;
+    $scope.show = function () {
+        $scope.isShow = !$scope.isShow;
+    }
+}])
 
 
 ;

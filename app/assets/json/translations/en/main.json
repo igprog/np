@@ -1450,7 +1450,7 @@
   "send menu": "send menu",
   "client email": "client email",
   "menu sent successfully": "menu sent successfully",
-  "nutrition program": "nutrition program",
+  "nutrition program": "Nutrition Program",
   "help": "help",
   "info": "info",
   "copyright": "copyright",
@@ -1862,6 +1862,10 @@
   "refresh page": "refresh page",
   "need help": "Need help",
   "contact our technical support by email": "Contact our technical support by email",
-  "or phone": "or phone"
+  "or phone": "or phone",
+  "add menu": "Add Menu",
+  "remove all events": "Remove All Events",
+  "choose user": "Choose User",
+  "the menu is in the attachment": "The Menu is in the Attachment"
 
 }

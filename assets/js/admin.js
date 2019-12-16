@@ -1,6 +1,6 @@
 ﻿/*!
 admin.js
-(c) 2018 IG PROG, www.igprog.hr
+(c) 2018-2019 IG PROG, www.igprog.hr
 */
 angular.module('app', [])
 
@@ -116,7 +116,6 @@ angular.module('app', [])
         })
         .then(function (response) {
             $scope.t = JSON.parse(response.data.d);
-            //drawChart();
             $scope.loading = false;
         },
         function (response) {
@@ -124,7 +123,6 @@ angular.module('app', [])
             alert(response.data.d);
         });
     }
-    total($scope.year);
 
     $scope.total = function (year) {
         $scope.showUsers = false;
@@ -303,6 +301,12 @@ angular.module('app', [])
         });
     }
 
+    $scope.createSubusers = function (x, prefix) {
+        functions.post('Users', 'CreateSubusers', { x: x, prefix: prefix }).then(function (d) {
+            alert(d);
+        });
+    }
+
 }])
 
 .controller('ordersCtrl', ['$scope', '$http', '$rootScope', 'functions', function ($scope, $http, $rootScope, functions) {
@@ -353,6 +357,7 @@ angular.module('app', [])
         $scope.year = new Date().getFullYear();
         $scope.isForeign = false;
         $scope.clientLeftSpacing = 300;
+        $scope.isOffer = false;
         //$scope.totPrice_eur = 0;
     }
     initForm();
@@ -438,7 +443,7 @@ angular.module('app', [])
     }
 
     $scope.totPrice_eur = 0;
-    $scope.createPdf = function (i, isForeign, totPrice_eur, clientLeftSpacing) {
+    $scope.createPdf = function (i, isForeign, totPrice_eur, clientLeftSpacing, isOffer) {
         if ($rootScope.i.firstName == null && $rootScope.i.lastName == null && $rootScope.i.companyName == null) {
             alert('Upiši ime ili naziv');
             return false;
@@ -454,7 +459,7 @@ angular.module('app', [])
         $http({
             url: $rootScope.config.backend + 'PrintPdf.asmx/InvoicePdf',
             method: 'POST',
-            data: { invoice: i, isForeign: isForeign, totPrice_eur: totPrice_eur, clientLeftSpacing: clientLeftSpacing }
+            data: { invoice: i, isForeign: isForeign, totPrice_eur: totPrice_eur, clientLeftSpacing: clientLeftSpacing, isOffer: isOffer }
         })
      .then(function (response) {
          $scope.loading = false;
