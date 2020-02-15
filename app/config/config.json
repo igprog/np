@@ -1,6 +1,6 @@
 ﻿{
-  "version": "1.3.18",
-  "date": "14.12.2019",
+  "version": "1.4.3",
+  "date": "15.2.2020",
   "backend": "../",
   "title": "Nutri Prog",
   "shortDescription": "meal planning web app",
@@ -81,5 +81,6 @@
       "price": 1850
     }
   ],
-  "showmenuslimit": 20
+  "showmenuslimit": 20,
+  "showfoodgroupscolors": false
 }

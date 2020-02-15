@@ -1,6 +1,6 @@
 ﻿/*!
 app.js
-(c) 2017-2019 IG PROG, www.igprog.hr
+(c) 2017-2020 IG PROG, www.igprog.hr
 */
 angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'chart.js', 'ngStorage', 'functions', 'charts'])
 
@@ -62,7 +62,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $http({
             url: $sessionStorage.config.backend + 'Calculations.asmx/Init',
             method: "POST",
-            data: ''
+            data: { userType: 2 }  // data: { userType: $rootScope.user.userType }
         })
         .then(function (response) {
             $rootScope.myCalculation = JSON.parse(response.data.d);
@@ -1718,7 +1718,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $http({
             url: $sessionStorage.config.backend + 'Calculations.asmx/GetCalculation',
             method: "POST",
-            data: { client: $rootScope.clientData }
+            data: { client: $rootScope.clientData, userType: $rootScope.user.userType }
         })
         .then(function (response) {
             $rootScope.calculation = JSON.parse(response.data.d);
@@ -1994,6 +1994,129 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         }
     }
 
+    $scope.bodyFatPopup = function (x) {
+        $mdDialog.show({
+            controller: $scope.bodyFatPopupCtrl,
+            templateUrl: 'assets/partials/popup/bodyfat.html',
+            parent: angular.element(document.body),
+            targetEvent: '',
+            clickOutsideToClose: true,
+            fullscreen: $scope.customFullscreen, // Only for -xs, -sm breakpoints.
+            d: { clientData: x, userType: $rootScope.user.userType }
+        })
+      .then(function (response) {
+          $rootScope.clientData.bodyFat.bodyFatPerc = response;
+      }, function () {
+      });
+    };
+
+    $scope.bodyFatPopupCtrl = function ($scope, $mdDialog, d, $http) {
+        var webService = 'BodyFat.asmx';
+        var clientData = d.clientData;
+        var userType = d.userType;
+        $scope.d = null;
+        $scope.method = 'JP3';
+        $scope.svg = clientData.gender.value === 0 ? 'manSvg' : 'womanSvg';
+
+        var init = function () {
+            $http({
+                url: $sessionStorage.config.backend + webService + '/InitCaliperMeasurements',
+                method: "POST",
+                data: { clientData: clientData }
+            })
+            .then(function (response) {
+                $scope.d = JSON.parse(response.data.d);
+                $scope.d.data.recordDate = functions.dateToString(clientData.date);
+            });
+        }
+        init();
+
+        $scope.calculate = function (x) {
+            if (userType < 2) {
+                functions.demoAlert('this function is available only in premium package');
+                return false;
+            }
+            $http({
+                url: $sessionStorage.config.backend + webService + '/CaliperCalculate',
+                method: "POST",
+                data: { data: x }
+            })
+            .then(function (response) {
+                $scope.d.data.bodyFat = JSON.parse(response.data.d);
+            });
+        }
+
+        $scope.confirm = function (x) {
+            if (userType < 2) {
+                functions.demoAlert('this function is available only in premium package');
+                return false;
+            }
+            $http({
+                url: $sessionStorage.config.backend + webService + '/Save',
+                method: "POST",
+                data: { x: x }
+            })
+            .then(function (response) {
+                var res = JSON.parse(response.data.d);
+                $mdDialog.hide(res);
+            });
+            //$mdDialog.hide(x);
+        }
+
+        initColor = function () {
+            $scope.pointColor = {
+                CH: '#fff',
+                AB: '#fff',
+                TH: '#fff',
+                TR: '#fff',
+                SUB: '#fff',
+                SU: '#fff',
+                MI: '#fff',
+                BI: '#fff',
+            }
+        }
+        initColor();
+        $scope.selectPoint = function (x) {
+            initColor();
+            var selectColor = '#33cc33';
+            if (x === 'CH') {
+                $scope.pointColor.CH = selectColor;
+            } else if (x == 'AB') {
+                $scope.pointColor.AB = selectColor;
+            }
+            else if (x == 'TH') {
+                $scope.pointColor.TH = selectColor;
+            }
+            else if (x == 'TR') {
+                $scope.pointColor.TR = selectColor;
+            }
+            else if (x == 'SUB') {
+                $scope.pointColor.SUB = selectColor;
+            }
+            else if (x == 'SU') {
+                $scope.pointColor.SU = selectColor;
+            }
+            else if (x == 'MI') {
+                $scope.pointColor.MI = selectColor;
+            }
+            else if (x == 'BI') {
+                $scope.pointColor.BI = selectColor;
+            }
+
+        }
+
+        $scope.setMethod = function (x) {
+            $scope.d.data = x;
+            $scope.d.data.clientData = clientData;
+            $scope.d.data.recordDate = functions.dateToString(clientData.date);
+        }
+
+        $scope.cancel = function () {
+            $mdDialog.cancel();
+        };
+
+    };
+
 }])
 
 .controller('detailCalculationOfEnergyExpenditureCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', '$timeout', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate, $timeout) {
@@ -2126,6 +2249,9 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
     var getTotal = function () {
+        if ($rootScope.clientData === undefined) {
+            return false;
+        }
         if ($rootScope.clientData.dailyActivities.activities == null) {
             $rootScope.clientData.dailyActivities.activities = [];
         }
@@ -2181,6 +2307,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             bmiChart();
             whrChart();
             waistChart();
+            bfChart();
         }, 1000);
     }
 
@@ -2246,6 +2373,26 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         google.charts.setOnLoadCallback(charts.guageChart(id, value, unit, options));
     }
 
+    var bfChart = function () {
+        var id = 'bfChart';
+        var value = $rootScope.calculation.bodyFat.bodyFatPerc.toFixed(1);
+        var unit = '%';
+        var gender = $rootScope.client.gender.value;
+        var options = {
+            title: '%',
+            min: 0,
+            max: 60,
+            greenFrom: gender == 0 ? 6 : 14,
+            greenTo: gender == 0 ? 18 : 25,
+            yellowFrom: gender == 0 ? 18 : 25,
+            yellowTo: gender == 0 ? 25 : 32,
+            redFrom: gender == 0 ? 25 : 32,
+            redTo: 60,
+            minorTicks: 5
+        };
+        google.charts.setOnLoadCallback(charts.guageChart(id, value, unit, options));
+    }
+
     var getGoals = function () {
         $http({
             url: $sessionStorage.config.backend + 'Goals.asmx/Load',
@@ -2266,7 +2413,9 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $rootScope.goalWeightValue_ = angular.copy(x);
     }
 
-    $scope.getGoal = function (x) {
+    $scope.getGoal = function (goal) {
+        var x = goal.code;
+        if (goal.isDisabled) { return false; }
         var energy = 0;
         var activity = 0;
         $rootScope.goalWeightValue = 0;
@@ -2284,7 +2433,11 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                     energy = $rootScope.appCalculation.recommendedEnergyIntake + 300;
                     activity = $rootScope.appCalculation.recommendedEnergyExpenditure;
                 }
-                $rootScope.goalWeightValue = Math.round(angular.copy($rootScope.calculation.recommendedWeight.max));
+                if ($rootScope.appCalculation.goal.code == "G2") {
+                    $rootScope.goalWeightValue = Math.round(angular.copy($rootScope.clientData.weight));
+                } else {
+                    $rootScope.goalWeightValue = Math.round(angular.copy($rootScope.calculation.recommendedWeight.max));
+                }
                 break;
             case "G2":  // zadrzavanje postojece tjelesne mase
                 if ($rootScope.appCalculation.goal.code == "G1") {
@@ -2318,12 +2471,16 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                     energy = $rootScope.appCalculation.recommendedEnergyIntake + 500;
                     activity = $rootScope.appCalculation.recommendedEnergyExpenditure + 200;
                 }
-                $rootScope.goalWeightValue = $rootScope.clientData.weight < $rootScope.calculation.recommendedWeight.min ?  Math.round(angular.copy($rootScope.calculation.recommendedWeight.min)) :  Math.round(angular.copy($rootScope.clientData.weight + 10));  //TODO
+                if ($rootScope.appCalculation.goal.code == "G2") {
+                    $rootScope.goalWeightValue = Math.round(angular.copy($rootScope.calculation.recommendedWeight.max));
+                } else {
+                    $rootScope.goalWeightValue = $rootScope.clientData.weight < $rootScope.calculation.recommendedWeight.min ? Math.round(angular.copy($rootScope.calculation.recommendedWeight.min)) : Math.round(angular.copy(parseInt($rootScope.clientData.weight) + 10));  //TODO
+                }
                 break;
             case "G4":  // povecanje misicne mase
                 if ($rootScope.appCalculation.goal.code == "G1") {
-                    energy = $rootScope.appCalculation.tee + $rootScope.calculation.recommendedEnergyExpenditure;
-                    activity = $rootScope.calculation.recommendedEnergyExpenditure + 200;
+                    energy = $rootScope.appCalculation.tee + $rootScope.appCalculation.recommendedEnergyExpenditure;
+                    activity = $rootScope.appCalculation.recommendedEnergyExpenditure + 200;
                 }
                 if ($rootScope.appCalculation.goal.code == "G2") {
                     energy = $rootScope.appCalculation.tee + 500;
@@ -2333,7 +2490,11 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                     energy = $rootScope.appCalculation.recommendedEnergyIntake + 400;
                     activity = $rootScope.appCalculation.recommendedEnergyExpenditure + 100;
                 }
-                $rootScope.goalWeightValue =  Math.round(angular.copy($rootScope.clientData.weight));
+                if ($rootScope.appCalculation.goal.code == "G2") {
+                    $rootScope.goalWeightValue = $rootScope.clientData.weight < $rootScope.calculation.recommendedWeight.min ? Math.round(angular.copy($rootScope.calculation.recommendedWeight.min)) : Math.round(angular.copy(parseInt($rootScope.clientData.weight) + 10));  //TODO
+                } else {
+                    $rootScope.goalWeightValue = Math.round(angular.copy($rootScope.clientData.weight));
+                }
                 break;
             default:
                 energy = 0;
@@ -2412,10 +2573,13 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
     var getCalculation = function () {
+        if ($rootScope.clientData.bmrEquation === 'KMA' && $rootScope.clientData.bodyFat.bodyFatPerc == 0) {
+            $rootScope.clientData.bmrEquation = 'MSJ';  /*** MifflinStJeor ***/
+        }
         $http({
             url: $sessionStorage.config.backend + webService + '/GetCalculation',
             method: "POST",
-            data: { client: $rootScope.clientData }
+            data: { client: $rootScope.clientData, userType: $rootScope.user.userType }
         })
         .then(function (response) {
             $rootScope.calculation = JSON.parse(response.data.d);
@@ -2427,8 +2591,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
             getCharts();
             getGoals();
-            $scope.getGoal($rootScope.clientData.goal.code);
-
+            $scope.getGoal($rootScope.clientData.goal);
         },
         function (response) {
             if (response.data.d === undefined) {
@@ -2438,6 +2601,40 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             }
         });
     };
+
+    /*******BMR Equations*******/
+    if ($rootScope.clientData.bodyFat.bodyFatPerc !== 0) {
+        $rootScope.clientData.bmrEquation = 'KMA'; /*** KatchMcArdle ***/
+    }
+    $scope.bmrIsDisabled = false;
+    $scope.setBmrEquation = function (x) {
+        if ($rootScope.user.licenceStatus == 'demo') {
+            functions.demoAlert('this function is not available in demo version');
+            return false;
+        }
+        if ($rootScope.user.userType < 1 && $scope.bmrIsDisabled) {
+            functions.demoAlert('this function is available only in standard and premium package');
+            return false;
+        }
+        if ($rootScope.user.userType == 1 && $scope.bmrIsDisabled) {
+            functions.demoAlert('this function is available only in premium package');
+            return false;
+        }
+        if (x === 'KMA' && $rootScope.clientData.bodyFat.bodyFatPerc == 0) {
+            functions.alert($translate.instant('body fat is required'), '');
+            $rootScope.newTpl = './assets/partials/clientsdata.html';
+            return false;
+        }
+        getCalculation();
+    }
+    $scope.checkBmrEquation = function (x) {
+        $scope.bmrIsDisabled = x.isDisabled;
+        if (x.isDisabled) {
+            return false;
+        }
+    }
+    /*******BMR Equations*******/
+
     getCalculation();
 
 }])
@@ -2451,6 +2648,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.orderdirection = direction;
     }
     $scope.orderby('activity');
+    $scope.energy = 0;
 
     if ($rootScope.activities == undefined) { $rootScope.loadActivities(); };
     if (angular.isDefined($rootScope.appCalculation) && angular.isDefined($rootScope.myCalculation)) {
@@ -2468,8 +2666,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 energy = energy + value.energy;
             })
         }
+        $scope.energy = energy.toFixed();
         return $rootScope.calculation.recommendedEnergyExpenditure - energy;
     }
+    getEnergyLeft();
 
     $scope.openPopup = function (x) {
         energyLeft = getEnergyLeft();
@@ -2485,6 +2685,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             })
           .then(function (response) {
               energyLeft = response;
+              getEnergyLeft();
           }, function () {
           });
         } else {
@@ -2528,6 +2729,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             .cancel($translate.instant('no'));
         $mdDialog.show(confirm).then(function () {
             $rootScope.clientData.activities.splice(idx, 1);
+            getEnergyLeft();
         }, function () {
         });
     }
@@ -2625,11 +2827,20 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 }])
 
 .controller('mealsCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate) {
+    if ($rootScope.clientData === undefined) {
+        $rootScope.newTpl = 'assets/partials/clientsdata.html';
+        $rootScope.selectedNavItem = 'clientsdata';
+        return false;
+    }
     var webService = 'Meals.asmx';
 
     $scope.toggleMealsTpl = function (x) {
-        $scope.tpl = x;
+        $rootScope.mealsTpl = x;
         $rootScope.mealsAreChanged = true;
+        if (x === 'myMeals') {
+            $rootScope.clientData.meals = $rootScope.myMeals.data.meals;
+        }
+
     }
 
     var defineMealsType = function () {
@@ -2637,9 +2848,9 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             if ($rootScope.currentMenu.id != null) {
                 if ($rootScope.currentMenu.data.meals.length > 0) {
                     if ($rootScope.currentMenu.data.meals[0].code == 'B') {
-                        $scope.tpl = 'standardMeals';
+                        $rootScope.mealsTpl = 'standardMeals';
                     } else {
-                        $scope.tpl = 'myMeals';
+                        $rootScope.mealsTpl = 'myMeals';
                     }
                     return false;
                 } 
@@ -2648,15 +2859,15 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         if ($rootScope.clientData.myMeals !== undefined && $rootScope.clientData.myMeals != null) {
             if ($rootScope.clientData.myMeals.data != null) {
                 if ($rootScope.clientData.myMeals.data.meals.length >= 2) {
-                    $scope.tpl = 'myMeals';
+                    $rootScope.mealsTpl = 'myMeals';
                 } else {
-                    $scope.tpl = 'standardMeals';
+                    $rootScope.mealsTpl = 'standardMeals';
                 }
             } else {
-                $scope.tpl = 'standardMeals';
+                $rootScope.mealsTpl = 'standardMeals';
             }
         } else {
-            $scope.tpl = 'standardMeals';
+            $rootScope.mealsTpl = 'standardMeals';
         }
     }
     defineMealsType();
@@ -2982,6 +3193,11 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 }])
 
 .controller('menuCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'charts', '$timeout', 'functions', '$translate', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, charts, $timeout, functions, $translate) {
+    if ($rootScope.clientData === undefined) {
+        $rootScope.newTpl = 'assets/partials/meals.html';
+        $rootScope.selectedNavItem = 'meals';
+        return false;
+    }
     var webService = 'Foods.asmx';
     $scope.addFoodBtnIcon = 'fa fa-plus';
     $scope.addFoodBtn = false;
@@ -3064,9 +3280,14 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             $rootScope.currentMenu.client.clientData = $rootScope.clientData;  //TODO sredit
             $rootScope.currentMenu.data.meals = $rootScope.clientData.meals;
 
-            angular.forEach($rootScope.currentMenu.data.meals, function (value, key) {
-                $rootScope.currentMenu.data.meals[key].description = '';
-            })
+            if ($rootScope.mealsTpl === 'myMeals') {
+                $rootScope.currentMenu.data.meals = $rootScope.myMeals.data.meals;
+                angular.forEach($rootScope.currentMenu.data.meals, function (value, key) {
+                    if (value.description !== '') {
+                        $rootScope.currentMenu.data.meals[key].description = value.description + '~';
+                    }
+                })
+            }
 
             $rootScope.currentMeal = 'B';
             if ($rootScope.currentMenu !== undefined) {
@@ -3453,6 +3674,11 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
     $scope.new = function () {
+        angular.forEach($rootScope.currentMenu.data.meals, function (value, key) {
+            if (value.description !== '') {
+                $rootScope.currentMenu.data.meals[key].description = '';
+            }
+        })
         init();
     }
 
@@ -4032,73 +4258,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         }
     };
 
-    //$scope.send = function () {
-    //    if ($rootScope.currentMenu.data.selectedFoods.length == 0) {
-    //        return false;
-    //    }
-    //    if ($rootScope.user.licenceStatus == 'demo') {
-    //        functions.demoAlert('this function is not available in demo version');
-    //        return false;
-    //    }
-    //    if ($rootScope.user.userType < 1) {
-    //        functions.demoAlert('this function is available only in standard and premium package');
-    //        return false;
-    //    }
-    //    openSendMenuPopup();
-    //}
-
-    //var openSendMenuPopup = function () {
-    //    $rootScope.client.clientData = $rootScope.clientData;
-    //    $mdDialog.show({
-    //        controller: openSendMenuPopupCtrl,
-    //        templateUrl: 'assets/partials/popup/sendmenu.html',
-    //        parent: angular.element(document.body),
-    //        clickOutsideToClose: true,
-    //        d: { currentMenu: $rootScope.currentMenu, client: $rootScope.client, user: $rootScope.user }
-    //    })
-    //   .then(function (x) {
-    //   }, function () {
-    //   });
-    //}
-
-    //var openSendMenuPopupCtrl = function ($scope, $mdDialog, $http, d, $translate, functions) {
-    //    $scope.d = angular.copy(d);
-
-    //    var send = function (x) {
-    //        $scope.titlealert = null;
-    //        $scope.emailalert = null;
-    //        if (functions.isNullOrEmpty(x.currentMenu.title)) {
-    //            $scope.titlealert = $translate.instant('menu title is required');
-    //            return false;
-    //        }
-    //        if (functions.isNullOrEmpty(x.client.email)) {
-    //            $scope.emailalert = $translate.instant('email is required');
-    //            return false;
-    //        }
-    //        $mdDialog.hide();
-    //        $http({
-    //            url: $sessionStorage.config.backend + 'Mail.asmx/SendMenu',
-    //            method: "POST",
-    //            data: { email: x.client.email, currentMenu: x.currentMenu, user: $scope.d.user, lang: $rootScope.config.language }
-    //        })
-    //        .then(function (response) {
-    //            functions.alert(response.data.d, '');
-    //        },
-    //        function (response) {
-    //            functions.alert($translate.instant(response.data.d), '');
-    //        });
-    //    }
-
-    //    $scope.cancel = function () {
-    //        $mdDialog.cancel();
-    //    };
-
-    //    $scope.confirm = function (x) {
-    //        send(x);
-    //    }
-
-    //};
-
     var getTotals = function (x) {
         $http({
             url: $sessionStorage.config.backend + webService + '/GetTotals',
@@ -4574,7 +4733,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     var saturatedFatsChart = function () {
         var id = 'saturatedFatsChart';
         var value = $rootScope.totals.saturatedFats;
-        unit = 'mg';
+        unit = 'g';
         var options = {
             title: 'saturated fats',
             min: 0,
@@ -4593,7 +4752,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     var trifluoroaceticAcidChart = function () {
         var id = 'trifluoroaceticAcidChart';
         var value = $rootScope.totals.trifluoroaceticAcid;
-        unit = 'mg';
+        unit = 'g';
         var options = {
             title: 'trifluoroacetic acid',
             min: 0,
@@ -5179,6 +5338,43 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     $scope.openPrintPdfPopup = function () {
         openPrintPdfPopup();
     }
+
+    $scope.getFoodGroupClass = function (x) {
+        if (!$rootScope.config.showfoodgroupscolors) {
+            return '';
+        }
+        switch (x) {
+            case 'C': return 'bg-cereals'; break;
+            case 'V': return 'bg-vegetables'; break;
+            case 'F': return 'bg-fruit'; break;
+            case 'M': case 'EUM': case 'NFM': case 'MFM': case 'FFM': return 'bg-meat'; break;
+            case 'MI': case 'LFMI': case 'SMI': case 'FFMI': return 'bg-milk'; break;
+            case 'FA': case 'SF': case 'UF': case 'MUF': return 'bg-fat'; break;
+            case 'OF': return 'bg-otherfoods'; break;
+            case 'MF': return 'bg-mixedfoods'; break;
+            case 'PM': return 'bg-preparedmeals'; break;
+            default:
+                return '';
+        }
+    }
+
+    $scope.openColorGroupsInfoPopup = function () {
+        $mdDialog.show({
+            controller: colorGroupsInfoPopupCtrl,
+            templateUrl: 'assets/partials/popup/colorfoodgroups.html',
+            parent: angular.element(document.body),
+            clickOutsideToClose: true
+        })
+        .then(function (recipe) {
+        }, function () {
+        });
+    };
+    var colorGroupsInfoPopupCtrl = function ($scope, $mdDialog) {
+        $scope.cancel = function () {
+            $mdDialog.cancel();
+        };
+    };
+
 
 }])
 
