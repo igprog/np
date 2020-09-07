@@ -1,8 +1,8 @@
 ﻿{
-  "version": "1.4.3",
-  "date": "15.2.2020",
+  "version": "2.0.2",
+  "date": "4.9.2020",
   "backend": "../",
-  "title": "Nutri Prog",
+  "title": "nutrition program web",
   "shortDescription": "meal planning web app",
   "apppage": "app.programprehrane.com",
   "apppageurl": "/app/",
@@ -17,6 +17,11 @@
   "email": "program.prehrane@yahoo.com",
   "email_en": "nutrition.plan@yahoo.com",
   "phone": "+385 98 330 966",
+  "iban": "HR84 2340 0091 1603 4249 6",
+  "swift": "PBZGHR2X",
+  "bank": "Privredna banka Zagreb d.d., Račkoga 6, 10000 Zagreb",
+  "company": "IG PROG, vl. Igor Gašparović",
+  "address": "Ludvetov breg 5, 51000 Rijeka",
   "language": "en",
   "languages": [
     {
@@ -67,6 +72,7 @@
   ],
   "showupdatedes": false,
   "showlanguages": false,
+  "showsendmenu":  false,
   "packages": [
     {
       "title": "START",

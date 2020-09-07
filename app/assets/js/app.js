@@ -4,7 +4,74 @@ app.js
 */
 angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'chart.js', 'ngStorage', 'functions', 'charts'])
 
-.config(['$translateProvider', '$translatePartialLoaderProvider', '$httpProvider', function ($translateProvider, $translatePartialLoaderProvider, $httpProvider) {
+.config(['$stateProvider', '$urlRouterProvider', '$translateProvider', '$translatePartialLoaderProvider', '$httpProvider', function ($stateProvider, $urlRouterProvider, $translateProvider, $translatePartialLoaderProvider, $httpProvider) {
+
+    $stateProvider
+        .state('login', {
+            url: '/login', templateUrl: './assets/partials/login.html', controller: 'loginCtrl'
+        })
+        .state('signup', {
+            url: '/signup', templateUrl: './assets/partials/signup.html', controller: 'signupCtrl'
+        })
+        .state('user', {
+            url: '/user', templateUrl: './assets/partials/user.html', controller: 'userCtrl'
+        })
+        .state('users', {
+            url: '/users', templateUrl: './assets/partials/users.html', controller: 'userCtrl'
+        })
+        .state('newuser', {
+            url: '/newuser', templateUrl: './assets/partials/newuser.html', controller: 'userCtrl'
+        })
+        .state('order', {
+            url: '/order', templateUrl: './assets/partials/order.html', controller: 'orderCtrl'
+        })
+        .state('dashboard', {
+            url: '/dashboard', templateUrl: './assets/partials/dashboard.html', controller: 'dashboardCtrl'
+        })
+        .state('clientsdata', {
+            url: '/clientsdata', templateUrl: './assets/partials/clientsdata.html', controller: 'clientsCtrl'
+        })
+        .state('calculation', {
+            url: '/calculation', templateUrl: './assets/partials/calculation.html', controller: 'calculationCtrl'
+        })
+        .state('activities', {
+            url: '/activities', templateUrl: './assets/partials/activities.html', controller: 'activitiesCtrl'
+        })
+        .state('diets', {
+            url: '/diets', templateUrl: './assets/partials/diets.html', controller: 'dietsCtrl'
+        })
+        .state('meals', {
+            url: '/meals', templateUrl: './assets/partials/meals.html', controller: 'mealsCtrl'
+        })
+        .state('menu', {
+            url: '/menu', templateUrl: './assets/partials/menu.html', controller: 'menuCtrl'
+        })
+        .state('analysis', {
+            url: '/analysis', templateUrl: './assets/partials/analysis.html', controller: 'menuCtrl'
+        })
+        .state('myfoods', {
+            url: '/myfoods', templateUrl: './assets/partials/myfoods.html', controller: 'myFoodsCtrl'
+        })
+        .state('myrecipes', {
+            url: '/myrecipes', templateUrl: './assets/partials/myrecipes.html', controller: 'myRecipesCtrl'
+        })
+        .state('prices', {
+            url: '/prices', templateUrl: './assets/partials/prices.html', controller: 'pricesCtrl'
+        })
+        .state('scheduler', {
+            url: '/scheduler', templateUrl: './assets/partials/scheduler.html', controller: 'schedulerCtrl'
+        })
+        .state('clientapp', {
+            url: '/clientapp', templateUrl: './assets/partials/clientapp.html', controller: 'clientAppCtrl'
+        })
+        .state('info', {
+            url: '/info', templateUrl: './assets/partials/info.html', controller: 'infoCtrl'
+        })
+        .state('settings', {
+            url: '/settings', templateUrl: './assets/partials/settings.html', controller: 'settingsCtrl'
+        })
+
+    $urlRouterProvider.otherwise("/");
 
     $translateProvider.useLoader('$translatePartialLoader', {
          urlTemplate: './assets/json/translations/{lang}/{part}.json'
@@ -30,7 +97,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         }
 })
 
-.controller('AppCtrl', ['$scope', '$mdDialog', '$timeout', '$q', '$log', '$rootScope', '$localStorage', '$sessionStorage', '$window', '$http', '$translate', '$translatePartialLoader', 'functions', function ($scope, $mdDialog, $timeout, $q, $log, $rootScope, $localStorage, $sessionStorage, $window, $http, $translate, $translatePartialLoader, functions) {
+.controller('AppCtrl', ['$scope', '$mdDialog', '$timeout', '$q', '$log', '$rootScope', '$localStorage', '$sessionStorage', '$window', '$http', '$translate', '$translatePartialLoader', 'functions', '$state', function ($scope, $mdDialog, $timeout, $q, $log, $rootScope, $localStorage, $sessionStorage, $window, $http, $translate, $translatePartialLoader, functions, $state) {
     $rootScope.loginUser = $sessionStorage.loginuser;
     $rootScope.user = $sessionStorage.user;
     $scope.today = new Date();
@@ -133,6 +200,13 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
        });
     }
 
+    $scope.currLanguageTitle = null
+    var getLanguageTitle = function (x) {
+        if ($scope.config !== undefined) {
+            $scope.currLanguageTitle = $rootScope.config.languages.find(a => a.code === x).title;
+        }
+    }
+
     $rootScope.setLanguage = function (x) {
         $translate.use(x);
         $translatePartialLoader.addPart('main');
@@ -144,6 +218,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         if ($sessionStorage.usergroupid != undefined || $sessionStorage.usergroupid != null) {
             $rootScope.loadData();
         }
+        getLanguageTitle(x);
     };
 
     $rootScope.loadFoods = function () {
@@ -170,7 +245,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $http({
             url: $sessionStorage.config.backend + 'Calculations.asmx/LoadPal',
             method: "POST",
-            data: ''
+            data: {}
         })
       .then(function (response) {
           $rootScope.pals = JSON.parse(response.data.d);
@@ -199,7 +274,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $http({
             url: $sessionStorage.config.backend + 'Activities.asmx/Load',
             method: "POST",
-            data: ''
+            data: { lang: $rootScope.config.language }
         })
         .then(function (response) {
             $rootScope.activities = JSON.parse(response.data.d);
@@ -218,7 +293,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $http({
             url: $sessionStorage.config.backend + 'Diets.asmx/Load',
             method: "POST",
-            data: ''
+            data: { lang: $rootScope.config.language }
         })
         .then(function (response) {
             $rootScope.diets = JSON.parse(response.data.d);
@@ -233,6 +308,23 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         });
     };
 
+    $scope.activeEvents = null;
+    $rootScope.getActiveEvents = function () {
+        if ($rootScope.user.userType == 0) { return false; }
+        var now = new Date().getTime();
+        $http({
+            url: $sessionStorage.config.backend + 'Scheduler.asmx/GetActiveEvents',
+            method: 'POST',
+            data: { user: $rootScope.user, now: now }
+        })
+       .then(function (response) {
+           $scope.activeEvents = JSON.parse(response.data.d);
+       },
+       function (response) {
+           functions.alert($translate.instant(response.data.d));
+       });
+    };
+
     $rootScope.loadData = function () {
         if ($sessionStorage.user == null) {
             $scope.toggleTpl('login');
@@ -243,11 +335,12 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             $rootScope.loadGoals();
             $rootScope.loadActivities();
             $rootScope.loadDiets();
+            $rootScope.getActiveEvents();
         }
     }
 
     $scope.toggleTpl = function (x) {
-        $rootScope.currTpl = './assets/partials/' + x + '.html';
+        $state.go(x);
     };
 
     var checkUser = function () {
@@ -263,7 +356,9 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     checkUser();
 
     var validateForm = function () {
-        if ($rootScope.clientData.clientId == null) {
+        if ($rootScope.clientData.clientId === null) {
+            //TODO:
+            //functions.alert($translate.instant('choose client'));
             return false;
         }
         if ($rootScope.clientData.height <= 0) {
@@ -283,23 +378,33 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     
     $scope.toggleNewTpl = function (x) {
         if ($rootScope.clientData !== undefined) {
-            if (validateForm() == false) {
+            if ($rootScope.clientData.length === 0 && x === 'clientsdata') {
+                $state.go(x);
+                $rootScope.selectedNavItem = x;
                 return false;
-            };
+            }
+            if (x !== 'clientsdata') {
+                if (validateForm() == false) {
+                    return false;
+                };
+            }
             if ($rootScope.clientData.meals == null) {
-                $rootScope.newTpl = 'assets/partials/meals.html';
+                //$rootScope.newTpl = 'assets/partials/meals.html';
+                $state.go('meals');
                 $rootScope.selectedNavItem = 'meals';
                 functions.alert($translate.instant('choose meals'), '');
                 return false;
             }
             if (x == 'menu' && $rootScope.clientData.meals.length > 0 && !$rootScope.isMyMeals && $rootScope.clientData.meals[0].code == 'B') {
                 if ($rootScope.clientData.meals[1].isSelected == false && $rootScope.clientData.meals[5].isSelected == true) {
-                    $rootScope.newTpl = './assets/partials/meals.html';
+                    //$rootScope.newTpl = './assets/partials/meals.html';
+                    $state.go('meals');
                     functions.alert($translate.instant('the selected meal combination is not allowed in the menu') + '!', $rootScope.clientData.meals[5].title + ' ' + $translate.instant('in this combination must be turned off') + '.');
                     return false;
                 }
                 if ($rootScope.clientData.meals[3].isSelected == false && $rootScope.clientData.meals[5].isSelected == true) {
-                    $rootScope.newTpl = './assets/partials/meals.html';
+                    //$rootScope.newTpl = './assets/partials/meals.html';
+                    $state.go('meals');
                     functions.alert($translate.instant('the selected meal combination is not allowed in the menu') + '!', $rootScope.clientData.meals[5].title + ' ' + $translate.instant('in this combination must be turned off') + '.');
                     return false;
                 }
@@ -312,11 +417,19 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             if (x !== 'clientsdata') {
                 $rootScope.saveClientData($rootScope.clientData);
             }
+        } else {
+            if (x !== 'clientsdata') {
+                functions.alert($translate.instant('choose client'), '');
+                return false;
+            }
         }
-        $rootScope.newTpl = './assets/partials/' + x + '.html';
+        $state.go(x);
         $rootScope.selectedNavItem = x;
+        //$rootScope.newTpl = './assets/partials/' + x + '.html';
     };
-    $scope.toggleNewTpl('clientsdata');
+    if ($sessionStorage.islogin) {
+        $scope.toggleNewTpl('clientsdata');
+    }
 
     $scope.logout = function () {
         $sessionStorage.loginuser = null;
@@ -330,7 +443,8 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $sessionStorage.islogin = false;
         $sessionStorage.usergroupid = null;
         $rootScope.mainMessage = null;
-        $rootScope.currTpl = 'assets/partials/login.html';
+        //$rootScope.currTpl = 'assets/partials/login.html';
+        $state.go('login');
     }
 
     $rootScope.saveClientData = function (x) {
@@ -338,19 +452,22 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             return false;
         };
         if ($rootScope.clientData.meals == null) {
-            $rootScope.newTpl = 'assets/partials/meals.html';
+            //$rootScope.newTpl = 'assets/partials/meals.html';
+            $state.go('meals');
             $rootScope.selectedNavItem = 'meals';
             functions.alert($translate.instant('choose meals'), '');
             return false;
         }
         if ($rootScope.clientData.meals.length > 0 && !$rootScope.isMyMeals && $rootScope.clientData.meals[0].code == 'B') {
             if ($rootScope.clientData.meals[1].isSelected == false && $rootScope.clientData.meals[5].isSelected == true) {
-                $rootScope.newTpl = 'assets/partials/meals.html';
+                //$rootScope.newTpl = 'assets/partials/meals.html';
+                $state.go('meals');
                 functions.alert($translate.instant('the selected meal combination is not allowed in the menu') + '!', $rootScope.clientData.meals[5].title + ' ' + $translate.instant('in this combination must be turned off') + '.');
                 return false;
             }
             if ($rootScope.clientData.meals[3].isSelected == false && $rootScope.clientData.meals[5].isSelected == true) {
-                $rootScope.newTpl = 'assets/partials/meals.html';
+                //$rootScope.newTpl = 'assets/partials/meals.html';
+                $state.go('meals');
                 functions.alert($translate.instant('the selected meal combination is not allowed in the menu') + '!', $rootScope.clientData.meals[5].title + ' ' + $translate.instant('in this combination must be turned off') + '.');
                 return false;
             }
@@ -438,7 +555,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         return list;
     }
 
-    $scope.showUpdates = false;
+    $scope.showUpdates = true;
     $scope.toggleUpdates = function () {
         $scope.showUpdates = !$scope.showUpdates;
     };
@@ -468,7 +585,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
     var notificationPoupCtrl = function ($scope, $rootScope, $mdDialog, $localStorage) {
         $scope.config = $rootScope.config;
-        $scope.showUpdates = false;
+        $scope.showUpdates = true;
         $scope.toggleUpdates = function () {
             $scope.showUpdates = !$scope.showUpdates;
         };
@@ -543,6 +660,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.d = {
             description: null,
             email: functions.isNullOrEmpty(d.user) ? null : d.user.email,
+            userName: functions.isNullOrEmpty(d.user) ? null : d.user.userName,
             alert_des: null,
             alert_email: null
         }
@@ -559,7 +677,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 return false;
             }
             $mdDialog.hide();
-            var body = x.description + ' E-mail: ' + x.email;
+            var body = x.description + '. E-mail: ' + x.email + ', User Name: ' + x.userName;
             $http({
                 url: $sessionStorage.config.backend + 'Mail.asmx/SendMessage',
                 method: "POST",
@@ -582,15 +700,238 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         }
     };
 
+    $rootScope.foodPopupCtrl = function ($scope, $mdDialog, d, $http, $translate) {
+        $scope.d = d;
+        $scope.foods = d.foods;
+        $scope.myFoods = d.myFoods;
+        $scope.foodGroups = d.foodGroups;
+        var initFood = null;
+
+        var initFoodForEdit = function (x) {
+            $http({
+                url: $sessionStorage.config.backend + 'Foods.asmx/InitFoodForEdit',
+                method: "POST",
+                data: { food: x }
+            })
+            .then(function (response) {
+                initFood = JSON.parse(response.data.d);
+            },
+            function (response) {
+                alert(response.data.d)
+            });
+        }
+
+        var isEditMode = false;
+        if (d.food == null) {
+            $scope.food = null;
+            initFood = null;
+            isEditMode = false;
+        } else {
+            $scope.food = d.food;
+            initFoodForEdit(d.food);
+            isEditMode = true;
+        }
+
+        $scope.limit = 100;
+
+        $scope.initCurrentFoodGroup = function () {
+            $scope.currentGroup = { code: 'A', title: 'all foods' };
+        }
+        $scope.initCurrentFoodGroup();
+
+        var initThermalTreatment = function () {
+            $http({
+                url: $sessionStorage.config.backend + 'Foods.asmx/InitThermalTreatment',
+                method: "POST",
+                data: ''
+            })
+            .then(function (response) {
+                $scope.selectedThermalTreatment = JSON.parse(response.data.d);
+            },
+            function (response) {
+                alert(response.data.d)
+            });
+        }
+        initThermalTreatment();
+
+        $scope.showMyFoods = function (x) {
+            $scope.isShowMyFood = x;
+        }
+
+        // TOOD: translate on server side
+        $scope.getFoodDetails = function (x) {
+            if ($scope.isShowMyFood == true) {
+                getMyFoodDetails(x);
+                return false;
+            }
+            $http({
+                url: $sessionStorage.config.backend + 'Foods.asmx/Get',
+                method: "POST",
+                data: { userId: $rootScope.user.userId, id: JSON.parse(x).id }
+            })
+            .then(function (response) {
+                $scope.food = JSON.parse(response.data.d);
+                if ($scope.food.id === null) {
+                    getMyFoodDetails(x);
+                } else {
+                    $scope.food.food = $translate.instant($scope.food.food);
+                    $scope.food.unit = $translate.instant($scope.food.unit);
+                    $scope.food.foodGroup.title = $translate.instant($scope.food.foodGroup.title);
+                    $scope.food.meal.title = $translate.instant($scope.food.meal.title);
+                    angular.forEach($scope.food.thermalTreatments, function (value, key) {
+                        $scope.food.thermalTreatments[key].thermalTreatment.title = $translate.instant($scope.food.thermalTreatments[key].thermalTreatment.title);
+                    })
+                    initFood = angular.copy($scope.food);
+                }
+            },
+            function (response) {
+                alert(response.data.d)
+            });
+        }
+
+        var getMyFoodDetails = function (x) {
+            $http({
+                url: $sessionStorage.config.backend + 'MyFoods.asmx/Get',
+                method: "POST",
+                data: { userId: $rootScope.user.userGroupId, id: JSON.parse(x).id }
+            })
+            .then(function (response) {
+                $scope.food = JSON.parse(response.data.d);
+                $scope.food.unit = $translate.instant($scope.food.unit);
+                $scope.food.foodGroup.title = $translate.instant($scope.food.foodGroup.title);
+                initFood = angular.copy($scope.food);
+            },
+            function (response) {
+                alert(response.data.d)
+            });
+        }
+
+        var currThermalTreatmentIdx = 0;
+        $scope.getThermalTreatment = function (x, idx) {
+            if (functions.isNullOrEmpty(idx)) {
+                idx = currThermalTreatmentIdx;
+            }
+            angular.forEach(x, function (value, key) {
+                value.isSelected = false;
+            })
+            $scope.selectedThermalTreatment = x[idx];
+            x[idx].isSelected = true;
+            currThermalTreatmentIdx = idx;
+            if (isEditMode) {
+                isEditMode = false;
+            } else {
+                includeThermalTreatment($scope.selectedThermalTreatment);
+            }
+        }
+
+        var includeThermalTreatment = function (x) {
+            $http({
+                url: $sessionStorage.config.backend + 'Foods.asmx/IncludeThermalTreatment',
+                method: "POST",
+                data: { initFood: initFood, food: $scope.food, thermalTreatment: x }
+            })
+            .then(function (response) {
+                $scope.food = JSON.parse(response.data.d);
+            },
+            function (response) {
+                alert(response.data.d)
+            });
+        }
+
+        $scope.cancel = function () {
+            $mdDialog.cancel();
+        };
+
+        $scope.confirm = function (x) {
+            var data = { food: x, initFood: initFood }
+            $mdDialog.hide(data);
+        }
+
+        $scope.changeQuantity = function (x, type) {
+            isEditMode = false;
+            if (x.quantity > 0.0001 && isNaN(x.quantity) == false && x.mass > 0.0001 && isNaN(x.mass) == false) {
+                var currentFood = $scope.food.food;  // << in case where user change food title
+                $timeout(function () {
+                    $http({
+                        url: $sessionStorage.config.backend + 'Foods.asmx/ChangeFoodQuantity',
+                        method: "POST",
+                        data: { initFood: initFood, newQuantity: x.quantity, newMass: x.mass, type: type, thermalTreatment: $scope.selectedThermalTreatment }
+                    })
+                    .then(function (response) {
+                        $scope.food = JSON.parse(response.data.d);
+                        $scope.food.food = currentFood; // << in case where user change food title
+                    },
+                    function (response) {
+                    });
+                }, 600);
+            }
+        }
+
+        $scope.change = function (x, type) {
+            if (type === 'quantity' && $scope.food.quantity + x > 0) {
+                $scope.food.quantity = $scope.food.quantity + x;
+                $scope.changeQuantity($scope.food, 'quantity');
+            }
+            if (type === 'mass' && $scope.food.mass + x > 0) {
+                $scope.food.mass = $scope.food.mass + x;
+                $scope.changeQuantity($scope.food, 'mass');
+            }
+        }
+
+        $scope.showFoodSubGroups = function (x) {
+            if (x.parent == 'A') {
+                $scope.currentMainGroup = x.group.code;
+            }
+        }
+
+        $scope.changeFoodGroup = function (x) {
+            $scope.searchFood = '';
+            $scope.limit = $scope.foods.length + 1;
+            if (x.code === 'MYF') {
+                $scope.showMyFoods(true);
+            } else {
+                $scope.showMyFoods(false);
+            }
+            $scope.currentGroup = {
+                code: x.code,
+                title: x.title
+            };
+        }
+
+        $scope.checkIf = function (x) {
+            if (x.foodGroup.code == $scope.currentGroup.code || $scope.currentGroup.code == 'A' || $scope.isShowMyFood == true) {
+                return true;
+            } else {
+                if ($scope.currentGroup.code == $scope.currentMainGroup) {
+                    if (x.foodGroup.parent == $scope.currentGroup.code) {
+                        return true;
+                    }
+                } else {
+                    return false;
+                }
+            }
+        }
+
+        $scope.loadMore = function () {
+            $scope.limit = $scope.limit + $scope.foods.length;
+        }
+
+        $scope.openAsMyFood = function (x) {
+            var data = { food: x, initFood: initFood, openAsMyFood: true }
+            $mdDialog.hide(data);
+        }
+
+    };
+
 }])
 
-.controller('loginCtrl', ['$scope', '$http','$localStorage', '$sessionStorage', '$window', '$rootScope', 'functions', '$translate', '$mdDialog', function ($scope, $http, $localStorage, $sessionStorage, $window, $rootScope, functions, $translate, $mdDialog) {
+.controller('loginCtrl', ['$scope', '$http', '$localStorage', '$sessionStorage', '$window', '$rootScope', 'functions', '$translate', '$mdDialog', '$state', function ($scope, $http, $localStorage, $sessionStorage, $window, $rootScope, functions, $translate, $mdDialog, $state) {
     var webService = 'Users.asmx';
 
-    $scope.toggleTpl = function (x) {
-        $scope.tpl = x;
-    }
-    $scope.toggleTpl('loginTpl');
+    //$scope.toggleTpl = function (x) {
+    //    $scope.tpl = x;
+    //}
+    //$scope.toggleTpl('loginTpl');
 
     $scope.login = function (u, p) {
         $scope.errorMesage = null;
@@ -633,9 +974,11 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 if ($rootScope.user.licenceStatus == 'expired') {
                     $rootScope.isLogin = false;
                     functions.alert($translate.instant('your subscription has expired'), $translate.instant('renew subscription'));
-                    $rootScope.currTpl = './assets/partials/order.html';
+                    //$rootScope.currTpl = './assets/partials/order.html';
+                    $state.go('order');
                 } else {
-                    $rootScope.currTpl = './assets/partials/dashboard.html';
+                    //$rootScope.currTpl = './assets/partials/dashboard.html';
+                    $state.go('dashboard');
                     if ($rootScope.user.daysToExpite <= 10 && $rootScope.user.daysToExpite > 0) {
                         $rootScope.mainMessage = $translate.instant('your subscription will expire in') + ' ' + $rootScope.user.daysToExpite + ' ' + ($rootScope.user.daysToExpite == 1 ? $translate.instant('day') : $translate.instant('days')) + '.';
                         $rootScope.mainMessageBtn = $translate.instant('renew subscription');
@@ -664,7 +1007,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 $rootScope.loading = false;
                 $scope.errorLogin = true;
                 $scope.errorMesage = $translate.instant('wrong user name or password');
-               // $rootScope.currTpl = 'assets/partials/signup.html';  //<< Only for first registration
+                //$state.go('signup'); // $rootScope.currTpl = 'assets/partials/signup.html';  //<< Only for first registration
             }
         },
         function (response) {
@@ -674,7 +1017,8 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
      }
 
      $scope.signup = function () {
-         $rootScope.currTpl = 'assets/partials/signup.html';
+         //$rootScope.currTpl = 'assets/partials/signup.html';
+         $state.go('signup');
      }
 
      $scope.forgotPasswordPopup = function () {
@@ -684,7 +1028,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
              parent: angular.element(document.body),
              targetEvent: '',
              clickOutsideToClose: true,
-             fullscreen: $scope.customFullscreen, // Only for -xs, -sm breakpoints.
+             fullscreen: $scope.customFullscreen,
              d: ''
          })
          .then(function (response) {
@@ -723,7 +1067,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
 }])
 
-.controller('signupCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', 'functions', '$translate', function ($scope, $http, $sessionStorage, $window, $rootScope, functions, $translate) {
+.controller('signupCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', 'functions', '$translate', '$state', function ($scope, $http, $sessionStorage, $window, $rootScope, functions, $translate, $state) {
     var webService = 'Users.asmx';
     $scope.showAlert = false;
     $scope.passwordConfirm = '';
@@ -799,6 +1143,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     $scope.id = '#myScheduler';
     $scope.room = 0;
     $scope.uid = $rootScope.user.userId;
+    $scope.loading = false;
 
     var showScheduler = function () {
         YUI().use('aui-scheduler', function (Y) {
@@ -860,6 +1205,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     };
 
     $scope.getSchedulerEvents = function (uid) {
+        $scope.loading = true;
         $http({
             url: $sessionStorage.config.backend + webService + '/GetSchedulerEvents',
             method: 'POST',
@@ -868,10 +1214,12 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
        .then(function (response) {
            $rootScope.events = JSON.parse(response.data.d);
            $timeout(function () {
+               $scope.loading = false;
                showScheduler();
            }, 200);
        },
        function (response) {
+           $scope.loading = false;
            functions.alert($translate.instant(response.data.d));
        });
     };
@@ -925,6 +1273,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         })
         .then(function (response) {
             getAppointmentsCountByUserId();
+            $rootScope.getActiveEvents();
         },
         function (response) {
             functions.alert($translate.instant(response.data.d));
@@ -950,6 +1299,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         })
         .then(function (response) {
             getAppointmentsCountByUserId();
+            $rootScope.getActiveEvents();
         },
         function (response) {
             functions.alert($translate.instant(response.data));
@@ -981,7 +1331,8 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         }).then(function (response) {
             $scope.uid = null;
             getAppointmentsCountByUserId();
-            $scope.toggleTpl('dashboard');
+            $rootScope.getActiveEvents();
+            //$scope.toggleTpl('dashboard');
         },
        function (response) {
            functions.alert($translate.instant(response.data.d));
@@ -1001,7 +1352,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
 }])
 
-.controller('userCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate) {
+.controller('userCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', '$state', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate, $state) {
     var webService = 'Users.asmx';
 
     $scope.adminTypes = [
@@ -1068,7 +1419,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
     $scope.signup = function () {
-        if ($rootScope.user.licenceStatus == 'demo') {
+        if ($rootScope.user.licenceStatus === 'demo') {
             functions.demoAlert('this function is not available in demo version');
             return false;
         }
@@ -1123,7 +1474,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $http({
             url: $sessionStorage.config.backend + webService + '/Update',
             method: 'POST',
-            data: {x: user}
+            data: { x: user }
         })
        .then(function (response) {
            functions.alert($translate.instant('saved'), '');
@@ -1140,7 +1491,9 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             data: { userId: x }
         }).then(function (response) {
             $rootScope.user = JSON.parse(response.data.d);
-            $rootScope.currTpl = 'assets/partials/user.html';
+            //$rootScope.currTpl = 'assets/partials/user.html';
+            $state.go('user');
+
         },
        function (response) {
            functions.alert($translate.instant(response.data.d));
@@ -1264,28 +1617,26 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
     /********* Logo ************/
 
+    $scope.sendDeleteAccountLink = function (user) {
+        $http({
+            url: $sessionStorage.config.backend + webService + '/SendDeleteAccountLink',
+            method: 'POST',
+            data: { x: user, lang: $rootScope.config.language }
+        }).then(function (response) {
+            functions.alert($translate.instant(response.data.d));
+        },
+       function (response) {
+           functions.alert($translate.instant(response.data.d));
+       });
+    }
+
 
 }])
 
 //-------------- Program Prehrane Controllers---------------
-.controller('mainCtrl', ['$scope', '$rootScope', function ($scope, $rootScope) {
-    if ($rootScope.client) {
-        if ($rootScope.client.clientId) {
-            $rootScope.newTpl = 'assets/partials/clientsdata.html',
-            $rootScope.selectedNavItem = 'clientsdata';
-        } else {
-            $rootScope.newTpl = 'assets/partials/dashboard.html',
-            $rootScope.selectedNavItem = 'dashboard';
-        }
-    } else {
-        $rootScope.newTpl = 'assets/partials/dashboard.html',
-        $rootScope.selectedNavItem = 'dashboard';
-    }
-
-}])
-
-.controller('dashboardCtrl', ['$scope', '$http', '$sessionStorage', '$rootScope', 'functions', '$translate', '$timeout', function ($scope, $http, $sessionStorage, $rootScope, functions, $translate, $timeout) {
-	var getUser = function () {
+.controller('dashboardCtrl', ['$scope', '$http', '$sessionStorage', '$rootScope', 'functions', '$translate', '$timeout', '$state', function ($scope, $http, $sessionStorage, $rootScope, functions, $translate, $timeout, $state) {
+    var getUser = function () {
+        if ($rootScope.user === null) { return false;}
         $http({
             url: $sessionStorage.config.backend + 'Users.asmx/Get',
             method: 'POST',
@@ -1318,8 +1669,12 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 	        }
 	    }, 8000);
 	}
-	if ($rootScope.user.licenceStatus == 'demo' && $rootScope.config.language == 'hr' && $sessionStorage.showHelpAlert === undefined) {
-	    showHelpAlert();
+	if ($rootScope.user !== null) {
+	    if ($rootScope.user.licenceStatus == 'demo' && $rootScope.config.language == 'hr' && $sessionStorage.showHelpAlert === undefined) {
+	        showHelpAlert();
+	    }
+	} else {
+        $state.go('login');
 	}
 
 }])
@@ -1345,6 +1700,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         })
         .then(function (response) {
             $rootScope.clientData = JSON.parse(response.data.d);
+            $rootScope.clientData.date = new Date(new Date().setHours(0, 0, 0, 0));
             $rootScope.clientData.date = new Date($rootScope.clientData.date);
         },
         function (response) {
@@ -1369,6 +1725,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
   
     var getClients = function () {
+        if ($sessionStorage.usergroupid === undefined) { return false; }
         $rootScope.loading = true;
         $http({
             url: $sessionStorage.config.backend + webService + '/Load',
@@ -1396,6 +1753,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         .then(function (response) {
             $rootScope.client = JSON.parse(response.data.d);
             $rootScope.client.date = new Date(new Date().setHours(0, 0, 0, 0));
+            $rootScope.client.birthDate = new Date(new Date().setHours(0, 0, 0, 0));
             $rootScope.clientData = [];
             $rootScope.calculation = [];
             $rootScope.initMyCalculation();
@@ -1477,15 +1835,38 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                    functions.alert($translate.instant(JSON.parse(response.data.d).message), '');
                    return false;
                }
-               getClients();
-               $timeout(function () {
-                   $mdDialog.hide(JSON.parse(response.data.d).data);
-               }, 500);
+               $mdDialog.hide(JSON.parse(response.data.d).data);
            },
            function (response) {
                functions.alert($translate.instant(response.data.d), '');
            });
         }
+
+        $scope.remove = function (x) {
+            var confirm = $mdDialog.confirm()
+                  .title($translate.instant('are you sure you want to delete') + '?')
+                  .textContent($translate.instant('client') + ': ' + x.firstName + ' ' + x.lastName)
+                  .targetEvent(x)
+                  .ok($translate.instant('yes'))
+                  .cancel($translate.instant('no'));
+            $mdDialog.show(confirm).then(function () {
+                $http({
+                    url: $sessionStorage.config.backend + webService + '/Delete',
+                    method: "POST",
+                    data: { userId: $sessionStorage.usergroupid, clientId: x.clientId, user: $rootScope.user }
+                })
+               .then(function (response) {
+                   $rootScope.clients = JSON.parse(response.data.d);
+                   $mdDialog.cancel();
+               },
+               function (response) {
+                   functions.alert($translate.instant(response.data.d), '');
+               });
+            }, function () {
+            });
+        };
+
+
     }
 
     $scope.edit = function (x) {
@@ -1504,29 +1885,16 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
     $scope.search = function () {
-        $http({
-            url: $sessionStorage.config.backend + webService + '/Load',
-            method: "POST",
-            data: { userId: $sessionStorage.usergroupid, user: $rootScope.user }
-        })
-       .then(function (response) {
-           $rootScope.clients = JSON.parse(response.data.d);
-           $scope.d = JSON.parse(response.data.d);
-           $scope.openSearchPopup();
-       },
-       function (response) {
-           alert(response.data.d)
-       });
+        $scope.openSearchPopup();
     }
 
-    $scope.openSearchPopup = function () {
+    $rootScope.openSearchPopup = function () {
         $mdDialog.show({
             controller: $scope.searchPopupCtrl,
             templateUrl: 'assets/partials/popup/searchclients.html',
             parent: angular.element(document.body),
             targetEvent: '',
-            clickOutsideToClose: true,
-            d: $scope.d
+            clickOutsideToClose: true
         })
         .then(function (response) {
             $rootScope.client = response;
@@ -1537,8 +1905,26 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         });
     };
 
-    $scope.searchPopupCtrl = function ($scope, $mdDialog, d, $http) {
-        $scope.d = d;
+    $scope.searchPopupCtrl = function ($scope, $mdDialog, $http) {
+        $scope.loading = false;
+        var load = function () {
+            $scope.loading = true;
+            $http({
+                url: $sessionStorage.config.backend + 'Clients.asmx/Load',
+                method: "POST",
+                data: { userId: $sessionStorage.usergroupid, user: $rootScope.user }
+            })
+            .then(function (response) {
+                $scope.d = JSON.parse(response.data.d);
+                $scope.loading = false;
+            },
+            function (response) {
+                $scope.loading = false;
+                alert(response.data.d);
+            });
+        }
+        load();
+
         $scope.limit = 20;
 
         $scope.loadMore = function () {
@@ -1587,6 +1973,9 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                $rootScope.clients = JSON.parse(response.data.d);
                $rootScope.client = [];
                $rootScope.clientData = [];
+               if ($rootScope.clients.length > 0) {
+                   $rootScope.openSearchPopup();
+               }
            },
            function (response) {
                alert(response.data.d)
@@ -1625,6 +2014,13 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         function (response) {
             alert(response.data.d)
         });
+    }
+
+    $scope.getClient = function (x) {
+        $rootScope.client = x;
+        $rootScope.currTpl = './assets/partials/main.html';
+        $scope.toggleNewTpl('clientsdata');
+        $scope.get(x);
     }
 
     $scope.getPalDetails = function (x) {
@@ -1849,7 +2245,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             });
         }
         
-        $rootScope.clientLogGraphData = charts.createGraph(
+        $scope.clientLogGraphData = charts.createGraph(
             [$translate.instant("measured value"), $translate.instant("lower limit"), $translate.instant("upper limit"), $translate.instant("goal")],
             [
                 clientLog,
@@ -1876,7 +2272,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
     };
 
-    $rootScope.setClientLogGraphData = function (type, clientLogsDays) {
+    //$rootScope.setClientLogGraphData = function (type, clientLogsDays) {
+    //    setClientLogGraphData(type, clientLogsDays);
+    //}
+    $scope.setClientLogGraphData = function (type, clientLogsDays) {
         setClientLogGraphData(type, clientLogsDays);
     }
 
@@ -2117,188 +2516,382 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
     };
 
-}])
-
-.controller('detailCalculationOfEnergyExpenditureCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', '$timeout', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate, $timeout) {
-    $rootScope.totalDailyEnergyExpenditure = {
-        value: 0,
-        duration: 0
-    }
-
-    var init = function () {
-        $http({
-            url: $sessionStorage.config.backend + 'DetailEnergyExpenditure.asmx/Init',
-            method: "POST",
-            data: ''
-        })
-      .then(function (response) {
-          $scope.dailyActivity = JSON.parse(response.data.d);
-      },
-      function (response) {
-          functions.alert($translate.instant(response.data.d), '');
+    $scope.detailExpenditurePopup = function (x) {
+        $mdDialog.show({
+            controller: $scope.detailExpenditurePopupCtrl,
+            templateUrl: 'assets/partials/popup/detailexpenditure.html',
+            parent: angular.element(document.body),
+            targetEvent: '',
+            clickOutsideToClose: true,
+            fullscreen: $scope.customFullscreen, // Only for -xs, -sm breakpoints.
+            d: { dailyActivities: x, activities: $rootScope.activities }
+        }).then(function (response) {
+            if ($rootScope.user.licenceStatus !== 'demo') {
+                $rootScope.clientData.dailyActivities = response;
+            }
+        }, function () {
       });
-    }
-    init();
+    };
 
-    var setTime = function (h) {
-        $scope.hours = [];
-        $scope.minutes = [];
-        for (i = h; i < 25; i++) {
-            $scope.hours.push(i);
+    $scope.detailExpenditurePopupCtrl = function ($scope, $mdDialog, d, $http) {
+        $scope.d = angular.copy(d);
+        $scope.licenceStatus = $rootScope.user.licenceStatus;
+
+        $scope.totalDailyEnergyExpenditure = {
+            value: 0,
+            duration: 0
         }
-        for (i = 0; i < 60; i = i + 5) {
-            $scope.minutes.push(i);
+
+        var init = function () {
+            $http({
+                url: $sessionStorage.config.backend + 'DetailEnergyExpenditure.asmx/Init',
+                method: "POST",
+                data: ''
+            })
+          .then(function (response) {
+              $scope.dailyActivity = JSON.parse(response.data.d);
+          },
+          function (response) {
+              functions.alert($translate.instant(response.data.d), '');
+          });
         }
-    }
-
-    var initTime = function () {
-        $scope.from = {
-            hour: 0,
-            min: 0
-        };
-        $scope.to = {
-            hour: 0,
-            min: 0
-        }
-        setTime(0);
-    }
-    initTime();
-
-    $scope.clearDailyActivities = function () {
-        $rootScope.clientData.dailyActivities.activities = [];
-        $rootScope.clientData.dailyActivities.energy = 0;
-        $rootScope.clientData.dailyActivities.duration = 0;
-        $rootScope.totalDailyEnergyExpenditure.value = 0;
-        $rootScope.totalDailyEnergyExpenditure.duration = 0;
-        $scope.save($rootScope.clientData.dailyActivities.activities);
-        initTime();
-    }
-
-    $rootScope.detailCalculationOfEnergyExpenditure = function () {
-        $rootScope.showDetailCalculationOfEnergyExpenditure = !$rootScope.showDetailCalculationOfEnergyExpenditure;
         init();
-        //$scope.clearDailyActivities();
-    }
 
-    var totalEnergy = function () {
-        var e = 0;
-        angular.forEach($rootScope.clientData.dailyActivities.activities, function (value, key) {
-            e = e + value.energy;
-        })
-        return e;
-    }
-
-    var totalDuration = function () {
-        var d = 0;
-        angular.forEach($rootScope.clientData.dailyActivities.activities, function (value, key) {
-            d = d + value.duration;
-        })
-        return d;
-    }
-
-    $scope.confirmActivity = function (x) {
-        if (timeDiff($scope.from, $scope.to) == 0) {
-            functions.alert($translate.instant('the start time and end of activity can not be the same'), '');
-            return false;
+        var setTime = function (h) {
+            $scope.hours = [];
+            $scope.minutes = [];
+            for (i = h; i < 25; i++) {
+                $scope.hours.push(i);
+            }
+            for (i = 0; i < 60; i = i + 5) {
+                $scope.minutes.push(i);
+            }
         }
-        $scope.dailyActivity.id = angular.fromJson(x).id;
-        $scope.dailyActivity.activity = angular.fromJson(x).activity;
-        //$scope.dailyActivity.from = $scope.from.hour + ':' + $scope.from.minute;
-        $scope.dailyActivity.from.hour = $scope.from.hour;
-        $scope.dailyActivity.from.min = $scope.from.min;
-        // $scope.dailyActivity.to = $scope.to.hour + ':' + $scope.to.minute;
-        $scope.dailyActivity.to.hour = $scope.to.hour;
-        $scope.dailyActivity.to.min = $scope.to.min;
-        $scope.dailyActivity.duration = timeDiff($scope.from, $scope.to);
-        $scope.dailyActivity.energy = energy(timeDiff($scope.from, $scope.to), angular.fromJson(x).factorKcal);
 
-        $rootScope.clientData.dailyActivities.activities.push(angular.copy($scope.dailyActivity));
-        $rootScope.totalDailyEnergyExpenditure.value = totalEnergy(); // $scope.totalDailyEnergyExpenditure + $scope.dailyActivity.energy;
-        $rootScope.clientData.dailyActivities.energy = $rootScope.totalDailyEnergyExpenditure.value;
-        $rootScope.totalDailyEnergyExpenditure.duration = totalDuration();
-        $rootScope.clientData.dailyActivities.duration = $rootScope.totalDailyEnergyExpenditure.duration;
-
-        $scope.from = angular.copy($scope.to);
-        setTime($scope.from.hour);
-    }
-
-    var timeDiff = function (from, to) {
-        return (to.hour * 60 + to.min) - (from.hour * 60 + from.min);
-    }
-
-    var energy = function (duration, factor) {
-        return duration * factor;
-    }
-
-    $scope.save = function (x) {
-        if ($rootScope.user.licenceStatus == 'demo') {
-            functions.demoAlert('this function is not available in demo version');
-            return false;
-        }
-        $http({
-            url: $sessionStorage.config.backend + 'DetailEnergyExpenditure.asmx/Save',
-            method: "POST",
-            data: { userId: $rootScope.user.userGroupId, clientId: $rootScope.client.clientId, activities: x }
-        })
-      .then(function (response) {
-          $rootScope.clientData.dailyActivities = JSON.parse(response.data.d);
-      },
-      function (response) {
-          functions.alert($translate.instant(response.data.d), '');
-      });
-    }
-
-    var getTotal = function () {
-        if ($rootScope.clientData === undefined) {
-            return false;
-        }
-        if ($rootScope.clientData.dailyActivities.activities == null) {
-            $rootScope.clientData.dailyActivities.activities = [];
-        }
-        if ($rootScope.clientData.dailyActivities.activities.length > 0) {
-            $rootScope.totalDailyEnergyExpenditure.value = totalEnergy();
-            $rootScope.totalDailyEnergyExpenditure.duration = totalDuration();
-            var lastActivity = $rootScope.clientData.dailyActivities.activities[$rootScope.clientData.dailyActivities.activities.length - 1];
+        var initTime = function () {
             $scope.from = {
-                hour: lastActivity.to.hour,
-                min: lastActivity.to.min
+                hour: 0,
+                min: 0
             };
             $scope.to = {
-                hour: lastActivity.to.hour,
-                min: lastActivity.to.min
+                hour: 0,
+                min: 0
             }
-            setTime(lastActivity.to.hour);
+            setTime(0);
         }
-    }
-    $timeout(function () {  // TODO, ne ucita prvi put 
-        getTotal();
-    }, 1000);
+        initTime();
 
-
-    $scope.selectHours = function () {
-        if ($scope.to.hour == 24) {
-            $scope.to.min = 0;
-            $scope.minutes = [];
-            $scope.minutes.push(0);
+        $scope.clearDailyActivities = function () {
+            $scope.d.dailyActivities.activities = [];
+            $scope.d.dailyActivities.energy = 0;
+            $scope.d.dailyActivities.duration = 0;
+            $scope.totalDailyEnergyExpenditure.value = 0;
+            $scope.totalDailyEnergyExpenditure.duration = 0;
+            $scope.save($scope.d.dailyActivities.activities);
+            initTime();
         }
-    }
+
+        //$rootScope.detailCalculationOfEnergyExpenditure = function () {
+        //    $rootScope.showDetailCalculationOfEnergyExpenditure = !$rootScope.showDetailCalculationOfEnergyExpenditure;
+        //    init();
+        //    //$scope.clearDailyActivities();
+        //}
+
+        var totalEnergy = function () {
+            var e = 0;
+            angular.forEach($scope.d.dailyActivities.activities, function (value, key) {
+                e = e + value.energy;
+            })
+            return e;
+        }
+
+        var totalDuration = function () {
+            var d = 0;
+            angular.forEach($scope.d.dailyActivities.activities, function (value, key) {
+                d = d + value.duration;
+            })
+            return d;
+        }
+
+        $scope.confirmActivity = function (x) {
+            if (timeDiff($scope.from, $scope.to) == 0) {
+                functions.alert($translate.instant('the start time and end of activity can not be the same'), '');
+                return false;
+            }
+            $scope.dailyActivity.id = angular.fromJson(x).id;
+            $scope.dailyActivity.activity = angular.fromJson(x).activity;
+            //$scope.dailyActivity.from = $scope.from.hour + ':' + $scope.from.minute;
+            $scope.dailyActivity.from.hour = $scope.from.hour;
+            $scope.dailyActivity.from.min = $scope.from.min;
+            // $scope.dailyActivity.to = $scope.to.hour + ':' + $scope.to.minute;
+            $scope.dailyActivity.to.hour = $scope.to.hour;
+            $scope.dailyActivity.to.min = $scope.to.min;
+            $scope.dailyActivity.duration = timeDiff($scope.from, $scope.to);
+            $scope.dailyActivity.energy = energy(timeDiff($scope.from, $scope.to), angular.fromJson(x).factorKcal);
+
+            $scope.d.dailyActivities.activities.push(angular.copy($scope.dailyActivity));
+            $scope.totalDailyEnergyExpenditure.value = totalEnergy(); // $scope.totalDailyEnergyExpenditure + $scope.dailyActivity.energy;
+            $scope.d.dailyActivities.energy = $scope.totalDailyEnergyExpenditure.value;
+            $scope.totalDailyEnergyExpenditure.duration = totalDuration();
+            $scope.d.dailyActivities.duration = $scope.totalDailyEnergyExpenditure.duration;
+
+            $scope.from = angular.copy($scope.to);
+            setTime($scope.from.hour);
+        }
+
+        var timeDiff = function (from, to) {
+            return (to.hour * 60 + to.min) - (from.hour * 60 + from.min);
+        }
+
+        var energy = function (duration, factor) {
+            return duration * factor;
+        }
+
+        $scope.save = function (x) {
+            if ($rootScope.user.licenceStatus === 'demo') {
+                functions.demoAlert('this function is not available in demo version');
+                return false;
+            }
+            $http({
+                url: $sessionStorage.config.backend + 'DetailEnergyExpenditure.asmx/Save',
+                method: "POST",
+                data: { userId: $rootScope.user.userGroupId, clientId: $rootScope.client.clientId, activities: x }
+            })
+          .then(function (response) {
+              $scope.d.dailyActivities = JSON.parse(response.data.d);
+              $mdDialog.hide($scope.d.dailyActivities);
+          },
+          function (response) {
+              functions.alert($translate.instant(response.data.d), '');
+          });
+        }
+
+        var getTotal = function () {
+            if ($rootScope.d === undefined) {
+                return false;
+            }
+            if ($scope.d.dailyActivities.activities == null) {
+                $scope.d.dailyActivities.activities = [];
+            }
+            if ($scope.d.clientData.dailyActivities.activities.length > 0) {
+                $scope.totalDailyEnergyExpenditure.value = totalEnergy();
+                $scope.totalDailyEnergyExpenditure.duration = totalDuration();
+                var lastActivity = $scope.d.dailyActivities.activities[$scope.d.dailyActivities.activities.length - 1];
+                $scope.from = {
+                    hour: lastActivity.to.hour,
+                    min: lastActivity.to.min
+                };
+                $scope.to = {
+                    hour: lastActivity.to.hour,
+                    min: lastActivity.to.min
+                }
+                setTime(lastActivity.to.hour);
+            }
+        }
+        $timeout(function () {  // TODO, ne ucita prvi put 
+            getTotal();
+        }, 1000);
+
+        $scope.selectHours = function () {
+            if ($scope.to.hour == 24) {
+                $scope.to.min = 0;
+                $scope.minutes = [];
+                $scope.minutes.push(0);
+            }
+        }
+
+        $scope.confirm = function (x) {
+            $mdDialog.hide(x);
+        }
+
+        $scope.cancel = function () {
+            $mdDialog.cancel();
+        };
+
+    };
 
 }])
+
+//.controller('detailCalculationOfEnergyExpenditureCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', '$timeout', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate, $timeout) {
+//    $rootScope.totalDailyEnergyExpenditure = {
+//        value: 0,
+//        duration: 0
+//    }
+
+//    var init = function () {
+//        $http({
+//            url: $sessionStorage.config.backend + 'DetailEnergyExpenditure.asmx/Init',
+//            method: "POST",
+//            data: ''
+//        })
+//      .then(function (response) {
+//          $scope.dailyActivity = JSON.parse(response.data.d);
+//      },
+//      function (response) {
+//          functions.alert($translate.instant(response.data.d), '');
+//      });
+//    }
+//    init();
+
+//    var setTime = function (h) {
+//        $scope.hours = [];
+//        $scope.minutes = [];
+//        for (i = h; i < 25; i++) {
+//            $scope.hours.push(i);
+//        }
+//        for (i = 0; i < 60; i = i + 5) {
+//            $scope.minutes.push(i);
+//        }
+//    }
+
+//    var initTime = function () {
+//        $scope.from = {
+//            hour: 0,
+//            min: 0
+//        };
+//        $scope.to = {
+//            hour: 0,
+//            min: 0
+//        }
+//        setTime(0);
+//    }
+//    initTime();
+
+//    $scope.clearDailyActivities = function () {
+//        $rootScope.clientData.dailyActivities.activities = [];
+//        $rootScope.clientData.dailyActivities.energy = 0;
+//        $rootScope.clientData.dailyActivities.duration = 0;
+//        $rootScope.totalDailyEnergyExpenditure.value = 0;
+//        $rootScope.totalDailyEnergyExpenditure.duration = 0;
+//        $scope.save($rootScope.clientData.dailyActivities.activities);
+//        initTime();
+//    }
+
+//    $rootScope.detailCalculationOfEnergyExpenditure = function () {
+//        $rootScope.showDetailCalculationOfEnergyExpenditure = !$rootScope.showDetailCalculationOfEnergyExpenditure;
+//        init();
+//        //$scope.clearDailyActivities();
+//    }
+
+//    var totalEnergy = function () {
+//        var e = 0;
+//        angular.forEach($rootScope.clientData.dailyActivities.activities, function (value, key) {
+//            e = e + value.energy;
+//        })
+//        return e;
+//    }
+
+//    var totalDuration = function () {
+//        var d = 0;
+//        angular.forEach($rootScope.clientData.dailyActivities.activities, function (value, key) {
+//            d = d + value.duration;
+//        })
+//        return d;
+//    }
+
+//    $scope.confirmActivity = function (x) {
+//        if (timeDiff($scope.from, $scope.to) == 0) {
+//            functions.alert($translate.instant('the start time and end of activity can not be the same'), '');
+//            return false;
+//        }
+//        $scope.dailyActivity.id = angular.fromJson(x).id;
+//        $scope.dailyActivity.activity = angular.fromJson(x).activity;
+//        //$scope.dailyActivity.from = $scope.from.hour + ':' + $scope.from.minute;
+//        $scope.dailyActivity.from.hour = $scope.from.hour;
+//        $scope.dailyActivity.from.min = $scope.from.min;
+//        // $scope.dailyActivity.to = $scope.to.hour + ':' + $scope.to.minute;
+//        $scope.dailyActivity.to.hour = $scope.to.hour;
+//        $scope.dailyActivity.to.min = $scope.to.min;
+//        $scope.dailyActivity.duration = timeDiff($scope.from, $scope.to);
+//        $scope.dailyActivity.energy = energy(timeDiff($scope.from, $scope.to), angular.fromJson(x).factorKcal);
+
+//        $rootScope.clientData.dailyActivities.activities.push(angular.copy($scope.dailyActivity));
+//        $rootScope.totalDailyEnergyExpenditure.value = totalEnergy(); // $scope.totalDailyEnergyExpenditure + $scope.dailyActivity.energy;
+//        $rootScope.clientData.dailyActivities.energy = $rootScope.totalDailyEnergyExpenditure.value;
+//        $rootScope.totalDailyEnergyExpenditure.duration = totalDuration();
+//        $rootScope.clientData.dailyActivities.duration = $rootScope.totalDailyEnergyExpenditure.duration;
+
+//        $scope.from = angular.copy($scope.to);
+//        setTime($scope.from.hour);
+//    }
+
+//    var timeDiff = function (from, to) {
+//        return (to.hour * 60 + to.min) - (from.hour * 60 + from.min);
+//    }
+
+//    var energy = function (duration, factor) {
+//        return duration * factor;
+//    }
+
+//    $scope.save = function (x) {
+//        if ($rootScope.user.licenceStatus == 'demo') {
+//            functions.demoAlert('this function is not available in demo version');
+//            return false;
+//        }
+//        $http({
+//            url: $sessionStorage.config.backend + 'DetailEnergyExpenditure.asmx/Save',
+//            method: "POST",
+//            data: { userId: $rootScope.user.userGroupId, clientId: $rootScope.client.clientId, activities: x }
+//        })
+//      .then(function (response) {
+//          $rootScope.clientData.dailyActivities = JSON.parse(response.data.d);
+//      },
+//      function (response) {
+//          functions.alert($translate.instant(response.data.d), '');
+//      });
+//    }
+
+//    var getTotal = function () {
+//        if ($rootScope.clientData === undefined) {
+//            return false;
+//        }
+//        if ($rootScope.clientData.dailyActivities.activities == null) {
+//            $rootScope.clientData.dailyActivities.activities = [];
+//        }
+//        if ($rootScope.clientData.dailyActivities.activities.length > 0) {
+//            $rootScope.totalDailyEnergyExpenditure.value = totalEnergy();
+//            $rootScope.totalDailyEnergyExpenditure.duration = totalDuration();
+//            var lastActivity = $rootScope.clientData.dailyActivities.activities[$rootScope.clientData.dailyActivities.activities.length - 1];
+//            $scope.from = {
+//                hour: lastActivity.to.hour,
+//                min: lastActivity.to.min
+//            };
+//            $scope.to = {
+//                hour: lastActivity.to.hour,
+//                min: lastActivity.to.min
+//            }
+//            setTime(lastActivity.to.hour);
+//        }
+//    }
+//    $timeout(function () {  // TODO, ne ucita prvi put 
+//        getTotal();
+//    }, 1000);
+
+
+//    $scope.selectHours = function () {
+//        if ($scope.to.hour == 24) {
+//            $scope.to.min = 0;
+//            $scope.minutes = [];
+//            $scope.minutes.push(0);
+//        }
+//    }
+
+//}])
 
 .controller('calculationCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'charts', '$timeout', 'functions', '$translate', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, charts, $timeout, functions, $translate) {
     var webService = 'Calculations.asmx';
 
     $scope.getBmiClass = function (x) {
-        if (x < 18.5) { return { text: 'text-info', icon: 'fa fa-exclamation' }; }
-        if (x >= 18.5 && x <= 25) { return { text: 'text-success', icon: 'fa fa-check' }; }
-        if (x > 25 && x < 30) { return { text: 'text-warning', icon: 'fa fa-exclamation' }; }
-        if (x >= 30) { return { text: 'text-danger', icon: 'fa fa-exclamation' }; }
+        if (x < 18.5) { return { text: 'text-info', icon: 'fa fa-exclamation-triangle' }; }
+        if (x >= 18.5 && x <= 25) { return { text: 'text-success', icon: 'fa fa-check-circle' }; }
+        if (x > 25 && x < 30) { return { text: 'text-warning', icon: 'fa fa-exclamation-circle' }; }
+        if (x >= 30) { return { text: 'text-danger', icon: 'fa fa-exclamation-triangle' }; }
     }
 
     $scope.getWaistClass = function (x) {
-        if (x.value < x.increasedRisk) { return { text: 'text-success', icon: 'fa fa-check' }; }
-        if (x.value >= x.increasedRisk && x.value < x.highRisk) { return { text: 'text-warning', icon: 'fa fa-exclamation' }; }
-        if (x.value >= x.highRisk) { return { text: 'text-danger', icon: 'fa fa-exclamation' }; }
+        if (x.value < x.increasedRisk) { return { text: 'text-success', icon: 'fa fa-check-circle' }; }
+        if (x.value >= x.increasedRisk && x.value < x.highRisk) { return { text: 'text-warning', icon: 'fa fa-exclamation-circle' }; }
+        if (x.value >= x.highRisk) { return { text: 'text-danger', icon: 'fa fa-exclamation-triangle' }; }
     }
 
     var getCharts = function () {
@@ -2327,7 +2920,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             redTo: 34,
             minorTicks: 5
         };
-            google.charts.setOnLoadCallback(charts.guageChart(id, value, unit, options));
+        google.charts.setOnLoadCallback(charts.guageChart(id, value, unit, options));
     }
 
     var whrChart = function () {
@@ -2573,6 +3166,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
     var getCalculation = function () {
+        if ($rootScope.clientData === undefined) { return false; }
         if ($rootScope.clientData.bmrEquation === 'KMA' && $rootScope.clientData.bodyFat.bodyFatPerc == 0) {
             $rootScope.clientData.bmrEquation = 'MSJ';  /*** MifflinStJeor ***/
         }
@@ -2603,8 +3197,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     };
 
     /*******BMR Equations*******/
-    if ($rootScope.clientData.bodyFat.bodyFatPerc !== 0) {
-        $rootScope.clientData.bmrEquation = 'KMA'; /*** KatchMcArdle ***/
+    if ($rootScope.clientData !== undefined) {
+        if ($rootScope.clientData.bodyFat.bodyFatPerc !== 0) {
+            $rootScope.clientData.bmrEquation = 'KMA'; /*** KatchMcArdle ***/
+        }
     }
     $scope.bmrIsDisabled = false;
     $scope.setBmrEquation = function (x) {
@@ -2622,7 +3218,8 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         }
         if (x === 'KMA' && $rootScope.clientData.bodyFat.bodyFatPerc == 0) {
             functions.alert($translate.instant('body fat is required'), '');
-            $rootScope.newTpl = './assets/partials/clientsdata.html';
+            //$rootScope.newTpl = './assets/partials/clientsdata.html';
+            $state.go('clientsdata');
             return false;
         }
         getCalculation();
@@ -2639,7 +3236,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
 }])
 
-.controller('activitiesCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate) {
+.controller('activitiesCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', '$state', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate, $state) {
     var webService = 'Activities.asmx';
     $scope.orderdirection = '-';
     $scope.orderby = function (x) {
@@ -2656,15 +3253,18 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             $rootScope.calculation.recommendedEnergyExpenditure = $rootScope.myCalculation.recommendedEnergyExpenditure;
         }
     } else {
-        $rootScope.newTpl = './assets/partials/calculation.html';
+        //$rootScope.newTpl = './assets/partials/calculation.html';
+        $state.go('calculation');
         $rootScope.selectedNavItem = 'calculation';
     }
     var getEnergyLeft = function () {
         var energy = 0;
-        if ($rootScope.clientData.activities.length > 0) {
-            angular.forEach($rootScope.clientData.activities, function (value, key) {
-                energy = energy + value.energy;
-            })
+        if ($rootScope.clientData !== undefined) {
+            if ($rootScope.clientData.activities.length > 0) {
+                angular.forEach($rootScope.clientData.activities, function (value, key) {
+                    energy = energy + value.energy;
+                })
+            }
         }
         $scope.energy = energy.toFixed();
         return $rootScope.calculation.recommendedEnergyExpenditure - energy;
@@ -2736,7 +3336,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
 }])
 
-.controller('dietsCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions) {
+.controller('dietsCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$state', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $state) {
     var webService = 'Diets.asmx';
    
     var get = function (x) {
@@ -2818,7 +3418,11 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         }
         get(diet);
     }
-    if ($rootScope.clientData.diet.id == null) { init(); }
+    if ($rootScope.clientData === undefined) {
+        $state.go('clientsdata');
+    } else {
+        if ($rootScope.clientData.diet.id == null) { init(); }
+    }
 
     $scope.select = function (x) {
         $rootScope.clientData.diet = x;
@@ -2826,9 +3430,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
 }])
 
-.controller('mealsCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate) {
+.controller('mealsCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', '$state', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate, $state) {
     if ($rootScope.clientData === undefined) {
-        $rootScope.newTpl = 'assets/partials/clientsdata.html';
+        //$rootScope.newTpl = 'assets/partials/clientsdata.html';
+        $state.go('clientsdata');
         $rootScope.selectedNavItem = 'clientsdata';
         return false;
     }
@@ -3192,9 +3797,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
 }])
 
-.controller('menuCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'charts', '$timeout', 'functions', '$translate', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, charts, $timeout, functions, $translate) {
+.controller('menuCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'charts', '$timeout', 'functions', '$translate', '$state', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, charts, $timeout, functions, $translate, $state) {
     if ($rootScope.clientData === undefined) {
-        $rootScope.newTpl = 'assets/partials/meals.html';
+        //$rootScope.newTpl = 'assets/partials/meals.html';
+        $state.go('meals');
         $rootScope.selectedNavItem = 'meals';
         return false;
     }
@@ -3209,7 +3815,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             data: {}
         })
        .then(function (response) {
-           $rootScope.printSettings = JSON.parse(response.data.d);
+           $scope.printSettings = JSON.parse(response.data.d);
        },
        function (response) {
            alert(response.data.d)
@@ -3220,7 +3826,8 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     $rootScope.selectedFoods = $rootScope.selectedFoods == undefined ? [] : $rootScope.selectedFoods;
 
     if ($rootScope.clientData.meals.length < 3) {
-        $rootScope.newTpl = 'assets/partials/meals.html';
+        //$rootScope.newTpl = 'assets/partials/meals.html';
+        $state.go('meals');
         $rootScope.selectedNavItem = 'meals';
         functions.alert($translate.instant('choose at least 3 meals'), '');
     }
@@ -3373,16 +3980,14 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
 
     $scope.change = function (x, type, idx) {
-        if ($rootScope.currentMenu.data.selectedFoods[idx].quantity + x > 0) {
-                if (type == 'quantity') {
-                    $rootScope.currentMenu.data.selectedFoods[idx].quantity = $rootScope.currentMenu.data.selectedFoods[idx].quantity * 1 + x;
-                    $scope.changeQuantity($rootScope.currentMenu.data.selectedFoods[idx], 'quantity', idx);
-                }
-                if (type == 'mass') {
-                    $rootScope.currentMenu.data.selectedFoods[idx].mass = $rootScope.currentMenu.data.selectedFoods[idx].mass * 1  + x;
-                    $scope.changeQuantity($rootScope.currentMenu.data.selectedFoods[idx], 'mass', idx);
-                }
-            }
+        if (type === 'quantity' && $rootScope.currentMenu.data.selectedFoods[idx].quantity + x > 0) {
+            $rootScope.currentMenu.data.selectedFoods[idx].quantity = $rootScope.currentMenu.data.selectedFoods[idx].quantity * 1 + x;
+            $scope.changeQuantity($rootScope.currentMenu.data.selectedFoods[idx], 'quantity', idx);
+        }
+        if (type === 'mass' && $rootScope.currentMenu.data.selectedFoods[idx].mass + x > 0) {
+            $rootScope.currentMenu.data.selectedFoods[idx].mass = $rootScope.currentMenu.data.selectedFoods[idx].mass * 1 + x;
+            $scope.changeQuantity($rootScope.currentMenu.data.selectedFoods[idx], 'mass', idx);
+        }
     }
 
     $scope.openFoodPopup = function (x, idx) {
@@ -3406,7 +4011,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             $scope.addFoodBtn = false;
             if (x.openAsMyFood !== undefined) {
                 if (x.openAsMyFood == true) {
-                    $rootScope.newTpl = './assets/partials/myfoods.html';
+                    $state.go('myfoods');
                     $rootScope.selectedNavItem = 'myfoods';
                     $rootScope.myFood_ = x.initFood;
                 } else {
@@ -3419,231 +4024,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             $scope.addFoodBtnIcon = 'fa fa-plus';
             $scope.addFoodBtn = false;
         });
-    };
-
-    $rootScope.foodPopupCtrl = function ($scope, $mdDialog, d, $http, $translate) {
-        $scope.d = d;
-        $scope.foods = d.foods;
-        $scope.myFoods = d.myFoods;
-        $scope.foodGroups = d.foodGroups;
-        var initFood = null;
-
-        var initFoodForEdit = function (x) {
-            $http({
-                url: $sessionStorage.config.backend + 'Foods.asmx/InitFoodForEdit',
-                method: "POST",
-                data: { food: x }
-            })
-            .then(function (response) {
-                initFood = JSON.parse(response.data.d);
-            },
-            function (response) {
-                alert(response.data.d)
-            });
-        }
-
-        var isEditMode = false;
-        if (d.food == null) {
-            $scope.food = null;
-            initFood = null;
-            isEditMode = false;
-        } else {
-            $scope.food = d.food;
-            initFoodForEdit(d.food);
-            isEditMode = true;
-        }
-
-        $scope.limit = 100;
-
-        $scope.initCurrentFoodGroup = function () {
-            $scope.currentGroup = { code: 'A', title: 'all foods' };
-        }
-        $scope.initCurrentFoodGroup();
-
-        var initThermalTreatment = function () {
-            $http({
-                url: $sessionStorage.config.backend + 'Foods.asmx/InitThermalTreatment',
-                method: "POST",
-                data: ''
-            })
-            .then(function (response) {
-                $scope.selectedThermalTreatment = JSON.parse(response.data.d);
-            },
-            function (response) {
-                alert(response.data.d)
-            });
-        }
-        initThermalTreatment();
-
-        $scope.showMyFoods = function (x) {
-            $scope.isShowMyFood = x;
-        }
-
-        // TOOD: translate on server side
-        $scope.getFoodDetails = function (x) {
-            if ($scope.isShowMyFood == true) {
-                getMyFoodDetails(x);
-                return false;
-            }
-            $http({
-                url: $sessionStorage.config.backend + 'Foods.asmx/Get',
-                method: "POST",
-                data: { userId: $rootScope.user.userId, id: JSON.parse(x).id }
-            })
-            .then(function (response) {
-                $scope.food = JSON.parse(response.data.d);
-                if ($scope.food.id === null) {
-                    getMyFoodDetails(x);
-                } else {
-                    $scope.food.food = $translate.instant($scope.food.food);
-                    $scope.food.unit = $translate.instant($scope.food.unit);
-                    $scope.food.foodGroup.title = $translate.instant($scope.food.foodGroup.title);
-                    $scope.food.meal.title = $translate.instant($scope.food.meal.title);
-                    angular.forEach($scope.food.thermalTreatments, function (value, key) {
-                        $scope.food.thermalTreatments[key].thermalTreatment.title = $translate.instant($scope.food.thermalTreatments[key].thermalTreatment.title);
-                    })
-                    initFood = angular.copy($scope.food);
-                }
-            },
-            function (response) {
-                alert(response.data.d)
-            });
-        }
-
-        var getMyFoodDetails = function (x) {
-            $http({
-                url: $sessionStorage.config.backend + 'MyFoods.asmx/Get',
-                method: "POST",
-                data: { userId: $rootScope.user.userGroupId, id: JSON.parse(x).id }
-            })
-            .then(function (response) {
-                $scope.food = JSON.parse(response.data.d);
-                $scope.food.unit = $translate.instant($scope.food.unit);
-                $scope.food.foodGroup.title = $translate.instant($scope.food.foodGroup.title);
-                initFood = angular.copy($scope.food);
-            },
-            function (response) {
-                alert(response.data.d)
-            });
-        }
-
-        var currThermalTreatmentIdx = 0;
-        $scope.getThermalTreatment = function (x, idx) {
-            if (functions.isNullOrEmpty(idx)) {
-                idx = currThermalTreatmentIdx;
-            }
-            angular.forEach(x, function (value, key) {
-                value.isSelected = false;
-            })
-            $scope.selectedThermalTreatment = x[idx];
-            x[idx].isSelected = true;
-            currThermalTreatmentIdx = idx;
-            if (isEditMode) {
-                isEditMode = false;
-            } else {
-                includeThermalTreatment($scope.selectedThermalTreatment);
-            }
-        }
-
-        var includeThermalTreatment = function (x) {
-            $http({
-                url: $sessionStorage.config.backend + 'Foods.asmx/IncludeThermalTreatment',
-                method: "POST",
-                data: { initFood: initFood, food: $scope.food, thermalTreatment: x }
-            })
-            .then(function (response) {
-                $scope.food = JSON.parse(response.data.d);
-            },
-            function (response) {
-                alert(response.data.d)
-            });
-        }
-
-        $scope.cancel = function () {
-            $mdDialog.cancel();
-        };
-
-        $scope.confirm = function (x) {
-            var data = { food: x, initFood: initFood }
-            $mdDialog.hide(data);
-        }
-
-        $scope.changeQuantity = function (x, type) {
-            isEditMode = false;
-            if (x.quantity > 0.0001 && isNaN(x.quantity) == false && x.mass > 0.0001 && isNaN(x.mass) == false) {
-                var currentFood = $scope.food.food;  // << in case where user change food title
-                $timeout(function () {
-                    $http({
-                        url: $sessionStorage.config.backend + webService + '/ChangeFoodQuantity',
-                        method: "POST",
-                        data: { initFood: initFood, newQuantity: x.quantity, newMass: x.mass, type: type, thermalTreatment: $scope.selectedThermalTreatment }
-                    })
-                    .then(function (response) {
-                        $scope.food = JSON.parse(response.data.d);
-                        $scope.food.food = currentFood; // << in case where user change food title
-                    },
-                    function (response) {
-                    });
-                }, 600);
-            }
-        }
-
-        $scope.change = function (x, type) {
-            if ($scope.food.quantity + x > 0) {
-                if (type == 'quantity') {
-                    $scope.food.quantity = $scope.food.quantity + x;
-                    $scope.changeQuantity($scope.food, 'quantity');
-                }
-                if (type == 'mass') {
-                    $scope.food.mass = $scope.food.mass + x;
-                    $scope.changeQuantity($scope.food, 'mass');
-                }
-            }
-        }
-
-        $scope.showFoodSubGroups = function (x) {
-            if(x.parent == 'A') {
-                $scope.currentMainGroup = x.group.code;
-            }
-        }
-       
-        $scope.changeFoodGroup = function (x) {
-            $scope.searchFood = '';
-            $scope.limit = $scope.foods.length + 1;
-            if (x.code === 'MYF') {
-                $scope.showMyFoods(true);
-            } else {
-                $scope.showMyFoods(false);
-            }
-            $scope.currentGroup = {
-                code: x.code,
-                title: x.title
-            };
-        }
-
-        $scope.checkIf = function (x) {
-            if (x.foodGroup.code == $scope.currentGroup.code || $scope.currentGroup.code == 'A' || $scope.isShowMyFood == true) {
-                return true;
-            } else {
-                if ($scope.currentGroup.code == $scope.currentMainGroup) {
-                    if (x.foodGroup.parent == $scope.currentGroup.code) {
-                        return true;
-                    }
-                } else {
-                    return false;
-                }
-            }
-        }
-
-        $scope.loadMore = function () {
-            $scope.limit = $scope.limit + $scope.foods.length;
-        }
-
-        $scope.openAsMyFood = function (x) {
-            var data = { food: x, initFood: initFood, openAsMyFood: true }
-            $mdDialog.hide(data);
-        }
-
     };
 
     $scope.addFoodToMeal = function (x, initFood, idx) {
@@ -3719,7 +4099,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             targetEvent: '',
             clickOutsideToClose: true,
             fullscreen: $scope.customFullscreen,
-            d: { currentMenu: $rootScope.currentMenu, clientData: $rootScope.clientData, client: $rootScope.client, totals: $rootScope.totals, settings: $rootScope.printSettings, config: $rootScope.config, user: $rootScope.user, loginUser: $rootScope.loginUser }
+            d: { currentMenu: $rootScope.currentMenu, clientData: $rootScope.clientData, client: $rootScope.client, totals: $rootScope.totals, settings: $scope.printSettings, config: $rootScope.config, user: $rootScope.user, loginUser: $rootScope.loginUser }
         })
         .then(function () {
         }, function () {
@@ -3931,10 +4311,18 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         };
         /*****send menu ***/
 
+        $scope.collapse = function () {
+            if (window.innerWidth < 1200) {
+                return 'collapse';
+            } else {
+                return null;
+            }
+        }
+
     };
   
     $scope.get = function () {
-        if ($rootScope.user.licenceStatus == 'demo') {
+        if ($rootScope.user.licenceStatus === 'demo') {
             functions.demoAlert('this function is not available in demo version');
         } else {
             getMenuPopup();
@@ -4280,12 +4668,26 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.mealsMin = [];
         $scope.mealsMax = [];
         $scope.mealsTitles = [];
+
+        //TODO: nutrients meal chart
+        $scope.nutriMealTotals = {
+            carbohydrates: [],
+            proteins: [],
+            fats: []
+        }
+
+
         angular.forEach($rootScope.currentMenu.data.meals, function (value, key) {
             if (value.isSelected == true && angular.isDefined($rootScope.totals)) {
 
                 if (angular.isDefined($rootScope.totals.mealsTotal)) {
                     if (key < $rootScope.recommendations.mealsRecommendationEnergy.length) {
                         $scope.mealsTotals.push($rootScope.totals.mealsTotal.length > 0 ? $rootScope.totals.mealsTotal[key].energy.val.toFixed(1) : 0);
+
+                        $scope.nutriMealTotals.carbohydrates.push($rootScope.totals.mealsTotal.length > 0 ? $rootScope.totals.mealsTotal[key].carbohydrates.perc.toFixed(1) : 0);
+                        $scope.nutriMealTotals.proteins.push($rootScope.totals.mealsTotal.length > 0 ? $rootScope.totals.mealsTotal[key].proteins.perc.toFixed(1) : 0);
+                        $scope.nutriMealTotals.fats.push($rootScope.totals.mealsTotal.length > 0 ? $rootScope.totals.mealsTotal[key].fats.perc.toFixed(1) : 0);
+
                         if ($rootScope.recommendations !== undefined) {
                             if (angular.isDefined($rootScope.recommendations.mealsRecommendationEnergy)) {
                                 $scope.mealsMin.push($rootScope.recommendations.mealsRecommendationEnergy[key].meal.energyMin);
@@ -4416,6 +4818,44 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $rootScope.mealsGraphData_menu = mealsGraphData(false);
         $rootScope.mealsGraphData_analysis = mealsGraphData(true);
 
+        var mealsNutriGraphData = function (displayLegend) {
+            return charts.createGraph(
+              ['carbs', 'proteins', 'fats'],
+              [$scope.nutriMealTotals.carbohydrates, $scope.nutriMealTotals.proteins, $scope.nutriMealTotals.fats],
+              $scope.mealsTitles,
+              ['#f2f20f', '#28c1e0', '#ed722f'],
+              {
+                  responsive: true, maintainAspectRatio: true, legend: { display: displayLegend },
+                  scales: {
+                      xAxes: [{ display: true, scaleLabel: { display: true }, ticks: { beginAtZero: true } }],
+                      yAxes: [{ display: true, scaleLabel: { display: true }, ticks: { beginAtZero: true, stepSize: 100 } }]
+                  }
+              },
+              [
+                   {
+                       label: $translate.instant('carbohydrates') + ' (' + $translate.instant('%') + ')',
+                       borderWidth: 1,
+                       type: 'bar',
+                       fill: true
+                   },
+                   {
+                       label: $translate.instant('proteins') + ' (' + $translate.instant('%') + ')',
+                       borderWidth: 1,
+                       type: 'bar',
+                       fill: true
+                   },
+                    {
+                        label: $translate.instant('fats') + ' (' + $translate.instant('%') + ')',
+                        borderWidth: 1,
+                        type: 'bar',
+                        fill: true
+                    }
+              ]
+            );
+
+        }
+        $rootScope.mealsNutriGraphData_menu = mealsNutriGraphData(false);
+        $rootScope.mealsNutriGraphData_analysis = mealsNutriGraphData(true);
 
         $scope.parametersGraphDataOther = charts.stackedChart(
             [$translate.instant('choosen')],
@@ -4894,7 +5334,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         });
     };
 
-    var getRecipePopupCtrl = function ($scope, $mdDialog, $http, clientData, config, $translate, $translatePartialLoader, $timeout) {
+    var getRecipePopupCtrl = function ($scope, $mdDialog, $http, clientData, config, $translate, $translatePartialLoader, $timeout, $state) {
         $scope.clientData = clientData;
         $scope.config = config;
         $scope.user = $rootScope.user;
@@ -4961,7 +5401,8 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
         $scope.toggleMyRecipeTpl = function () {
             $mdDialog.cancel();
-            $rootScope.newTpl = './assets/partials/myrecipes.html';
+            //$rootScope.newTpl = './assets/partials/myrecipes.html';
+            $state.go('myrecipes');
             $rootScope.selectedNavItem = 'myrecipes';
         }
 
@@ -5167,7 +5608,8 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         if (data.selectedFoods.length == 0) {
             return false;
         }
-        $rootScope.newTpl = './assets/partials/myrecipes.html';
+        //$rootScope.newTpl = './assets/partials/myrecipes.html';
+        $state.go('myrecipes');
         $rootScope.selectedNavItem = 'myrecipes';
         $rootScope.recipeData = data;
         $rootScope.currentMealForRecipe = currentMeal;
@@ -5262,7 +5704,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             templateUrl: 'assets/partials/popup/shoppinglist.html',
             parent: angular.element(document.body),
             clickOutsideToClose: true,
-            d: { currentMenu: x, settings: $rootScope.printSettings }
+            d: { currentMenu: x, settings: $scope.printSettings }
         })
         .then(function (r) {
             alert(r);
@@ -5312,7 +5754,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 $http({
                     url: $sessionStorage.config.backend + 'PrintPdf.asmx/ShoppingList',
                     method: "POST",
-                    data: { userId: $sessionStorage.usergroupid, shoppingList: sl, currentMenu: $scope.currentMenu, consumers: n, lang: $rootScope.config.language, settings: s, headerInfo: $rootScope.user.headerInfo }
+                    data: { userId: $sessionStorage.usergroupid, shoppingList: sl, title: $scope.currentMenu.title, note: $scope.currentMenu.note, consumers: n, lang: $rootScope.config.language, settings: s, headerInfo: $rootScope.user.headerInfo }
                 })
                 .then(function (response) {
                     var fileName = response.data.d;
@@ -5375,10 +5817,18 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         };
     };
 
+    $scope.mealDescHelp = function (x) {
+        $scope.showMenuDescHelp = x;
+    }
+    $scope.mealDescHelp(false);
+
+    $scope.chartResp = function (w, w_resp) {
+        return window.innerWidth < 767 ? w_resp : w;
+    }
 
 }])
 
-.controller('myFoodsCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate) {
+.controller('myFoodsCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', '$timeout', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate, $timeout) {
     var webService = 'MyFoods.asmx';
     $scope.unit = null;
 
@@ -5472,6 +5922,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             return false;
         }
         x.unit = $scope.unit;
+        if (functions.isNullOrEmpty(x.unit)) {
+            functions.alert($translate.instant('unit is required'), '');
+            return false;
+        }
         if (checkIsOtherFood(x) == true) {
             x.servings.cerealsServ = 0;
             x.servings.vegetablesServ = 0;
@@ -5616,6 +6070,194 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         }
     };
 
+    //***** USDA *****
+    $scope.openUsdaPopup = function () {
+        $mdDialog.show({
+            controller: usdaPopupCtrl,
+            templateUrl: 'assets/partials/popup/usda.html',
+            parent: angular.element(document.body),
+            clickOutsideToClose: true,
+        })
+        .then(function (res) {
+            $http({
+                url: $sessionStorage.config.backend + 'Foods.asmx/Init',
+                method: "POST",
+                data: { lang: $rootScope.config.language }
+            })
+            .then(function (response) {
+                var r = JSON.parse(response.data.d);
+                $scope.myFood = r.food;
+                $scope.units = r.units;
+                $scope.mainFoodGroups = r.foodGroups;
+
+                /***** USDA *****/
+                var d = res.nutrients;
+                var portion = res.portion;
+                $scope.myFood.food = d.description;
+                $scope.myFood.mass = portion === undefined || portion == 100 ? 100 : portion.gramWeight;
+                $scope.myFood.unit = portion === undefined || portion == 100 ? '' : portion.portionDescription == 'Quantity not specified' ? '' : portion.portionDescription;
+                $scope.myFood.proteins = nutriAmount(d.foodNutrients, 1003);
+                $scope.myFood.fats = nutriAmount(d.foodNutrients, 1004);
+                $scope.myFood.carbohydrates = nutriAmount(d.foodNutrients, 1005);
+                $scope.myFood.energy = nutriAmount(d.foodNutrients, 1008);
+                $scope.myFood.totalSugar = nutriAmount(d.foodNutrients, 2000);
+                $scope.myFood.fibers = nutriAmount(d.foodNutrients, 1079);
+                $scope.myFood.calcium = nutriAmount(d.foodNutrients, 1087);
+                $scope.myFood.iron = nutriAmount(d.foodNutrients, 1089);
+                $scope.myFood.magnesium = nutriAmount(d.foodNutrients, 1090);
+                $scope.myFood.phosphorus = nutriAmount(d.foodNutrients, 1091);
+                $scope.myFood.potassium = nutriAmount(d.foodNutrients, 1092);
+                $scope.myFood.sodium = nutriAmount(d.foodNutrients, 1093);
+                $scope.myFood.zinc = nutriAmount(d.foodNutrients, 1095);
+                $scope.myFood.copper = nutriAmount(d.foodNutrients, 1098);
+                $scope.myFood.selenium = nutriAmount(d.foodNutrients, 1103);
+                $scope.myFood.retinol = nutriAmount(d.foodNutrients, 1105);
+                $scope.myFood.carotene = nutriAmount(d.foodNutrients, 1107);
+                $scope.myFood.vitaminE = nutriAmount(d.foodNutrients, 1109);
+                $scope.myFood.vitaminD = nutriAmount(d.foodNutrients, 1114);
+                $scope.myFood.vitaminC = nutriAmount(d.foodNutrients, 1162);
+                $scope.myFood.vitaminB6 = nutriAmount(d.foodNutrients, 1175);
+                $scope.myFood.folate = nutriAmount(d.foodNutrients, 1177);
+                $scope.myFood.vitaminB12 = nutriAmount(d.foodNutrients, 1178);
+                $scope.myFood.vitaminK = nutriAmount(d.foodNutrients, 1185);
+                $scope.myFood.cholesterol = nutriAmount(d.foodNutrients, 1253);
+                $scope.myFood.saturatedFats = nutriAmount(d.foodNutrients, 1258);
+                $scope.myFood.monounsaturatedFats = nutriAmount(d.foodNutrients, 1292);
+                $scope.myFood.polyunsaturatedFats = nutriAmount(d.foodNutrients, 1293);
+                /***** USDA *****/
+
+            },
+            function (response) {
+                alert(response.data.d)
+            });
+        }, function () {
+        });
+    };
+
+    var nutriAmount = function (foodNutrients, id) {
+        var x = foodNutrients.find(a => a.nutrient.id === id);
+        return x !== undefined ? x.amount : 0;
+    }
+
+    var usdaPopupCtrl = function ($scope, $mdDialog, $http) {
+        var webService = 'Usda.asmx';
+        $scope.loading = false;
+        $scope.page = 1;
+        $scope.foods = null;
+        $scope.d = null;
+        $scope.d_ = null;
+        $scope.fdcId = null;
+        $scope.searchValue = null;
+        $scope.pages = [];
+        $scope.gramWeight = 100;
+
+        $scope.initPages = function (n) {
+            $scope.pages = [];
+            for (var i = 1; i <= n; i++) {
+                $scope.pages.push(i);
+            }
+        }
+        $scope.initPages(5);
+
+        var checkUserType = function () {
+            if ($rootScope.user.userType < 2 || $rootScope.user.licenceStatus === 'demo') {
+                functions.demoAlert('this function is available only in premium package');
+                return false;
+            }
+        }
+
+        $scope.cancel = function () {
+            $mdDialog.cancel();
+        };
+
+        $scope.search = function (searchValue, page) {
+            $scope.loading = true;
+            var param = null;
+            if (searchValue !== null) {
+                checkUserType();
+                param = 'generalSearchInput=' + searchValue + '&pageNumber=' + page;
+            } else {
+                if (page > 1) {
+                    checkUserType();
+                }
+                param = 'pageNumber=' + page;
+            }
+            $http({
+                url: $sessionStorage.config.backend + webService + '/Search',
+                method: "POST",
+                data: { param }
+            })
+          .then(function (response) {
+              $scope.foods = JSON.parse(response.data.d);
+              $scope.page = page;
+              if (page === 1) {
+                  $scope.initPages($scope.foods.totalPages > 5 ? 5 : $scope.foods.totalPages);
+              }
+              $scope.loading = false;
+          },
+          function (response) {
+              $scope.loading = false;
+              alert(response.data.d);
+          });
+        }
+        $scope.search(null, 1);
+
+        $scope.get = function (x) {
+            if (x === null) { return false; }
+            $http({
+                url: $sessionStorage.config.backend + webService + '/Get',
+                method: "POST",
+                data: { id: x }
+            })
+          .then(function (response) {
+              $scope.d = JSON.parse(response.data.d);
+              $scope.d_ = JSON.parse(response.data.d);
+              $scope.gramWeight = 100;
+          },
+          function (response) {
+              alert(response.data.d)
+          });
+        }
+
+        $scope.confirm = function (x, portion) {
+            checkUserType();
+            var res = {
+                nutrients: x,
+                portion: portion
+            }
+            $mdDialog.hide(res);
+        }
+
+        $scope.nextPage = function (searchValue, x) {
+            if ($scope.page > 4 && x === 1) {
+                $scope.pages.push($scope.page + 1);
+                $scope.pages.shift();
+            }
+            if ($scope.page > 5 && x === -1) {
+                $scope.pages.pop();
+                $scope.pages.unshift($scope.pages[0] - 1);
+            }
+
+            $scope.page = $scope.page + x;
+            $scope.search(searchValue, $scope.page);
+        }
+
+        $scope.changeFoodPortions = function (gramWeight) {
+            if (gramWeight === undefined) { gramWeight = 100 }
+            angular.forEach($scope.d_.foodNutrients, function (value, key) {
+                if (value.amount !== undefined) {
+                    $scope.d.foodNutrients[key].amount = (value.amount * gramWeight / 100).toFixed(2);
+                }
+            })
+            $scope.gramWeight = gramWeight;
+        }
+
+        $scope.show = function (x) {
+            return Number.isInteger(x) || x == 'Quantity not specified' ? false : true;
+        }
+
+    };
+
 }])
 
 .controller('myRecipesCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate) {
@@ -5684,14 +6326,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     $scope.add = function (x) {
         $scope.recipe.push(x);
     }
-
-    //$scope.getTotEnergy = function (x) {
-    //    var sum = 0;
-    //    angular.forEach(x, function (value, key) {
-    //        sum += value.energy;
-    //    })
-    //    return sum;
-    //}
 
     $scope.openFoodPopup = function (food, idx) {
         $scope.addFoodBtn = true;
@@ -6034,7 +6668,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         }
     }
 
-    //TODO: Print recipe
+    //TODO: Print recipe, BUG more consumers
     $scope.printRecipePreview = function (x) {
         if ($rootScope.user.userType < 2 || $rootScope.user.licenceStatus == 'demo') {
             functions.demoAlert('this function is available only in premium package');
@@ -6047,7 +6681,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             targetEvent: '',
             clickOutsideToClose: true,
             fullscreen: $scope.customFullscreen,
-            d: { recipe: x, totals: $scope.totals, settings: $rootScope.printSettings, config: $rootScope.config, user: $rootScope.user }
+            d: { recipe: x, totals: $scope.totals, settings: $scope.printSettings, config: $rootScope.config, user: $rootScope.user }
         })
         .then(function () {
         }, function () {
@@ -6062,9 +6696,22 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.author = d.user.firstName + ' ' + d.user.lastName;
         $scope.date = new Date(new Date()).toLocaleDateString();
 
-
         $scope.cancel = function () {
             $mdDialog.cancel();
+        };
+
+        function initPrintSettings() {
+            $http({
+                url: $sessionStorage.config.backend + 'PrintPdf.asmx/InitRecipeSettings',
+                method: "POST",
+                data: {}
+            })
+           .then(function (response) {
+               $scope.settings = JSON.parse(response.data.d);
+           },
+           function (response) {
+               alert(response.data.d)
+           });
         };
 
         $scope.consumers = 1;
@@ -6074,10 +6721,13 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             $http({
                 url: $sessionStorage.config.backend + 'Foods.asmx/ChangeNumberOfConsumers',
                 method: "POST",
-                data: { foods: $scope.recipe.data.selectedInitFoods, number: x }
+                data: { foods: $scope.recipe.data.selectedFoods, number: x }
+                //data: { foods: $scope.recipe.data.selectedInitFoods, number: x }
             })
            .then(function (response) {
-               $scope.recipe.data.selectedFoods = JSON.parse(response.data.d);
+               //$scope.recipe.data.selectedFoods = JSON.parse(response.data.d);
+               $scope.foods = JSON.parse(response.data.d);
+               initPrintSettings();
            },
            function (response) {
                alert(response.data.d)
@@ -6308,7 +6958,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 }])
 
 .controller('orderCtrl', ['$scope', '$http', '$rootScope', '$translate', 'functions', function ($scope, $http, $rootScope, $translate, functions) {
-    $scope.application = $translate.instant('nutrition program');
+    $scope.application = $translate.instant('nutrition program web');
     $scope.version = 'STANDARD';
     $scope.userType = 1;
     $scope.showAlert = false;
@@ -6553,6 +7203,21 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         }
     }
 
+    function initPrintSettings() {
+        $http({
+            url: $sessionStorage.config.backend + 'PrintPdf.asmx/InitWeeklyMenuSettings',
+            method: "POST",
+            data: {}
+        })
+       .then(function (response) {
+           $scope.printSettings = JSON.parse(response.data.d);
+       },
+       function (response) {
+           alert(response.data.d)
+       });
+    };
+    initPrintSettings();
+
     var emptyMenuList = true;
     var isEmptyList = function (x) {
         emptyMenuList = true;
@@ -6638,6 +7303,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.toLanguage = '';
         $scope.limit = 20;
         $scope.searchValue = null;
+        $scope.hideNav = true;
         var limit = $rootScope.config.showmenuslimit;
         var offset = 0;
 
@@ -6799,10 +7465,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
     $scope.creatingPdf = false;
     $scope.pageSizes = ['A4', 'A3', 'A2', 'A1'];
-    $rootScope.printSettings.pageSize = 'A3';
-    $rootScope.printSettings.showTitle = false;
-    $rootScope.printSettings.showDescription = false;
-    $rootScope.printSettings.orientation = 'L';
 
     $scope.printWeeklyMenu = function (consumers, printSettings, date, author) {
         if (emptyMenuList) {
@@ -6842,7 +7504,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             templateUrl: 'assets/partials/popup/searchweeklymenus.html',
             parent: angular.element(document.body),
             clickOutsideToClose: true,
-            d: {}
+            d: { clientData: $rootScope.clientData }
         })
        .then(function (response) {
            $rootScope.weeklyMenu = response;
@@ -6852,8 +7514,9 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
        });
     }
 
-    var openSearchMenuPopupCtrl = function ($scope, $mdDialog, $http, $translate, functions) {
+    var openSearchMenuPopupCtrl = function ($scope, $mdDialog, $http, $translate, functions, d) {
         var webService = 'WeeklyMenus.asmx';
+        $scope.clientData = d.clientData;
         $scope.type = 0;
         $scope.limit = 20;
 
@@ -7124,47 +7787,135 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         }
     };
 
-    $scope.pdfSLLink = null;
-    $scope.creatingSLPdf = false;
-    $scope.createShoppingList = function (x, c, s) {
-        $http({
-            url: $sessionStorage.config.backend + 'ShoppingList.asmx/CreateWeeklyShoppingList',
-            method: "POST",
-            data: { userId: $sessionStorage.usergroupid, menuList: x, consumers: c, lang: $rootScope.config.language }
-        })
-        .then(function (response) {
-            var shoppingList = JSON.parse(response.data.d);
-            if (shoppingList.total) {
-                if (shoppingList.total.price > 0) {
-                    $scope.printSettings.showPrice = true;
-                }
-            }
-            printShoppingListPdf(shoppingList, c, s);
-        },
-        function (response) {
-            functions.alert($translate.instant(response.data.d), '');
-        });
-    }
+    //$scope.pdfSLLink = null;
+    //$scope.creatingSLPdf = false;
+    //$scope.createShoppingList = function (x, c, s) {
+    //    var printSetting = angular.copy(s);
+    //    $http({
+    //        url: $sessionStorage.config.backend + 'ShoppingList.asmx/CreateWeeklyShoppingList',
+    //        method: "POST",
+    //        data: { userId: $sessionStorage.usergroupid, menuList: x, consumers: c, lang: $rootScope.config.language }
+    //    })
+    //    .then(function (response) {
+    //        var shoppingList = JSON.parse(response.data.d);
+    //        if (shoppingList.total) {
+    //            if (shoppingList.total.price > 0) {
+    //                printSetting.showPrice = true;
+    //            }
+    //        }
+    //        // TODO: print settings
+    //        printSetting.showQty = true;
+    //        printSetting.showMass = true;
+    //        printSetting.showTitle = true;
+    //        printSetting.showDescription = true;
 
-    var printShoppingListPdf = function (sl, n, s) {
-        $scope.creatingSLPdf = true;
-        if (angular.isDefined($scope.currentMenu)) {
+    //        printShoppingListPdf(shoppingList, c, printSetting);
+
+    //    },
+    //    function (response) {
+    //        functions.alert($translate.instant(response.data.d), '');
+    //    });
+    //}
+
+
+    //TODO
+    $scope.openShoppingListPopup = function (x) {
+        if (x.length === 0) {
+            return false;
+        }
+        $mdDialog.show({
+            controller: shoppingListPdfCtrl,
+            templateUrl: 'assets/partials/popup/shoppinglist.html',
+            parent: angular.element(document.body),
+            clickOutsideToClose: true,
+            d: { weeklyMenu: x }
+        })
+        .then(function (r) {
+            alert(r);
+        }, function () {
+        });
+    };
+
+    var shoppingListPdfCtrl = function ($scope, $rootScope, $mdDialog, $http, d, $translate, $translatePartialLoader) {
+        $scope.currentMenu = d.weeklyMenu;
+        $scope.settings = d.settings;
+        $scope.consumers = 1;
+        $scope.pdfLink == null;
+        $scope.creatingPdf = false;
+        $scope.d = null;
+
+        var initSettings = function() {
             $http({
-                url: $sessionStorage.config.backend + 'PrintPdf.asmx/WeeklyMenuShoppingList',
+                url: $sessionStorage.config.backend + 'PrintPdf.asmx/InitShoppingListSettings',
                 method: "POST",
-                data: { userId: $sessionStorage.usergroupid, shoppingList: sl, consumers: n, lang: $rootScope.config.language, settings: s, headerInfo: $rootScope.user.headerInfo }
+                data: {}
             })
             .then(function (response) {
-                var fileName = response.data.d;
-                $scope.creatingSLPdf = false;
-                $scope.pdfSLLink = $sessionStorage.config.backend + 'upload/users/' + $rootScope.user.userGroupId + '/pdf/' + fileName + '.pdf';
+                $scope.settings = JSON.parse(response.data.d);
+                createShoppingList($scope.currentMenu.menuList, $scope.settings);
             },
             function (response) {
-                $scope.creatingSLPdf = false;
-                alert(response.data.d);
+                functions.alert($translate.instant(response.data.d), '');
             });
         }
-    }
+
+        var createShoppingList = function (x, c) {
+            $http({
+                url: $sessionStorage.config.backend + 'ShoppingList.asmx/CreateWeeklyShoppingList',
+                method: "POST",
+                data: { userId: $sessionStorage.usergroupid, menuList: x, consumers: c, lang: $rootScope.config.language }
+            })
+            .then(function (response) {
+                $scope.d = JSON.parse(response.data.d);
+                if (d.total) {
+                    if (d.total.price > 0) {
+                        $scope.settings.showPrice = true;
+                    }
+                }
+            },
+            function (response) {
+                functions.alert($translate.instant(response.data.d), '');
+            });
+        }
+        initSettings();
+
+        $scope.changeNumberOfConsumers = function (x) {
+            if (x < 1 || functions.isNullOrEmpty(x)) { return false }
+            createShoppingList($scope.currentMenu.menuList, x);
+        }
+
+        $scope.copyToClipboard = function (id) {
+            return functions.copyToClipboard(id);
+        }
+
+        $scope.printShoppingListPdf = function (sl, n, s) {
+            $scope.creatingPdf = true;
+            if (angular.isDefined(sl)) {
+                $http({
+                    url: $sessionStorage.config.backend + 'PrintPdf.asmx/ShoppingList',
+                    method: "POST",
+                    data: { userId: $sessionStorage.usergroupid, shoppingList: sl, title: $scope.currentMenu.title, note: $scope.currentMenu.note, consumers: n, lang: $rootScope.config.language, settings: s, headerInfo: $rootScope.user.headerInfo }
+                })
+                .then(function (response) {
+                    var fileName = response.data.d;
+                    $scope.creatingPdf = false;
+                    $scope.pdfLink = $sessionStorage.config.backend + 'upload/users/' + $rootScope.user.userGroupId + '/pdf/' + fileName + '.pdf';
+                },
+                function (response) {
+                    $scope.creatingPdf = false;
+                    alert(response.data.d);
+                });
+            }
+        }
+
+        $scope.hidePdfLink = function () {
+            $scope.pdfLink = null;
+        }
+
+        $scope.cancel = function () {
+            $mdDialog.cancel();
+        };
+    };
 
     $scope.hidePdfSLLink = function () {
         $scope.pdfSLLink = null;
@@ -7251,7 +8002,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         }
         $scope.sendingMail = true;
         var link = $scope.clientAppUrl(client);
-        var messageSubject = $translate.instant('nutrition program') + '. ' + $translate.instant('application access data');
+        var messageSubject = $translate.instant('nutrition program web') + '. ' + $translate.instant('application access data');
         var messageBody = '<p>' + $translate.instant('dear') + ',' + '</p>' +
             $translate.instant('we send you the access data to track your body weight and download menus') + '.' +
             '<br />' +
@@ -7299,7 +8050,153 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
 }])
 
+.controller('resetPasswordCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', 'functions', '$translate', '$translatePartialLoader', function ($scope, $http, $sessionStorage, $window, $rootScope, functions, $translate, $translatePartialLoader) {
+    var webService = 'Users.asmx';
+    var config = null;
+    var lang = null;
+    var uid = null;
+    var queryString = null;
+    $scope.user = null;
+    $scope.resp = null;
+    $scope.d = {
+        password: null,
+        passwordConfirm: null
+    }
 
+    queryString = location.search.split('&');
+    if (queryString.length >= 1) {
+        if (queryString[0].substring(1, 4) === 'uid') {
+            uid = queryString[0].substring(5);
+            $http.get('./config/config.json').then(function (response) {
+                config = response.data;
+                $http({
+                    url: config.backend + webService + '/Get',
+                    method: "POST",
+                    data: { userId: uid }
+                })
+                .then(function (response) {
+                    $scope.user = JSON.parse(response.data.d);
+                },
+                function (response) {
+                    functions.alert(response.data.d, '');
+                });
+            });
+        }
+        if (queryString.length === 2) {
+            if (queryString[1].substring(0, 4) === 'lang') {
+                lang = queryString[1].substring(5);
+                $translate.use(lang);
+                $translatePartialLoader.addPart('main');
+            }
+        }
+    }
+
+    $scope.save = function (x) {
+        if (functions.isNullOrEmpty(x.password) || functions.isNullOrEmpty(x.passwordConfirm)) {
+            functions.alert($translate.instant('all fields are required'), '');
+            return false;
+        }
+        if (x.password !== x.passwordConfirm) {
+            functions.alert($translate.instant('passwords are not the same'), '');
+            return false;
+        }
+        $http({
+            url: config.backend + webService + '/ResetPassword',
+            method: "POST",
+            data: { uid: uid, newPasword: x.password }
+        })
+        .then(function (response) {
+            functions.alert($translate.instant(response.data.d), '');
+            $scope.resp = response.data.d;
+        },
+        function (response) {
+            functions.alert(response.data.d, '');
+        });
+    }
+
+
+}])
+
+.controller('deleteAccountCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', 'functions', '$translate', '$translatePartialLoader', function ($scope, $http, $sessionStorage, $window, $rootScope, functions, $translate, $translatePartialLoader) {
+    var webService = 'Users.asmx';
+    var config = null;
+    var lang = null;
+    $scope.uid = null;
+    var queryString = null;
+    $scope.user = null;
+    $scope.errorMesage = false;
+    $scope.d = {
+        userName: null,
+        password: null
+    }
+
+    queryString = location.search.split('&');
+    if (queryString.length >= 1) {
+        if (queryString[0].substring(1, 4) === 'uid') {
+            $scope.uid = queryString[0].substring(5);
+            $http.get('./config/config.json').then(function (response) {
+                config = response.data;
+            });
+        }
+        if (queryString.length === 2) {
+            if (queryString[1].substring(0, 4) === 'lang') {
+                lang = queryString[1].substring(5);
+                $translate.use(lang);
+                $translatePartialLoader.addPart('main');
+            }
+        }
+    }
+
+    $scope.login = function (d) {
+        $http({
+            url: config.backend + 'Users.asmx/Login',
+            method: "POST",
+            data: { userName: d.userName, password: d.password }
+        }).then(function (response) {
+            var user = JSON.parse(response.data.d);
+            if (user.userId !== null) {
+                if (user.userId !== $scope.uid) {
+                    $scope.showErrorAlert = true;
+                    $scope.errorMesage = $translate.instant('wrong user');
+                } else {
+                    $scope.showErrorAlert = false;
+                    $scope.user = user;
+                }
+            } else {
+                $scope.showErrorAlert = true;
+                $scope.errorMesage = $translate.instant('wrong user name or password');
+            }
+        },
+        function (response) {
+            $scope.errorLogin = true;
+            $scope.showErrorAlert = true;
+            $scope.errorMesage = $translate.instant('user was not found');
+            $scope.showUserDetails = false;
+        });
+    }
+
+    var remove = function (user) {
+        $http({
+            url: config.backend + 'Users.asmx/DeleteAllUserGroup',
+            method: 'POST',
+            data: { x: user }
+        })
+        .then(function (response) {
+            functions.alert($translate.instant(JSON.parse(response.data.d)), '');
+        },
+        function (response) {
+            functions.alert($translate.instant(JSON.parse(response.data.d)), '');
+        });
+    }
+
+    $scope.confirm = function (user) {
+        var r = confirm($translate.instant('delete') + " " + user.firstName + " " + user.lastName + "?");
+        if (r === true) {
+            remove(user);
+        }
+    }
+
+}])
 //-------------end Program Prehrane Controllers--------------------
 
 .directive('allowOnlyNumbers', function () {
@@ -7367,6 +8264,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         controller: 'jsonCtrl'
     };
 })
+
 .controller('jsonCtrl', ['$scope', '$rootScope', function ($scope, $rootScope) {
     $scope.isShow = false;
     $scope.debug = $rootScope.config.debug;

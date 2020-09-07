@@ -1,17 +1,20 @@
 ﻿<md-dialog flex>
     <form>
-        <md-toolbar class="main-background">
+        <md-toolbar class="bg-main">
             <div class="md-toolbar-tools">
                 <h2 class="text-capitalize">
                     <span ng-if="d.clientId==null">{{'new client' | translate}}</span>
                     <span ng-if="d.clientId!=null">{{'client' | translate}}</span>
                 </h2>
                 <span flex></span>
-                <a href="" class="btn btn-primary" ng-click="cancel()" title="{{'close' | translate}}">x</a>
+                <a href="" class="btn btn-outline-light" ng-click="cancel()" title="{{'close' | translate}}">x</a>
             </div>
         </md-toolbar>
         <md-dialog-content class="text-capitalize">
             <div class="md-dialog-content">
+                <div ng-if="d.profileImg" class="text-center pb-4">
+                    <img src="../upload/users/{{d.userId}}/clients/{{d.clientId}}/profileimg/{{d.profileImg}}" alt="{{x.profileImg}}" style="height:15rem;width:15rem" class="img-circle" />
+                </div>
                 <div layout-gt-sm="row">
                     <md-input-container class="md-block" flex-gt-sm>
                         <label>{{'first name' | translate}}</label>
@@ -30,8 +33,8 @@
                         <span ng-if="birthDateRequiredMsq" class="text-danger">{{birthDateRequiredMsq | translate}}</span>
                     </md-input-container>
                     <md-radio-group ng-model="d.gender.value" layout="column" flex-gt-sm>
-                        <md-radio-button value="0" class="md-primary">{{'male' | translate}}</md-radio-button>
-                        <md-radio-button value="1" class="md-primary">{{'female' | translate}}</md-radio-button>
+                        <md-radio-button value="0" class="md-primary"><i class="fa fa-male pl-2 pr-1"></i>{{'male' | translate}}</md-radio-button>
+                        <md-radio-button value="1" class="md-primary"><i class="fa fa-female pl-2 pr-1"></i>{{'female' | translate}}</md-radio-button>
                     </md-radio-group>
                 </div>
                 <div layout-gt-sm="row">
@@ -45,7 +48,8 @@
                     </md-input-container>
                 </div>
             </div>
-            <div class="pull-right m20">
+            <div class="pull-right mr-3 mb-2">
+                <button ng-if="d.clientId!=null" class="btn btn-outline-danger" ng-click="remove(d)"><i class="fa fa-trash-alt"></i> {{'remove' | translate}}</button>
                 <!--<a ng-if="user.licenceStatus=='demo'" href="" class="btn btn-primary" ng-click="save(d)">{{'forward' | translate}} <i class="fa fa-arrow-right"></i></a>
                 <a ng-if="user.licenceStatus!='demo'" href="" class="btn btn-primary" ng-click="save(d)"><i class="fa fa-floppy-o"></i> {{'save' | translate}}</a>-->
                 <button class="btn btn-primary" ng-click="save(d)"><i class="fa fa-floppy-o"></i> {{'save' | translate}}</button>

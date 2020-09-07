@@ -1,9 +1,9 @@
 ﻿<md-dialog flex class="fixed-height">
-    <md-toolbar class="main-background">
+    <md-toolbar class="bg-main">
         <div class="md-toolbar-tools">
             <h2 class="text-capitalize">{{'menus' | translate}}</h2>
             <span flex></span>
-            <a href="" class="btn btn-primary" ng-click="cancel()" title="{{'close' | translate}}">x</a>
+            <a href="" class="btn btn-outline-light" ng-click="cancel()" title="{{'close' | translate}}">x</a>
         </div>
     </md-toolbar>
     <md-dialog-content>
@@ -12,62 +12,64 @@
                 <md-progress-circular ng-disabled="!loading" md-mode="indeterminate"></md-progress-circular>
             </div>
             <div ng-show="!loading" class="md-dialog-content">
-                <div class="row p10">
-                    <ul class="nav nav-tabs">
-                        <li ng-class="appMenues==false?'active':''" ng-click="toggle('myMenus')"><a href="" class="text-capitalize">{{'my menus' | translate}}</a></li>
-                        <li ng-if="config.language!='en'" ng-class="appMenues==true?'active':''" ng-click="toggle('appMenus')"><a href="" class="text-capitalize">{{'menu examples' | translate}}</a></li>
+                <div ng-hide="hideNav" class="pt-3">
+                    <ul class="nav nav-tabs text-capitalize">
+                        <li class="nav-item" ng-click="toggle('myMenus')"><a href="" ng-class="appMenues==false?'nav-link active':'nav-link'">{{'my menus' | translate}}</a></li>
+                        <li ng-if="config.language!='en'" class="nav-item" ng-click="toggle('appMenus')"><a href="" ng-class="appMenues==true?'nav-link active':'nav-link'">{{'menu examples' | translate}}</a></li>
                         <!--<li ng-class="appMenues==false?'active':''" ng-click="load()"><a href="" class="text-capitalize">{{'my menus' | translate}}</a></li>
                         <li ng-if="config.language!='en'" ng-class="appMenues==true?'active':''" ng-click="loadAppMenues()"><a href="" class="text-capitalize">{{'menu examples' | translate}}</a></li>-->
                     </ul>
                 </div>
-                <div class="mt10">
+                <div class="mt-4">
                     <div ng-if="appMenues==false">
                         <div class="row">
                             <div class="col-sm-4">
                                 <form>
                                     <div class="input-group">
                                         <input ng-model="searchValue" class="form-control search" type="text" placeholder="{{'search' | translate}}..." />
-                                        <span class="input-group-btn">
-                                            <button class="btn btn-default" type="submit" ng-click="search(searchValue)"><i class="fa fa-search" aria-hidden="true"></i>&#8203;</button>
+                                        <span class="input-group-append">
+                                            <button class="btn btn-outline-primary" type="submit" ng-click="search(searchValue)"><i class="fa fa-search" aria-hidden="true"></i>&#8203;</button>
                                         </span>
                                     </div>
                                 </form>
                             </div>
-                            <div class="col-sm-4 p10 ml10">
+                            <div class="col-sm-4 p-2 ml-2">
                                 <md-radio-group ng-show="appMenues==false" ng-model="type" layout="row" ng-click="loadMore(searchValue)">
                                     <md-radio-button value="0" class="md-primary">{{'all menus' | translate}}</md-radio-button>
                                     <md-radio-button value="1" class="md-primary">{{'client menus' | translate}}</md-radio-button>
                                 </md-radio-group>
                             </div>
                         </div>
-                        <table class="table table-hover table-condensed">
-                            <tr>
-                                <th>{{'title' | translate}}</th>
-                                <th>{{'diet' | translate}}</th>
-                                <th>{{'energy'| translate}}</th>
-                                <th>{{'date' | translate}}</th>
-                                <th>{{'note' | translate}}</th>
-                                <th ng-if="config.debug">{{'client Id' | translate}}</th>
-                                <th>{{'client' | translate}}</th>
-                                <th></th>
-                            </tr>
-                            <tr ng-if="type==1?x.client.clientId==clientData.clientId:1==1" ng-repeat="x in d" ng-click="confirm(x)">
-                                <td class="nowrap">{{x.title}}</td>
-                                <td class="nowrap">{{x.diet | translate}}</td>
-                                <td class="nowrap"><span ng-if="x.energy>0">{{x.energy | number:0}} {{'kcal' | translate}}</span></td>
-                                <td>{{x.date | date:'dd.MM.yyyy'}}</td>
-                                <td class="nowrap">{{x.note}}</td>
-                                <td ng-if="config.debug">{{x.client.clientId}}</td>
-                                <td>{{x.client.firstName}} {{x.client.lastName}}</td>
-                                <td ng-click="remove(x)"><a href="" style="color:red" class="btn btn-default"><i class="fa fa-trash-o"></i></a></td>
-                            </tr>
-                        </table>
-                        <div class="text-right" style="margin-right:26px">
-                            <a href="" class="btn btn-default" ng-click="loadMore(searchValue)"><i class="fa fa-arrow-down"></i> {{'show more' | translate}}...</a>
+                        <div class="teble-responsive">
+                            <table class="table table-hover table-borderless">
+                                <tr class="border-bottom">
+                                    <th>{{'title' | translate}}</th>
+                                    <th>{{'diet' | translate}}</th>
+                                    <th>{{'energy'| translate}}</th>
+                                    <th>{{'date' | translate}}</th>
+                                    <th>{{'note' | translate}}</th>
+                                    <!--<th ng-if="config.debug">{{'client Id' | translate}}</th>-->
+                                    <th>{{'client' | translate}}</th>
+                                    <th></th>
+                                </tr>
+                                <tr ng-if="type==1?x.client.clientId==clientData.clientId:1==1" ng-repeat="x in d" class="pointer">
+                                    <td class="nowrap" ng-click="confirm(x)">{{x.title}}</td>
+                                    <td ng-click="confirm(x)">{{x.diet | translate}}</td>
+                                    <td class="nowrap" ng-click="confirm(x)"><span ng-if="x.energy>0">{{x.energy | number:0}} {{'kcal' | translate}}</span></td>
+                                    <td ng-click="confirm(x)">{{x.date | date:'dd.MM.yyyy'}}</td>
+                                    <td class="nowrap" ng-click="confirm(x)">{{x.note}}</td>
+                                    <!--<td ng-if="config.debug">{{x.client.clientId}}</td>-->
+                                    <td ng-click="confirm(x)">{{x.client.firstName}} {{x.client.lastName}}</td>
+                                    <td ng-click="remove(x)"><button class="btn btn-outline-danger btn-circle"><i class="fa fa-trash-alt"></i></button></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="text-right mr-4">
+                            <a href="" class="btn btn-outline-primary" ng-click="loadMore(searchValue)"><i class="fa fa-arrow-down"></i> {{'show more' | translate}}...</a>
                         </div>
                     </div>
-                    <div ng-if="appMenues==true">
-                        <table class="table table-hover table-condensed">
+                    <div ng-if="appMenues==true" class="table-responsive">
+                        <table class="table table-hover table-borderless">
                             <tr ng-if="config.debug">
                                 <td><label><input ng-model="toTranslate" type="checkbox" ng-checked="setToTranslate(toTranslate)" /> {{'translate to' | translate}}: </label></td>
                                 <td ng-if="toTranslate==true">
@@ -79,13 +81,13 @@
                                     </select>
                                 </td>
                             </tr>
-                            <tr>
+                            <tr class="border-bottom">
                                 <th>{{'title' | translate}}</th>
                                 <th>{{'diet'| translate}}</th>
                                 <th>{{'energy'| translate}}</th>
                                 <th>{{'note' | translate}}</th>
                             </tr>
-                            <tr ng-repeat="x in d" ng-click="confirm(x)">
+                            <tr ng-repeat="x in d" ng-click="confirm(x)" class="pointer">
                                 <td class="nowrap">{{x.title}}</td>
                                 <td class="nowrap">{{x.diet | translate}}</td>
                                 <td class="nowrap"><span ng-if="x.energy>0">{{x.energy | number:0}} {{'kcal' | translate}}</span></td>

@@ -1,35 +1,45 @@
-﻿ <div ng-controller="clientsCtrl">
-     <div>
-         <div class="panel-heading">
-             <div class="row">
-                 <div class="col-sm-6">
-                     <a href="" class="btn btn-default text-capitalize" ng-click="newClient()"><i class="fa fa-user-plus"></i> <span class="hidden-xs">{{'new client' | translate}}</span></a>
-                     <a href="" ng-if="clients.length>0" class="btn btn-default text-capitalize" ng-click="search()"><i class="fa fa-search"></i> <span class="hidden-xs">{{'search clients' | translate}}</span></a>
-                     <a ng-disabled="!client.clientId" href="" class="btn btn-default text-capitalize" ng-click="saveClientData(clientData)"><i class="fa fa-floppy-o"></i> <span class="hidden-xs">{{'save' | translate}}</span></a>
+﻿ <div>
+     <ng-include src="'./assets/partials/main.html'"></ng-include>
+     <div class="bg-white p-3">
+        <div class="row">
+                 <div class="col-sm-8">
+                     <a href="" class="btn btn-outline-primary text-capitalize" ng-click="newClient()"><i class="fa fa-user-plus"></i> <span class="d-none d-sm-inline">{{'new client' | translate}}</span></a>
+                     <a href="" ng-if="clients.length>0" class="btn btn-outline-primary text-capitalize" ng-click="search()"><i class="fa fa-search"></i> <span class="d-none d-sm-inline">{{'search clients' | translate}}</span></a>
+                     <a ng-if="client.clientId" href="" class="btn btn-outline-primary text-capitalize" ng-click="saveClientData(clientData)"><i class="fa fa-floppy-o"></i> <span class="d-none d-sm-inline">{{'save' | translate}}</span></a>
                  </div>
-                 <div class="text-right text-small col-sm-6">
-                     <div ng-if="client.clientId" class="p10">
-                         <strong><i class="fa fa-male"></i> <span class="text-capitalize">{{'client' | translate}}:</span> </strong> <a href="" ng-if="client.clientId!=null" ng-click="edit(client)" style="color:gray">{{client.firstName}} {{client.lastName}}, {{client.gender.title | translate}}, {{'age' | translate}}: {{clientData.age}}</a>
+                 <!--<div class="text-right text-small col-sm-4">
+                     <div ng-if="client.clientId" class="p-2 text-muted">
+                         <a href="" ng-click="edit(client)" title="{{'client' | translate}}" class="decoration-none">
+                             <i ng-if="!client.profileImg" class="fa fa-user-circle fa-2x"></i>
+                             <img ng-if="client.profileImg" src="../upload/users/{{client.userId}}/clients/{{client.clientId}}/profileimg/{{client.profileImg}}" alt="{{client.profileImg}}" style="height:2.5rem;width:2.5rem" class="img-circle rounded-circle" />
+                             <span class="pl-2">
+                                 {{client.firstName}} {{client.lastName}}, {{client.gender.title | translate}}, {{'age' | translate}}: {{clientData.age}}
+                             </span>
+                         </a>
                      </div>
-                 </div>
+                 </div>-->
              </div>
-         </div>
-         <div class="mt10">
+         <div class="mt-3">
              <div ng-if="client.clientId">
                  <ul class="nav nav-tabs">
-                     <li ng-class="clientDataTpl=='inputData'?'active':''" ng-click="toggleTpl('inputData')"><a href="#"><i class="fa fa-thermometer-half"></i> <span class="hidden-xs text-capitalize">{{'input data' | translate}}</span></a></li>
-                     <li ng-class="clientDataTpl=='clientStatictic'?'active':''"><a href="#" ng-click="getClientLog(client)"><i class="fa fa-line-chart"></i> <span class="hidden-xs text-capitalize">{{'tracking of anthropometric measures' | translate}}</span></a></li>
+                     <li class="nav-item" ng-click="toggleTpl('inputData')"><a href="" ng-class="clientDataTpl=='inputData'?'nav-link active':'nav-link'" ><i class="fa fa-thermometer-half"></i> <span class="d-none d-sm-inline text-capitalize">{{'parameters' | translate}}</span></a></li>
+                     <li class="nav-item"  ng-click="getClientLog(client)" ><a href="" ng-class="clientDataTpl=='clientStatictic'?'nav-link active':'nav-link'"><i class="fa fa-line-chart"></i> <span class="d-none d-sm-inline text-capitalize">{{'tracking of anthropometric measures' | translate}}</span></a></li>
                  </ul>
              </div>
-             <div ng-include="clientDataTpl" style="padding-top:20px"></div>
-             <div>
-                 <a href="" class="btn btn-default btn-lg btn-border center center-right" ng-click="toggleNewTpl('calculation')" title="{{'forward' | translate}}"><i class="fa fa-angle-double-right fa-2x text-primary" aria-hidden="true"></i></a>
-             </div>
+             <div ng-include="clientDataTpl" class="mt-3"></div>
+             <!--<div>
+                 <a href="" class="btn btn-primary btn-lg btn-border center center-right" ng-click="toggleNewTpl('calculation')" title="{{'forward' | translate}}"><i class="fa fa-angle-double-right fa-2x" aria-hidden="true"></i></a>
+             </div>-->
+         </div>
+         <div ng-if="client.clientId" class="text-right p-3">
+             <hr />
+             <button class="btn btn-outline-primary btn-lg" ng-click="toggleNewTpl('calculation')" title="{{'forward' | translate}}">{{'forward' | translate}} <i class="fa fa-angle-double-right" aria-hidden="true"></i></button>
          </div>
      </div>
 </div>
 
 <json-directive data="clientData" desc="'clientData'"></json-directive>
+<json-directive data="client" desc="'client'"></json-directive>
 
 <script type="text/ng-template" id="inputData">
     <div ng-if="client.clientId">
@@ -41,7 +51,7 @@
                 </md-input-container>
             </div>
             <div class="col-sm-4">
-                <fieldset ng-if="config.language=='en'" class="fieldset-border" style="width:210px">
+                <fieldset ng-if="config.language=='en'" class="fieldset-border" style="width:250px">
                     <legend class="fieldset-border text-capitalize">{{'units' | translate}}:</legend>
                     <md-radio-group ng-model="unitSystem" layout="row" flex-gt-sm ng-click="changeUnitSystem(unitSystem)">
                         <md-radio-button value="0" class="md-primary text-capitalize">{{'standard' | translate}}</md-radio-button>
@@ -50,161 +60,182 @@
                 </fieldset>
             </div>
             <div class="col-sm-4 text-right">
-                <a ng-if="pdfLink==null" ng-click="printClientPdf()" class="btn btn-default text-capitalize" ng-disabled="creatingPdf"><span class="text-danger"><i class="fa fa-{{creatingPdf==true?'spinner fa-spin':'file-pdf-o'}}"></i> {{'create pdf' | translate}}</span></a>
-                <a ng-if="pdfLink!=null" href="{{pdfLink}}" class="btn btn-success text-capitalize" download ng-click="hidePdfLink()"><i class="fa fa-file-pdf-o"></i> {{'take pdf' | translate}}</a>
+                <a ng-if="pdfLink==null" href="" ng-click="printClientPdf()" class="btn btn-outline-primary text-capitalize" ng-disabled="creatingPdf"><span><i class="fa fa-{{creatingPdf==true?'spinner fa-spin':'file-pdf-o'}}"></i> {{'create pdf' | translate}}</span></a>
+                <a ng-if="pdfLink!=null" href="{{pdfLink}}" class="btn btn-danger text-capitalize" download ng-click="hidePdfLink()"><i class="fa fa-file-pdf-o"></i> {{'take pdf' | translate}}</a>
             </div>
         </div>
-
         <div class="row">
-            <div class="col-lg-7">
+            <div class="col-xl-7">
                 <fieldset class="fieldset-border" style="padding-top:0; margin-top:0">
                     <legend class="fieldset-border">{{'anthropometric parameters' | translate}}</legend>
-                    <div class="row">
-                        <div class="col-sm-6" style="padding:20px 20px 5px 20px">
+                    <div class="row p-2 pt-4">
+                        <div class="col-lg-6 pr-0">
                             <div ng-if="unitSystem==1">
                                 <table>
                                     <tr>
-                                        <td class="p5">{{'height' | translate}}:</td>
-                                        <td class="p5">
+                                        <td class="p-1">{{'height' | translate}}*:</td>
+                                        <td class="p-1">
                                             <div class="input-group">
                                                 <input ng-model="clientData.height" class="form-control" style="width:75px" required allow-only-numbers>
-                                                <span class="input-group-addon" style="width:50px">cm</span>
+                                                <div class="input-group-append">
+                                                    <span class="input-group-text" style="width:50px">{{'cm' | translate}}</span>
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td class="p5">{{'weight' | translate}}:</td>
-                                        <td class="p5" colspan="2">
+                                        <td class="p-1">{{'weight' | translate}}*:</td>
+                                        <td class="p-1" colspan="2">
                                             <div class="input-group">
                                                 <input ng-model="clientData.weight" class="form-control" style="width:75px" required allow-only-numbers>
-                                                <span class="input-group-addon" style="width:50px">kg</span>
+                                                <div class="input-group-append">
+                                                    <span class="input-group-text" style="width:50px">{{'kg' | translate}}</span>
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td class="p5">{{'waist' | translate}}:</td>
-                                        <td class="p5" colspan="2">
+                                        <td class="p-1">{{'waist' | translate}}:</td>
+                                        <td class="p-1" colspan="2">
                                             <div class="input-group">
                                                 <input ng-model="clientData.waist" class="form-control" style="width:75px" allow-only-numbers>
-                                                <span class="input-group-addon" style="width:50px">cm</span>
+                                                <div class="input-group-append">
+                                                    <span class="input-group-text" style="width:50px">{{'cm' | translate}}</span>
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td class="p5">{{'hip' | translate}}:</td>
-                                        <td class="p5" colspan="2">
+                                        <td class="p-1">{{'hip' | translate}}:</td>
+                                        <td class="p-1" colspan="2">
                                             <div class="input-group">
                                                 <input ng-model="clientData.hip" class="form-control" style="width:75px" allow-only-numbers>
-                                                <span class="input-group-addon" style="width:50px">cm</span>
+                                                <div class="input-group-append">
+                                                    <span class="input-group-text" style="width:50px">{{'cm' | translate}}</span>
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>
-                                    <!--<tr>
-                                        <td class="p5">{{'body fat' | translate}}: <span ng-if="user.userType<2" custom-popover popover-html="{{'this function is available only in premium package' | translate}}" popover-placement="bottom" popover-label=""></span></td>
-                                        <td class="p5" colspan="2">
-                                            <div class="input-group">
-                                                <input ng-model="clientData.bodyFat.bodyFatPerc" class="form-control" style="width:75px" allow-only-numbers ng-disabled="user.userType<2">
-                                                <span class="input-group-addon" style="width:50px">%</span>
-                                            </div>
-                                        </td>
-                                    </tr>-->
                                 </table>
                             </div>
                             <div ng-if="unitSystem==0">
                                 <table>
                                     <tr>
-                                        <td class="p5">{{'height' | translate}}:</td>
-                                        <td class="p5">
-                                            <div class="input-group">
-                                                <select ng-model="standard.height_feet" class="form-control" ng-click="convertToMetricSystem(standard)" style="width:55px">
+                                        <td class="p-1">{{'height' | translate}}*:</td>
+                                        <td class="p-1">
+                                            <div class="input-group" style="width:170px">
+                                                <select ng-model="standard.height_feet" class="form-control" ng-click="convertToMetricSystem(standard)">
                                                     <option ng-repeat="x in populateDdl(4,7)" ng-selected="x==standard.height_feet?true:false" ng-value="x">{{x}}</option>
                                                 </select>
-                                                <span class="input-group-addon" style="width:70px">{{'foot' | translate}}</span>
+                                                <div class="input-group-append">
+                                                    <span class="input-group-text" style="width:88px">{{'foot' | translate}}</span>
+                                                </div>
                                             </div>
-                                        </td>
-                                        <td class="p5">
-                                            <div class="input-group">
-                                                <select ng-model="standard.height_inches" ng-click="convertToMetricSystem(standard)" class="form-control" style="width:55px">
+                                            <div class="input-group" style="width:170px">
+                                                <select ng-model="standard.height_inches" ng-click="convertToMetricSystem(standard)" class="form-control">
                                                     <option ng-repeat="x in populateDdl(0,11)" ng-selected="x==standard.height_inches?true:false" ng-value="x">{{x}}</option>
                                                 </select>
-                                                <span class="input-group-addon" style="width:70px">{{'inches' | translate}}</span>
+                                                <div class="input-group-append">
+                                                    <span class="input-group-text" style="width:88px">{{'inches' | translate}}</span>
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td class="p5">{{'weight' | translate}}:</td>
-                                        <td class="p5" colspan="2">
-                                            <div class="input-group">
-                                                <select ng-model="standard.weight" ng-click="convertToMetricSystem(standard)" class="form-control" style="width:75px">
+                                        <td class="p-1">{{'weight' | translate}}*:</td>
+                                        <td class="p-1">
+                                            <div class="input-group" style="width:170px">
+                                                <select ng-model="standard.weight" ng-click="convertToMetricSystem(standard)" class="form-control">
                                                     <option ng-repeat="x in populateDdl(22,440)" ng-selected="x==standard.weight?true:false" ng-value="x">{{x}}</option>
                                                 </select>
-                                                <span class="input-group-addon" style="width:70px">{{'pounds' | translate}}</span>
+                                                <div class="input-group-append">
+                                                    <span class="input-group-text" style="width:88px">{{'pounds' | translate}}</span>
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td class="p5">{{'waist' | translate}}:</td>
-                                        <td class="p5" colspan="2">
-                                            <div class="input-group">
-                                                <select ng-model="standard.waist" ng-click="convertToMetricSystem(standard)" class="form-control" style="width:75px">
+                                        <td class="p-1">{{'waist' | translate}}:</td>
+                                        <td class="p-1">
+                                            <div class="input-group" style="width:170px">
+                                                <select ng-model="standard.waist" ng-click="convertToMetricSystem(standard)" class="form-control">
                                                     <option ng-repeat="x in populateDdl(23,70)" ng-selected="x==standard.waist?true:false" ng-value="x">{{x}}</option>
                                                 </select>
-                                                <span class="input-group-addon" style="width:70px">{{'inches' | translate}}</span>
+                                                <div class="input-group-append">
+                                                    <span class="input-group-text" style="width:88px">{{'inches' | translate}}</span>
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td class="p5">{{'hip' | translate}}:</td>
-                                        <td class="p5" colspan="2">
-                                            <div class="input-group">
-                                                <select ng-model="standard.hip" ng-click="convertToMetricSystem(standard)" class="form-control" style="width:75px">
+                                        <td class="p-1">{{'hip' | translate}}:</td>
+                                        <td class="p-1">
+                                            <div class="input-group" style="width:170px">
+                                                <select ng-model="standard.hip" ng-click="convertToMetricSystem(standard)" class="form-control">
                                                     <option ng-repeat="x in populateDdl(35,70)" ng-selected="x==standard.hip?true:false" ng-value="x">{{x}}</option>
                                                 </select>
-                                                <span class="input-group-addon" style="width:70px">{{'inches' | translate}}</span>
+                                                <div class="input-group-append">
+                                                    <span class="input-group-text" style="width:88px">{{'inches' | translate}}</span>
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>
-                                    <!--<tr>
-                                        <td class="p5">{{'body fat' | translate}}: <span ng-if="user.userType<2" custom-popover popover-html="{{'this function is available only in premium package' | translate}}" popover-placement="bottom" popover-label=""></span></td>
-                                        <td class="p5" colspan="2">
-                                            <div class="input-group">
-                                                <input ng-model="clientData.bodyFat.bodyFatPerc" class="form-control" style="width:75px" allow-only-numbers ng-disabled="user.userType<2">
-                                                <span class="input-group-addon" style="width:50px">%</span>
-                                            </div>
-                                        </td>
-                                    </tr>-->
                                 </table>
                             </div>
                         </div>
-                        <div class="col-sm-6">
+                        <div class="col-lg-6 pl-0 pr-0">
                             <ng-include src="'humanSvg'"></ng-include>
                         </div>
-                        <div class="col-sm-12">
-                            <hr />
-                            <table>
-                                <tr>
-                                    <td class="p5">{{'body fat' | translate}}: <span ng-if="user.userType<2" custom-popover popover-html="{{'this function is available only in premium package' | translate}}" popover-placement="bottom" popover-label=""></span></td>
-                                    <td class="p5">
-                                        <div class="input-group">
-                                            <input ng-model="clientData.bodyFat.bodyFatPerc" class="form-control" style="width:75px" allow-only-numbers ng-disabled="user.userType<2">
-                                            <span class="input-group-addon" style="width:50px">%</span>
-                                        </div>
-                                    </td>
-                                    <td><button class="btn btn-default" ng-click="bodyFatPopup(clientData)"><img src="../app/assets/img/caliper.png" style="height:18px" /> {{'body fat calculator' | translate}}</button></td>
-                                </tr>
-                            </table>
-                        </div>
                     </div>
-                </fieldset>
-            </div>
-            <div class="col-lg-5">
-                <fieldset class="fieldset-border" style="padding-top:0; margin-top:0">
-                    <legend class="fieldset-border text-capitalize">{{'note' | translate}} <span custom-popover popover-html="{{'maximum number of characters is' | translate}} 500" popover-placement="bottom" popover-label=""></span></legend>
                     <div>
-                        <textarea ng-model="clientData.clientNote" class="form-control" maxlength="500" style="height:238px"></textarea>
+                        <hr />
+                        <table>
+                            <tr>
+                                <td class="p-1">{{'body fat' | translate}}: <span ng-if="user.userType<2" custom-popover popover-html="{{'this function is available only in premium package' | translate}}" popover-placement="bottom" popover-label=""></span></td>
+                                <td class="p-1">
+                                    <div class="input-group" style="width:120px">
+                                        <input ng-model="clientData.bodyFat.bodyFatPerc" class="form-control" allow-only-numbers ng-disabled="user.userType<2">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text" style="width:50px">%</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><a href="" class="pl-2" ng-click="bodyFatPopup(clientData)" title="{{'body fat calculator' | translate}}"><img src="../app/assets/img/caliper.png" style="height:18px" /> {{'body fat calculator' | translate}}</a></td>
+                            </tr>
+                        </table>
                     </div>
                 </fieldset>
             </div>
+            <div class="col-xl-5">
+                <fieldset class="fieldset-border">
+                    <legend class="fieldset-border">{{'physical activity level' | translate}}</legend>
+                    <div class="p-2 pt-4">
+                        <md-radio-group ng-model="clientData.pal.value" ng-change="getPalDetails(clientData.pal.value)">
+                            <md-radio-button ng-repeat="x in pals" value="{{x.value}}" class="md-primary">
+                                <span class="{{clientData.pal.value==x.value?'text-primary':'text-muted'}}">{{x.title | translate}}</span>
+                                <div ng-if="clientData.pal.value==x.value">
+                                    <small class="text-primary">{{x.description | translate}}</small>
+                                </div>
+                            </md-radio-button>
+                        </md-radio-group>
+                    </div>
+                    <hr />
+                    <div class="text-right">
+                        <a href="" ng-click="detailExpenditurePopup(clientData.dailyActivities)" title="{{'detail calculation of energy expenditure' | translate}}"><i class="fa fa-fire"></i> {{'detail calculation of energy expenditure' | translate}} <span ng-if="clientData.dailyActivities.energy&&clientData.dailyActivities.duration==1440">({{clientData.dailyActivities.energy}} {{'kcal' | translate}})</span></a>
+                        <!--<ng-include src="'detailCalculationOfEnergyExpenditure'"></ng-include>-->
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+        <div>
+            <fieldset class="fieldset-border pt-0 mt-0">
+                <legend class="fieldset-border text-capitalize">
+                    {{'note' | translate}} <span custom-popover popover-html="{{'maximum number of characters is' | translate}} 500" popover-placement="bottom" popover-label=""></span>
+                </legend>
+                <div>
+                    <textarea ng-model="clientData.clientNote" class="form-control" maxlength="500" style="height:100px"></textarea>
+                </div>
+            </fieldset>
         </div>
         
         <!--<div ng-if="config.debug" class="col-sm-4">
@@ -214,148 +245,60 @@
             </div>
         </div>-->
 
-        <div class="row">
-            <div class="col-lg-12">
-                <fieldset class="fieldset-border">
-                    <legend class="fieldset-border">{{'physical activity level' | translate}}</legend>
-                    <div class="row p20">
-                        <div class="col-sm-12">
-                            <md-radio-group ng-model="clientData.pal.value" ng-change="getPalDetails(clientData.pal.value)">
-                                <md-radio-button ng-repeat="x in pals" value="{{x.value}}" class="md-primary">
-                                    {{x.title | translate}}
-                                    <span ng-if="clientData.pal.value==x.value" class="p10">
-                                        <em style="font-size:1.1em" class="text-primary">({{pal.description | translate}})</em>
-                                    </span>
-                                </md-radio-button>
-                            </md-radio-group>
-                        </div>
-                    </div>
-                    <div ng-include="'detailCalculationOfEnergyExpenditure'" class="p20"></div>
-                </fieldset>
-            </div>
-        </div>
-    </div>
-</script>
-
-<script type="text/ng-template" id="detailCalculationOfEnergyExpenditure">
-    <div ng-controller="detailCalculationOfEnergyExpenditureCtrl" ng-cloak>
-        <fieldset class="fieldset-border">
-            <legend class="fieldset-border" ng-click="detailCalculationOfEnergyExpenditure()">{{'detail calculation of energy expenditure' | translate}} <i class="fa fa-chevron-{{showDetailCalculationOfEnergyExpenditure==true?'up':'right'}}"></i></legend>
-            <div ng-if="showDetailCalculationOfEnergyExpenditure" class="row">
-                <div class="col-sm-6">
-                    <fieldset class="fieldset-border">
-                        <legend class="fieldset-border">{{'activity duration' | translate}}:</legend>
-                        <div class="m10">
-                            <table>
-                                <tr>
-                                    <td class="text-right">{{'from' | translate}}:</td>
-                                    <td class="pl10"><label>{{from.hour}}:{{from.min}} h</label></td>
-                                </tr>
-                                <tr>
-                                    <td class="text-right mr10">{{'to' | translate}}:</td>
-                                    <td class="pl10">
-                                        <select ng-model="to.hour" class="btn btn-default" ng-options="x for x in hours" ng-click="selectHours()"></select> h
-                                        <select ng-model="to.min" class="btn btn-default" ng-options="x for x in minutes"></select> min
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div class="input-group">
-                            <input ng-model="searchValue" class="form-control search" type="text" placeholder="{{'search' | translate}}..." />
-                            <span class="input-group-btn">
-                                <a href="" class="btn btn-default"><i class="fa fa-search" aria-hidden="true"></i>&#8203;</a>
-                            </span>
-                        </div>
-                        <div>
-                            <select ng-model="activity" class="form-control" size="7">
-                                <option value="{{x}}" ng-repeat="x in activities | filter:{activity:searchValue} | orderBy:'activity'">{{x.activity}}</option>
-                            </select>
-                            <a href="" ng-if="totalDailyEnergyExpenditure.duration<1440" class="btn btn-primary pull-right mt10 text-capitalize" ng-click="confirmActivity(activity)"><i class="fa fa-check"></i> {{'add' | translate}}</a>
-                        </div>
-                    </fieldset>
-                </div>
-                <div class="col-sm-6">
-                    <fieldset class="fieldset-border">
-                        <legend class="fieldset-border">{{'daily activities' | translate}}:</legend>
-                        <div class="table-responsive">
-                            <table class="table table-condensed text-small">
-                                <tr>
-                                    <th>{{'activity' | translate}}</th>
-                                    <th>{{'from' | translate}}</th>
-                                    <th>{{'to' | translate}}</th>
-                                    <th class="text-right">{{'min' | translate}}</th>
-                                    <th class="text-right">{{'kcal' | translate}}</th>
-                                </tr>
-                                <tr ng-repeat="x in clientData.dailyActivities.activities track by $index">
-                                    <td>{{x.activity}}</td>
-                                    <td>{{x.from.hour}}:{{x.from.min}}</td>
-                                    <td>{{x.to.hour}}:{{x.to.min}}</td>
-                                    <td class="text-right">{{x.duration}}</td>
-                                    <td class="text-right">{{x.energy | number:0}}</td>
-                                </tr>
-                                <tr>
-                                    <th colspan="5" class="text-right"><u>{{'total' | translate}}: {{clientData.dailyActivities.energy | number:0}} {{'kcal' | translate}}</u></th>
-                                </tr>
-                            </table>
-                        </div>
-                        <div ng-if="clientData.dailyActivities.activities.length>0" class="text-right mt20">
-                            <a href="" class="btn btn-default text-capitalize" ng-click="clearDailyActivities()"><span class="text-danger"><i class="fa fa-times"></i> {{'clear' | translate}}</span></a>
-                            <a href="" class="btn btn-default text-capitalize" ng-click="save(clientData.dailyActivities.activities)"><i class="fa fa-floppy-o"></i> {{'save' | translate}}</a>
-                        </div>
-                    </fieldset>
-                </div>
-            </div>
-        </fieldset>
     </div>
 </script>
 
 <script type="text/ng-template" id="clientStatictic">
-    <div ng-if="clientData.clientId">
+    <div ng-if="clientData.clientId" class="container" ng-cloak>
         <div>
             <div class="text-right">
-                <a ng-if="pdfLink1==null" ng-click="printClientLogPdf()" class="btn btn-default text-capitalize" ng-disabled="creatingPdf"><span class="text-danger"><i class="fa fa-{{creatingPdf==true?'spinner fa-spin':'file-pdf-o'}}"></i> {{'create pdf' | translate}}</span></a>
-                <a ng-if="pdfLink1!=null" href="{{pdfLink1}}" class="btn btn-success text-capitalize" download ng-click="hidePdfLink1()"><i class="fa fa-file-pdf-o"></i> {{'take pdf' | translate}}</a>
+                <a ng-if="pdfLink1==null" href="" ng-click="printClientLogPdf()" class="btn btn-outline-primary text-capitalize" ng-disabled="creatingPdf"><span><i class="fa fa-{{creatingPdf==true?'spinner fa-spin':'file-pdf-o'}}"></i> {{'create pdf' | translate}}</span></a>
+                <a ng-if="pdfLink1!=null" href="{{pdfLink1}}" class="btn btn-danger text-capitalize" download ng-click="hidePdfLink1()"><i class="fa fa-file-pdf-o"></i> {{'take pdf' | translate}}</a>
             </div>
             <div class="row">
-                <div class="col-sm-4 mt10">
-                    <md-radio-group ng-model="displayType" ng-click="changeDisplayType(displayType, clientLogsDays)" layout="row">
-                        <md-radio-button value=0 class="md-primary">{{'weight' | translate}}</md-radio-button>
-                        <md-radio-button value=1 class="md-primary">{{'waist' | translate}}</md-radio-button>
-                        <md-radio-button value=2 class="md-primary">{{'hip' | translate}}</md-radio-button>
-                    </md-radio-group>
-                </div>
-                <div class="col-sm-4 mt10">
+                <div class="col-lg-4 pt-2">
                     <span>{{'show' | translate}}</span>
+                    <select ng-model="displayType" class="form-control" ng-change="changeDisplayType(displayType, clientLogsDays)">
+                        <option value=0 ng-selected="displayType===0?true:false">{{'weight' | translate}} ({{'kg' | translate}})</option>
+                        <option value=1 ng-selected="displayType===1?true:false">{{'waist' | translate}} ({{'cm' | translate}})</option>
+                        <option value=2 ng-selected="displayType===2?true:false">{{'hip' | translate}} ({{'cm' | translate}})</option>
+                    </select>
+                </div>
+                <div class="col-lg-4 pt-2">
+                    <span>{{'period' | translate}}</span>
                     <select ng-model="clientLogsDays" class="form-control" ng-options="x.title | translate for x in chartDays" ng-change="setClientLogGraphData(0, clientLogsDays)"></select>
                 </div>
-                <div class="col-sm-2 mt10">
+                <div class="col-lg-2 pt-2">
                     <div ng-if="goalWeightValue_">
                         <span>{{'goal' | translate}}</span>
                         <div class="input-group">
                             <input type="text" ng-model="goalWeightValue_" class="form-control text-right" style="min-width:75px" allow-only-numbers ng-change="changeGoalWeightValue(goalWeightValue_, 0, clientLogsDays)">
-                            <div class="input-group-addon">
-                                <div class="input-group-text" style="width:25px">{{'kg' | translate}}</div>
+                            <div class="input-group-append">
+                                <div class="input-group-text">{{'kg' | translate}}</div>
                             </div>
                         </div>
                     </div>
-                    <a href="" ng-if="!goalWeightValue_" class="btn btn-default" ng-click="toggleNewTpl('calculation')"><i class="fa fa-dot-circle-o"></i> {{'define goal' | translate}}</a>
+                    <button ng-if="!goalWeightValue_" class="btn btn-outline-primary" ng-click="toggleNewTpl('calculation')"><i class="fa fa-dot-circle-o"></i> {{'define goal' | translate}}</button>
                 </div>
             </div>
-            <div class="p10">
-                <canvas id="clientDataChart" class="chart-bar hidden-xs" chart-data="clientLogGraphData.data" chart-colors="clientLogGraphData.colors" height="80"
-                        chart-labels="clientLogGraphData.labels" chart-series="clientLogGraphData.series" chart-options="clientLogGraphData.options" chart-dataset-override="clientLogGraphData.datasetOverride">
-                </canvas>
-                <canvas id="clientDataChart" class="chart-bar visible-xs" chart-data="clientLogGraphData.data" chart-colors="clientLogGraphData.colors" height="400"
-                        chart-labels="clientLogGraphData.labels" chart-series="clientLogGraphData.series" chart-options="clientLogGraphData.options" chart-dataset-override="clientLogGraphData.datasetOverride"></canvas>
+            <hr />
+            <div class="mt-2">
+                <div class="chart-container">
+                    <canvas id="clientDataChart" class="chart-bar" chart-data="clientLogGraphData.data" chart-colors="clientLogGraphData.colors"
+                            chart-labels="clientLogGraphData.labels" chart-series="clientLogGraphData.series" chart-options="clientLogGraphData.options" chart-dataset-override="clientLogGraphData.datasetOverride"></canvas>
+                </div>
+                <!--<div class="chart-container chart-line-40">
+                    <canvas id="clientDataChart" class="chart-bar" chart-data="clientLogGraphData.data" chart-colors="clientLogGraphData.colors" height="100"
+                            chart-labels="clientLogGraphData.labels" chart-series="clientLogGraphData.series" chart-options="clientLogGraphData.options" chart-dataset-override="clientLogGraphData.datasetOverride"></canvas>
+                </div>-->
             </div>
         </div>
-
-        <div class="table-responsive table-scroll" style="height:300px">
-            <table class="table table-condensed text-small">
+        <div class="table-responsive table-scroll">
+            <table class="table table-sm table-borderless">
                 <thead>
-                    <tr>
+                    <tr class="border-bottom">
                         <th></th>
-                        <th>{{'number' | translate}}</th>
+                        <!--<th>{{'number' | translate}}</th>-->
                         <th>{{'date' | translate}}</th>
                         <th>{{'height' | translate}} (cm)</th>
                         <th>{{'weight' | translate}} (kg)</th>
@@ -365,36 +308,73 @@
                 </thead>
                 <tbody>
                     <tr ng-repeat="x in clientLog_">
-                        <td class="borderNone" style="width:100px">
-                            <a href="" style="color:red" ng-click="removeClientLog(x)" class="btn btn-default" title="{{'delete' | translate}}"><i class="fa fa-times"></i></a>
-                            <a href="" style="color:green" ng-click="updateClientLog(x)" class="btn btn-default" title="{{'save' | translate}}"><i class="fa fa-floppy-o"></i></a>
+                        <td style="width:100px">
+                            <button ng-click="removeClientLog(x)" class="btn btn-outline-danger btn-circle" title="{{'delete' | translate}}"><i class="fa fa-times"></i></button>
+                            <button ng-click="updateClientLog(x)" class="btn btn-outline-primary btn-circle" title="{{'save' | translate}}"><i class="fa fa-floppy-o"></i></button>
                         </td>
-                        <td>{{clientLog.length - $index}}</td>
-                        <td>
+                        <!--<td>{{clientLog.length - $index}}</td>-->
+                        <td style="width:140px; max-width:180px">
                             <input ng-model="x.date" type="date" class="form-control">
                             <!--{{getDateFormat(x.date) | date:'dd.MM.yyyy'}}-->
                         </td>
-                        <td>
-                            <input type="text" ng-model="x.height" class="form-control" style="min-width:70px" allow-only-numbers>
+                        <td style="max-width:120px">
+                            <input type="text" ng-model="x.height" class="form-control" style="min-width:60px" allow-only-numbers>
                         </td>
                         <td style="max-width:180px">
                             <div class="input-group">
-                                <input type="text" ng-model="x.weight" class="form-control" style="min-width:70px" allow-only-numbers>
+                                <input ng-model="x.weight" class="form-control" style="min-width:60px" allow-only-numbers />
+                                <div class="input-group-append">
+                                    <span class="input-group-text" style="min-width:70px">
+                                        <small>
+                                            <i class="{{clientLogDiff('weight', clientLog, x, $index).icon}}"></i> <span class="ml-1">{{clientLogDiff('weight', clientLog, x, $index).diff}}</span>
+                                        </small>
+                                    </span>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="max-width:180px">
+                            <div class="input-group">
+                                <input ng-model="x.waist" class="form-control" style="min-width:60px" allow-only-numbers />
+                                <div class="input-group-append">
+                                    <span class="input-group-text" style="min-width:70px">
+                                        <small>
+                                            <i class="{{clientLogDiff('waist', clientLog, x, $index).icon}}"></i> <span class="ml-">{{clientLogDiff('waist', clientLog, x, $index).diff}}</span>
+                                        </small>
+                                    </span>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="max-width:180px">
+                            <div class="input-group">
+                                <input ng-model="x.hip" class="form-control" style="min-width:60px" allow-only-numbers />
+                                <div class="input-group-append">
+                                    <span class="input-group-text" style="min-width:70px">
+                                        <small>
+                                            <i class="{{clientLogDiff('hip', clientLog, x, $index).icon}}"></i> <span class="ml-2">{{clientLogDiff('hip', clientLog, x, $index).diff}}</span>
+                                        </small>
+                                    </span>
+                                </div>
+                            </div>
+                        </td>
+                         <!--<td style="max-width:180px">
+                            <div class="input-group">
+                                <input type="text" ng-model="x.weight" class="form-control" style="min-width:60px" allow-only-numbers>
                                 <span class="input-group-addon" style="min-width:70px"><i class="{{clientLogDiff('weight', clientLog, x, $index).icon}}"></i> {{clientLogDiff('weight', clientLog, x, $index).diff}}</span>
                             </div>
                         </td>
                         <td style="max-width:180px">
                             <div class="input-group">
-                                <input type="text" ng-model="x.waist" class="form-control" style="min-width:70px" allow-only-numbers>
+                                <input type="text" ng-model="x.waist" class="form-control" style="min-width:60px" allow-only-numbers>
                                 <span class="input-group-addon" style="min-width:70px"><i class="{{clientLogDiff('waist', clientLog, x, $index).icon}}"></i> {{clientLogDiff('waist', clientLog, x, $index).diff}}</span>
                             </div>
                         </td>
                         <td style="max-width:180px">
                             <div class="input-group">
-                                <input type="text" ng-model="x.hip" class="form-control" style="min-width:70px" allow-only-numbers>
+                                <input type="text" ng-model="x.hip" class="form-control" style="min-width:60px" allow-only-numbers>
                                 <span class="input-group-addon" style="min-width:70px"><i class="{{clientLogDiff('hip', clientLog, x, $index).icon}}"></i> {{clientLogDiff('hip', clientLog, x, $index).diff}}</span>
                             </div>
-                        </td>
+                        </td>-->
+
                     </tr>
                 </tbody>
             </table>
@@ -412,11 +392,11 @@
             </linearGradient>
         </defs>
         <g>
-            <title>background</title>
+            <!--<title>background</title>-->
             <rect x="-1" y="-1" width="282" height="242" id="canvas_background" fill="#ffffff" />
         </g>
         <g>
-            <title>Layer 1</title>
+            <!--<title>Layer 1</title>-->
             <line stroke="#000" fill="none" stroke-width="1.5" x1="84.840089" y1="11.030098" x2="85.840089" y2="206.509808" id="svg_1" stroke-linejoin="undefined" stroke-linecap="undefined" />
             <line stroke="#000" fill="none" stroke-width="1.5" x1="76.77011" y1="11.030094" x2="93.204895" y2="11.030094" id="svg_2" stroke-linejoin="undefined" stroke-linecap="undefined" />
             <line stroke="#000" fill="none" stroke-width="1.5" x1="78.32999" y1="207.313816" x2="92.808248" y2="207.313816" id="svg_3" stroke-linejoin="undefined" stroke-linecap="undefined" />
