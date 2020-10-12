@@ -125,5 +125,10 @@
   "attach the image": "Attach the Image",
   "client": "Client",
   "diet": "Diet",
-  "enter the activation code": "Enter the Activation Code"
+  "enter the activation code": "Enter the Activation Code",
+  "menu_": "Menu",
+  "you are offline": "You are offline",
+  "check your connection and try again": "Check your connection and try again",
+  "total nutritional values": "Total nutritional values"
+
 }

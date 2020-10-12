@@ -19,7 +19,7 @@
     <link href="assets/css/vendor/all.min.css" rel="stylesheet" type="text/css">
     <!-- Custom styles for this template-->
     <link href="assets/css/vendor/sb-admin-2.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.min.css?v=2.0.0">
+    <link rel="stylesheet" href="assets/css/style.min.css?v=2.0.1">
     <!--JS-->
     <script src="assets/js/vendor/jquery.min.js"></script>
     <script src="assets/js/vendor/angular.min.js"></script>
@@ -53,6 +53,9 @@
 </head>
 <body ng-app="app" ng-controller="AppCtrl" style="height:auto">
 
+    <div ng-if="!online" class="fixed-top text-center bg-danger text-white" ng-cloak>
+        <i class="fa fa-exclamation-triangle" aria-hidden="true"></i> <strong>{{'you are offline' | translate}}!</strong> {{'check your connection and try again' | translate}}.
+    </div>
     <div id="wrapper" >
 
         <!-- Sidebar -->
@@ -71,6 +74,7 @@
             <!-- Divider -->
             <hr class="sidebar-divider my-0">
 
+            <div ng-hide="user.licenceStatus==='expired'">
             <!-- Nav Item - Dashboard -->
             <div class="nav-item active">
                 <a ui-sref="dashboard" ui-sref-active="active" class="nav-link" >
@@ -104,7 +108,7 @@
                 <div id="clients" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded" ng-controller="clientsCtrl">
                         <a href="" class="collapse-item" ng-click="newClient()"><i class="fas fa-user-plus"></i><span class="pl-2">{{'new client' | translate}}</span></a>
-                        <a href="" class="collapse-item" ng-click="search()"><i class="fas fa-search"></i><span class="pl-2">{{'search clients' | translate}}</span></a>
+                            <a href="" ng-if="clients.length>0" class="collapse-item" ng-click="search()"><i class="fas fa-search"></i><span class="pl-2">{{'search clients' | translate}}</span></a>
                     </div>
                 </div>
             </div>
@@ -115,13 +119,13 @@
                 </a>
                 <div id="cretemenus" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <a ui-sref="clientsdata" ui-sref-active="active" class="collapse-item"><i class="fas fa-weight"></i><span class="pl-2">{{'input data' | translate}}</span></a>
-                        <a ui-sref="calculation" ui-sref-active="active" class="collapse-item"><i class="fas fa-calculator"></i><span class="pl-2">{{'calculation' | translate}}</span></a>
-                        <a ui-sref="activities" ui-sref-active="active" class="collapse-item"><i class="fas fa-bicycle"></i><span class="pl-2">{{'additional activities' | translate}}</span></a>
-                        <a ui-sref="diets" ui-sref-active="active" class="collapse-item"><i class="fas fa-heartbeat"></i><span class="pl-2">{{'diets' | translate}}</span></a>
-                        <a ui-sref="meals" ui-sref-active="active" class="collapse-item"><i class="fas fa-list-ol"></i><span class="pl-2">{{'meals' | translate}}</span></a>
-                        <a ui-sref="menu" ui-sref-active="active" class="collapse-item"><i class="fas fa-utensils"></i><span class="pl-2">{{'menu' | translate}}</span></a>
-                        <a ui-sref="analysis" ui-sref-active="active" class="collapse-item"><i class="fas fa-bar-chart"></i><span class="pl-2">{{'analysis' | translate}}</span></a>
+                            <a href="" ng-click="toggleNewTpl('clientsdata')" ng-class="selectedNavItem=='clientsdata'?'collapse-item active':'collapse-item'"><i class="fas fa-weight"></i><span class="pl-2">{{'input data' | translate}}</span></a>
+                            <a href="" ng-click="toggleNewTpl('calculation')" ng-class="selectedNavItem=='calculation'?'collapse-item active':'collapse-item'"><i class="fas fa-calculator"></i><span class="pl-2">{{'calculation' | translate}}</span></a>
+                            <a href="" ng-click="toggleNewTpl('activities')" ng-class="selectedNavItem=='activities'?'collapse-item active':'collapse-item'"><i class="fas fa-bicycle"></i><span class="pl-2">{{'additional activities' | translate}}</span></a>
+                            <a href="" ng-click="toggleNewTpl('diets')" ng-class="selectedNavItem=='diets'?'collapse-item active':'collapse-item'"><i class="fas fa-heartbeat"></i><span class="pl-2">{{'diets' | translate}}</span></a>
+                            <a href="" ng-click="toggleNewTpl('meals')" ng-class="selectedNavItem=='meals'?'collapse-item active':'collapse-item'"><i class="fas fa-list-ol"></i><span class="pl-2">{{'meals' | translate}}</span></a>
+                            <a href="" ng-click="toggleNewTpl('menu')" ng-class="selectedNavItem=='menu'?'collapse-item active':'collapse-item'"><i class="fas fa-utensils"></i><span class="pl-2">{{'menu' | translate}}</span></a>
+                            <a href="" ng-click="toggleNewTpl('analysis')" ng-class="selectedNavItem=='analysis'?'collapse-item active':'collapse-item'"><i class="fas fa-bar-chart"></i><span class="pl-2">{{'analysis' | translate}}</span></a>
                     </div>
                 </div>
             </div>
@@ -210,6 +214,7 @@
 
             <hr class="sidebar-divider">
 
+            </div>
 
             <!-- Sidebar Toggler (Sidebar) -->
             <div class="text-center d-none d-md-inline">
@@ -233,7 +238,7 @@
                     </div>
 
                     <!-- Sidebar Toggle (Topbar) -->
-                    <button ng-show="isLogin" id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                    <button ng-show="isLogin" id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3" title="{{'menu_' | translate}}">
                         <i class="fa fa-bars"></i>
                     </button>
 
@@ -241,7 +246,7 @@
                     <ul ng-show="isLogin" class="navbar-nav ml-auto">
 
                         <!-- Nav Item - Apointments -->
-                        <li class="nav-item dropdown no-arrow mx-1" title="{{'appointments' | translate}}" ng-cloak>
+                        <li ng-hide="user.licenceStatus==='expired'" class="nav-item dropdown no-arrow mx-1" title="{{'appointments' | translate}}" ng-cloak>
                             <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <i class="fas fa-bell fa-fw"></i>
                                 <span ng-if="activeEvents.length>0" class="badge badge-danger badge-counter">{{activeEvents.length}}</span>
@@ -265,7 +270,7 @@
                             </div>
                         </li>
 
-                        <li ng-if="config.showlanguages" class="nav-item dropdown no-arrow" ng-cloak>
+                        <li ng-hide="user.licenceStatus==='expired'" ng-if="config.showlanguages" class="nav-item dropdown no-arrow" ng-cloak>
                             <a href="" class="nav-link dropdown-toggle" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span class="mr-2 d-none d-lg-inline text-gray-600 small">{{currLanguageTitle | translate}}</span>
                                 <i class="fa fa-globe"></i>
@@ -288,11 +293,11 @@
                                     <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
                                     {{'my profile' | translate}}
                                 </a>
-                                <a ng-click="toggleTpl('users')" class="dropdown-item" href="">
+                                <a ng-hide="user.licenceStatus==='expired'" ng-click="toggleTpl('users')" class="dropdown-item" href="">
                                     <i class="fas fa-users fa-sm fa-fw mr-2 text-gray-400"></i>
                                     {{'users' | translate}}
                                 </a>
-                                <a ng-click="toggleTpl('newuser')" class="dropdown-item" href="">
+                                <a ng-hide="user.licenceStatus==='expired'" ng-click="toggleTpl('newuser')" class="dropdown-item" href="">
                                     <i class="fas fa-user-plus fa-sm fa-fw mr-2 text-gray-400"></i>
                                     {{'new user' | translate}}
                                 </a>
@@ -398,9 +403,9 @@
     <!-- Core plugin JavaScript-->
     <script src="assets/js/vendor/jquery.easing.min.js"></script>
     <!-- Custom scripts for all pages-->
-    <script src="assets/js/vendor/sb-admin-2.min.js"></script>
+    <script src="assets/js/vendor/sb-admin-2.min.js?v=1.0.1"></script>
 
-    <script src="assets/js/app.min.js?v=2.0.1_"></script>
+    <script src="assets/js/app.min.js?v=2.0.6"></script>
     <script src="assets/js/functions.js?v=2.0.0"></script>
     <script src="assets/js/charts.js?v=1.0.3"></script>
    

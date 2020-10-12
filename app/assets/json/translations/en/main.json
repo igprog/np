@@ -1966,8 +1966,10 @@
   "client database is empty": "Client database is empty",
   "add client": "Add Client",
   "old version": "old version",
-  "remove": "Remove"
-
+  "remove": "Remove",
+  "menu_": "Menu",
+  "you are offline": "You are offline",
+  "check your connection and try again": "Check your connection and try again"
 
 
 }
