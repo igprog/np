@@ -17,9 +17,8 @@
     <link rel="stylesheet" href="assets/css/vendor/angular-material.min.css">
     <!--<link rel="stylesheet" type="text/css" href="../assets/css/vendor/jquery.floating-social-share.min.css" />-->
     <link href="assets/css/vendor/all.min.css" rel="stylesheet" type="text/css">
-    <!-- Custom styles for this template-->
     <link href="assets/css/vendor/sb-admin-2.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/style.min.css?v=2.0.1">
+    <link rel="stylesheet" href="assets/css/style.min.css?v=2.0.2">
     <!--JS-->
     <script src="assets/js/vendor/jquery.min.js"></script>
     <script src="assets/js/vendor/angular.min.js"></script>
@@ -243,7 +242,21 @@
                     </button>
 
                     <!-- Topbar Navbar -->
+                    <ul ng-show="!isLogin&&config.instagram.show" class="navbar-nav ml-auto">
+                        <li class="nav-item dropdown no-arrow" ng-cloak>
+                            <a href="{{config.instagram.url}}" class="nav-link ml-3 text-right" title="{{'follow us on instagram' | translate}} - {{config.instagram.name}}" target="_blank">
+                                <div>
+                                    <i class="fab fa-instagram fa-2x ml-2"></i>
+                                </div>
+                            </a>
+                        </li>
+                    </ul>
+
                     <ul ng-show="isLogin" class="navbar-nav ml-auto">
+
+                        <li ng-if="config.instagram.show" class="nav-item dropdown no-arrow" ng-cloak>
+                            <a href="{{config.instagram.url}}" class="nav-link" title="{{'follow us on instagram' | translate}} - {{config.instagram.name}}" target="_blank"><i class="fab fa-instagram fa-fw"></i></a>
+                        </li>
 
                         <!-- Nav Item - Apointments -->
                         <li ng-hide="user.licenceStatus==='expired'" class="nav-item dropdown no-arrow mx-1" title="{{'appointments' | translate}}" ng-cloak>
@@ -334,9 +347,10 @@
                 <!-- End of Topbar -->
                 <!-- Begin Page Content -->
                 <div class="container-fluid">
-                    <div ng-if="loading" layout="row" layout-sm="column" layout-align="space-around" class="text-center">
+                    <loading-directive value="loading" showdesc="true"></loading-directive>
+                    <!--<div ng-if="loading" layout="row" layout-sm="column" layout-align="space-around" class="text-center">
                         <md-progress-circular ng-disabled="!loading" md-mode="indeterminate"></md-progress-circular>
-                    </div>
+                    </div>-->
                     <div ng-if="browserMsg" class="alert alert-danger alert-dismissable text-center m-2" style="height:auto !important" ng-cloak>
                         <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
                         <strong>
@@ -403,9 +417,9 @@
     <!-- Core plugin JavaScript-->
     <script src="assets/js/vendor/jquery.easing.min.js"></script>
     <!-- Custom scripts for all pages-->
-    <script src="assets/js/vendor/sb-admin-2.min.js?v=1.0.1"></script>
+    <script src="assets/js/vendor/sb-admin-2.min.js?v=1.0.2"></script>
 
-    <script src="assets/js/app.min.js?v=2.0.6"></script>
+    <script src="assets/js/app.min.js?v=2.0.7"></script>
     <script src="assets/js/functions.js?v=2.0.0"></script>
     <script src="assets/js/charts.js?v=1.0.3"></script>
    

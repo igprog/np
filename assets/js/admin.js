@@ -1,6 +1,6 @@
 ﻿/*!
 admin.js
-(c) 2018-2019 IG PROG, www.igprog.hr
+(c) 2018-2020 IG PROG, www.igprog.hr
 */
 angular.module('app', [])
 
@@ -130,41 +130,41 @@ angular.module('app', [])
         total(year);
     }
 
-    function drawChart() {
-        $scope.loadingChart = true;
-        var data = new google.visualization.DataTable();
-        data.addColumn('string', 'Mjesec');
-        data.addColumn('number', 'Registracije');
-        data.addColumn('number', 'Aktivacije');
-        data.addColumn('number', 'Postotak');
+    //function drawChart() {
+    //    $scope.loadingChart = true;
+    //    var data = new google.visualization.DataTable();
+    //    data.addColumn('string', 'Mjesec');
+    //    data.addColumn('number', 'Registracije');
+    //    data.addColumn('number', 'Aktivacije');
+    //    data.addColumn('number', 'Postotak');
 
-            var tl = $scope.t.monthly;
-            angular.forEach(tl, function (value, key) {
-                data.addRows([
-                       [value.month, value.registration, value.activation, value.percentage]
-                ]);
-            })
-            var options = {
-                chart: {
-                    title: 'Pregled registracija i aktivacija'
-                },
-                height: (tl.length * 55) + 2,
-                chartArea: {
-                    height: tl.length * 55,
-                    width: 350
-                }
-            };
-            var chart = new google.visualization.BarChart(document.getElementById('chart_ppweb'));
-            chart.draw(data, options);
-            $scope.loadingChart = false;
-    }
+    //        var tl = $scope.t.monthly;
+    //        angular.forEach(tl, function (value, key) {
+    //            data.addRows([
+    //                   [value.month, value.registration, value.activation, value.percentage]
+    //            ]);
+    //        })
+    //        var options = {
+    //            chart: {
+    //                title: 'Pregled registracija i aktivacija'
+    //            },
+    //            height: (tl.length * 55) + 2,
+    //            chartArea: {
+    //                height: tl.length * 55,
+    //                width: 350
+    //            }
+    //        };
+    //        var chart = new google.visualization.BarChart(document.getElementById('chart_ppweb'));
+    //        chart.draw(data, options);
+    //        $scope.loadingChart = false;
+    //}
 
-    var load = function () {
+    var load = function (limit) {
         $scope.loading = true;
         $http({
             url: $rootScope.config.backend + 'Users.asmx/Load',
             method: 'POST',
-            data: { limit: $scope.limit, page: $scope.page }
+            data: { limit: limit, page: $scope.page }
         })
         .then(function (response) {
             $scope.loading = false;
@@ -176,14 +176,14 @@ angular.module('app', [])
         });
     }
 
-    $scope.search = function (searchQuery, showActive) {
+    $scope.search = function (searchQuery, showActive, limit) {
         $scope.loading = true;
         $scope.showUsers = true;
         $scope.page = 1;
         $http({
             url: $rootScope.config.backend + 'Users.asmx/Search',
             method: 'POST',
-            data: { query: searchQuery, limit: $scope.limit, page: $scope.page, activeUsers: showActive }
+            data: { query: searchQuery, limit: limit, page: $scope.page, activeUsers: showActive }
         })
         .then(function (response) {
             $scope.d = JSON.parse(response.data.d);
@@ -194,7 +194,7 @@ angular.module('app', [])
             alert(response.data.d);
         });
     }
-    $scope.search(null, false);
+    $scope.search(null, false, $scope.limit);
 
     $scope.update = function (user) {
         $http({
@@ -203,8 +203,8 @@ angular.module('app', [])
             data: { x: user }
         })
         .then(function (response) {
-            load();
-            total($scope.year);
+            load($scope.limit);
+            //total($scope.year);
             alert(response.data.d);
         },
         function (response) {
@@ -242,8 +242,8 @@ angular.module('app', [])
             data: { x: user }
         })
         .then(function (response) {
-            load();
-            total($scope.year);
+            load($scope.limit);
+            //total($scope.year);
             alert(response.data.d);
         },
         function (response) {
@@ -263,15 +263,15 @@ angular.module('app', [])
         $scope.idxEnd = $scope.d.length;
     }
 
-    $scope.nextPage = function() {
+    $scope.nextPage = function (limit) {
         $scope.page = $scope.page + 1;
-        load();
+        load(limit);
     }
 
-    $scope.prevPage = function () {
+    $scope.prevPage = function (limit) {
         if ($scope.page > 1) {
             $scope.page = $scope.page - 1;
-            load();
+            load(limit);
         }
     }
 
@@ -327,6 +327,7 @@ angular.module('app', [])
 }])
 
 .controller('invoiceCtrl', ['$scope', '$http', '$rootScope', function ($scope, $http, $rootScope) {
+    $scope.searchInvoices = null;
     $scope.getTotal = function (x) {
         var total = 0;
         angular.forEach(x, function (value, key) {
@@ -362,6 +363,16 @@ angular.module('app', [])
     }
     initForm();
 
+    $scope.setNote = function (i) {
+        if (i.isElectronicBill) {
+            i.showSignature = false;
+            i.note = 'Račun je ispostavljen elektroničkim putem i pravovaljan je bez potpisa i pečata.';
+        } else {
+            i.showSignature = true;
+            i.note = null;
+        }
+    }
+
     $scope.init = function () {
         $scope.showInvoices = false;
         $http({
@@ -380,12 +391,12 @@ angular.module('app', [])
     }
     if(angular.isUndefined($rootScope.i)) { $scope.init(); }
 
-    $scope.load = function (year) {
+    $scope.load = function (year, search) {
         $scope.showInvoices = true;
         $http({
             url: $rootScope.config.backend + 'Invoice.asmx/Load',
             method: 'POST',
-            data: { year: year }
+            data: { year: year, search: search }
         })
      .then(function (response) {
          $scope.invoices = JSON.parse(response.data.d);
@@ -524,6 +535,23 @@ angular.module('app', [])
         } else {
             $scope.i.paidAmount = 0;
             $scope.i.paidDate = '';
+        }
+    }
+
+    $scope.removeInvoice = function (x, year, search) {
+        if (confirm("Briši rčun br." + x.number + ", Iznos: " + x.total + "?")) {
+            $http({
+                url: $rootScope.config.backend + 'Invoice.asmx/Delete',
+                method: 'POST',
+                data: { x: x }
+            })
+            .then(function (response) {
+                $scope.load(year, search);
+                alert(response.data.d);
+            },
+            function (response) {
+                alert(response.data.d);
+            });
         }
     }
 

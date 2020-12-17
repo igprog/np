@@ -1,6 +1,6 @@
 ﻿{
-  "version": "2.0.6",
-  "date": "11.10.2020",
+  "version": "2.0.11",
+  "date": "11.12.2020",
   "backend": "../",
   "title": "nutrition program web",
   "shortDescription": "meal planning web app",
@@ -88,5 +88,10 @@
     }
   ],
   "showmenuslimit": 20,
-  "showfoodgroupscolors": false
+  "showfoodgroupscolors": false,
+  "instagram": {
+    "name": "@program_prehrane",
+    "url": "https://www.instagram.com/program_prehrane/",
+    "show": false
+  }
 }

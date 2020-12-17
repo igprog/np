@@ -81,28 +81,29 @@
             <h2>Program Prehrane Web</h2>
             <div>
                 <ul class="nav nav-tabs">
-                    <li ng-class="showUsers==true?'active':''" ng-click="search(searchQuery, showActive)"><a href=""><i class="fa fa-users"></i> Korisnici</a></li>
+                    <li ng-class="showUsers==true?'active':''" ng-click="search(searchQuery, showActive, limit)"><a href=""><i class="fa fa-users"></i> Korisnici</a></li>
                     <li ng-class="showUsers==false?'active':''" ng-click="total(year)"><a href=""><i class="fa fa-bar-chart"></i> Analitika</a></li>
                 </ul>
             </div>
             <div ng-if="showUsers">
                 <h3>Korisnici</h3>
                 <div class="row">
-                    <div class="col-sm-4">
+                    <div class="col-md-3">
                         <form>
                             <div class="input-group">
                                 <input ng-model="searchQuery" type="text" class="form-control" placeholder="Pretraži...">
                                 <div class="input-group-btn">
-                                    <button class="btn btn-default" type="submit" ng-click="search(searchQuery, showActive)">
+                                    <button class="btn btn-default" type="submit" ng-click="search(searchQuery, showActive, limit)">
                                         <i class="fa fa-search"></i>
                                     </button>
                                 </div>
                             </div>
                         </form>
                     </div>
-                    <div class="col-sm-4 checkbox">
+                    <div class="col-md-9 checkbox">
                         <label class="p5"><input type="checkbox" ng-model="showDetails" />Prikaži detalje / uredi</label>
-                        <label class="p5"><input type="checkbox" ng-model="showActive" ng-click="search(searchQuery, showActive)" />Prikaži aktivne</label>
+                        <label class="p5"><input type="checkbox" ng-model="showActive" ng-click="search(searchQuery, showActive, limit)" />Prikaži aktivne</label>
+                        <label class="p5">Limit: <input ng-model="limit" class="form-control" /></label>
                     </div>
                 </div>
                 <div ng-if="loading" class="text-center text-primary">
@@ -110,11 +111,11 @@
                     <div><i class="fa fa-spinner fa-spin fa-3x fa-fw"></i></div>
                 </div>
                 <div ng-if="!loading" style="margin-bottom:2px">
-                    <button class="btn btn-default" ng-click="prevPage()"><i class="fa fa-arrow-left"></i> Prev</button>
+                    <button class="btn btn-default" ng-click="prevPage(limit)"><i class="fa fa-arrow-left"></i> Nazad</button>
                     <span class="badge">{{page}}</span>
-                    <button class="btn btn-default" ng-click="nextPage()">Next <i class="fa fa-arrow-right"></i></button>
+                    <button class="btn btn-default" ng-click="nextPage(limit)">Naprijed <i class="fa fa-arrow-right"></i></button>
                 </div>
-                <div ng-if="!loading" class="table-responsive table-scroll">
+                <div ng-if="!loading" class="table-responsive" style="height:70vh">
                     <table class="table table-condensed text-small">
                         <tr>
                             <th></th>
@@ -186,52 +187,55 @@
                                     </div>
                                 </div>
                             </td>
-                            <td ng-if="config.debug"><button ng-disabled="!showDetails" ng-click="remove(x)" class="btn btn-danger"><i class="fa fa-thrash-o"></i> Briši</button></td>
+                            <td ng-if="config.debug"><button ng-disabled="!showDetails" ng-click="remove(x)" class="btn btn-danger"><i class="fa fa-trash-o"></i> Briši</button></td>
                         </tr>
                     </table>
                 </div>
                 <div ng-if="!loading" style="margin-top:2px">
-                    <button class="btn btn-default" ng-click="prevPage()"><i class="fa fa-arrow-left"></i> Prev</button>
+                    <button class="btn btn-default" ng-click="prevPage()"><i class="fa fa-arrow-left"></i> Nazad</button>
                     <span class="badge">{{page}}</span>
-                    <button class="btn btn-default" ng-click="nextPage()">Next <i class="fa fa-arrow-right"></i></button>
+                    <button class="btn btn-default" ng-click="nextPage()">Naprijed <i class="fa fa-arrow-right"></i></button>
                 </div>
             </div>
 
             <div ng-if="!showUsers">
                 <div class="row mt20">
                     <div class="col-sm-4">
+                        <div>
+                            <select ng-model="year" ng-options="x for x in years" ng-change="total(year)" class="form-control"></select>
+                        </div>
                         <fieldset class="fieldset-border">
                             <legend class="fieldset-border">Statistika</legend>
-                        <table class="table table-condensed">
-                            <tr>
-                                <td class="text-left">Registriranih korisnika:</td>
-                                <td class="text-left"><strong>{{t.total}}</strong></td>
-                            </tr>
-                            <tr>
-                                <td class="text-left">Aktivnih korisnika:</td>
-                                <td class="text-left"><strong>{{t.active}}</strong></td>
-                            </tr>
-                            <tr>
-                                <td class="text-left">Licence</td>
-                                <td class="text-left"><strong>{{t.licence}}</strong> <span class="badge">{{t.licencepercentage}} %</span></td>
-                            </tr>
-                            <tr>
-                                <td class="text-left">Pod licence:</td>
-                                <td class="text-left"><strong>{{t.subuser}}</strong></td>
-                            </tr>
-                            <tr>
-                                <td class="text-left">Demo:</td>
-                                <td class="text-left"><strong>{{t.demo}}</strong></td>
-                            </tr>
-                            <tr>
-                                <td class="text-left">Istekle licence:</td>
-                                <td class="text-left"><strong>{{t.expired}}</strong></td>
-                            </tr>
+                            <table class="table table-condensed">
+                                <tr>
+                                    <td class="text-left">Registriranih korisnika:</td>
+                                    <td class="text-left"><strong>{{t.total}}</strong></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-left">Aktivnih korisnika:</td>
+                                    <td class="text-left"><strong>{{t.active}}</strong></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-left">Licence</td>
+                                    <td class="text-left"><strong>{{t.licence}}</strong> <span class="badge">{{t.licencepercentage}} %</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-left">Pod licence:</td>
+                                    <td class="text-left"><strong>{{t.subuser}}</strong></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-left">Demo:</td>
+                                    <td class="text-left"><strong>{{t.demo}}</strong></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-left">Istekle licence:</td>
+                                    <td class="text-left"><strong>{{t.expired}}</strong></td>
+                                </tr>
                                 <tr>
                                     <td class="text-left">Korisnici aplikacije za klijente:</td>
                                     <td class="text-left"><strong>{{t.clientapp}}</strong></td>
                                 </tr>
-                        </table>
+                            </table>
                         </fieldset>
                     </div>
                     <div class="col-sm-8">
@@ -245,8 +249,7 @@
                     <div class="col-sm-7">
                         <fieldset class="fieldset-border">
                             <legend class="fieldset-border">
-                            Statistika po mjesecima
-                                <select ng-model="year" ng-options="x for x in years" ng-change="total(year)"></select>
+                                Statistika po mjesecima
                             </legend>
                             <!--<div>
                                 <div ng-if="loadingChart" class="text-center text-primary">
@@ -255,43 +258,43 @@
                                 </div>
                                 <div id="chart_ppweb"></div>
                             </div>-->
-                        <table class="table table-condensed">
-                            <tr>
-                                <th class="text-left">Mjesec</th>
-                                <th class="text-left">Registracije</th>
+                            <table class="table table-condensed">
+                                <tr>
+                                    <th class="text-left">Mjesec</th>
+                                    <th class="text-left">Registracije</th>
                                     <th class="text-left">Licence</th>
                                     <th>Postotak</th>
-                                <th style="width:30%"></th>
-                            </tr>
-                            <tr ng-repeat="x in t.monthly">
-                                <td class="text-left">{{x.month}}</td>
-                                <td class="text-left"><strong class="badge">{{x.registration}}</strong></td>
+                                    <th style="width:30%"></th>
+                                </tr>
+                                <tr ng-repeat="x in t.monthly">
+                                    <td class="text-left">{{x.month}}</td>
+                                    <td class="text-left"><strong class="badge">{{x.registration}}</strong></td>
                                     <td class="text-left"><strong class="badge">{{x.licence}}</strong></td>
                                     <td>{{x.percentage}} %</td>
-                                <td class="text-left">
+                                    <td class="text-left">
                                         <div style="width:{{x.registration*2}}px; height:10px" class="bg-primary" title="Registracije: {{x.registration}}"></div>
                                         <div style="width:{{x.licence*2}}px; height:10px; background-color:red" title="Licence: {{x.licence}}"></div>
                                         <div style="width:{{x.percentage*2}}px; height:10px; background-color:orange" title="Postotak: {{x.percentage}}%"></div>
-                                </td>
-                            </tr>
-                        </table>
+                                    </td>
+                                </tr>
+                            </table>
                         </fieldset>
                     </div>
                     <div class="col-sm-5 pt20">
                         <fieldset class="fieldset-border">
                             <legend class="fieldset-border">Statistika po gradovima</legend>
-                        <table class="table table-condensed">
-                            <tr>
-                                <th class="text-left">Grad</th>
-                                <th class="text-left">Licence</th>
-                                <th style="width:30%"></th>
-                            </tr>
-                            <tr ng-repeat="x in t.city">
-                                <td class="text-left">{{x.name}}</td>
-                                <td class="text-left"><strong class="badge">{{x.count}}</strong></td>
+                            <table class="table table-condensed">
+                                <tr>
+                                    <th class="text-left">Grad</th>
+                                    <th class="text-left">Licence</th>
+                                    <th style="width:30%"></th>
+                                </tr>
+                                <tr ng-repeat="x in t.city">
+                                    <td class="text-left">{{x.name}}</td>
+                                    <td class="text-left"><strong class="badge">{{x.count}}</strong></td>
                                     <td class="text-left"><div style="width:{{x.count*10}}px; height:20px" class="bg-primary" title="{{x.name}}: {{x.count}}"></div></td>
-                            </tr>
-                        </table>
+                                </tr>
+                            </table>
                         </fieldset>
                     </div>
                 </div>
@@ -449,7 +452,7 @@
                         </form>
                     </div>
                 </div>
-                <div class="table-responsive table-scroll" style="max-height:600px">
+                <div class="table-responsive table-scroll" style="height:70vh">
                     <table class="table table-condensed text-small">
                         <tr>
                             <td colspan="6"></td>
@@ -477,6 +480,7 @@
                                 <button class="btn btn-primary m2" ng-click="get(x)" title="Uredi"><i class="fa fa-eye"></i></button>
                                 <a href="{{config.backend + 'upload/invoice/' + x.year + '/'+ x.fileName + '.pdf'}}" class="btn btn-danger m2" download title="PDF"><i class="fa fa-file-pdf-o" style="color:white"></i></a>
                                 <button class="btn btn-warning m2" ng-click="copy(x)" title="Kopiraj"><i class="fa fa-copy"></i></button>
+                                <button ng-if="config.debug" class="btn btn-danger m2" ng-click="removeInvoice(x, year, searchInvoices)" title="Briši"><i class="fa fa-trash-o"></i></button>
                             </td>
                             <td>{{x.number}}</td>
                             <td>{{x.dateAndTime}}</td>
@@ -548,9 +552,15 @@
                                 </tr>
                                 <tr>
                                     <td>Napomena</td>
-                                    <td><textarea ng-model="i.note" type="text" class="form-control" cols="3" /></td>
+                                    <td><textarea ng-model="i.note" type="text" class="form-control" rows="3" /></td>
                                 </tr>
                             </table>
+                        </div>
+                        <div class="checkbox">
+                            <label><input ng-model="i.showSignature" type="checkbox" /> Prikaži potpis</label>
+                        </div>
+                        <div class="checkbox">
+                            <label><input ng-model="i.isElectronicBill" type="checkbox" ng-click="setNote(i)" /> Račun je ispostavljen elektroničkim putem...</label>
                         </div>
                     </div>
                     <div class="col-sm-8">
@@ -641,8 +651,6 @@
         </div>
     </script>
 
-
-   
     <script src="../assets/js/admin.js"></script>
 
     <script>
@@ -650,6 +658,22 @@
             $('[data-toggle="popover"]').popover();
         });
     </script>
+    <style>
+        /*****Fixed Table Header*****/
+        table {
+            text-align: left;
+            position: relative;
+            border-collapse: collapse;
+        }
+        th {
+            background: white;
+            position: sticky;
+            position: -webkit-sticky; /* Safari */
+            top: 0;
+            box-shadow: 0 1px 1px -1px rgba(0, 0, 0, 0.4);
+        }
+        /*****Fixed Table Header*****/
+    </style>
   
    
 </body>

@@ -99,6 +99,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
 .run(function($window, $rootScope) {
     $rootScope.online = navigator.onLine;
+
     $window.addEventListener("offline", function () {
         $rootScope.$apply(function() {
             $rootScope.online = false;
@@ -114,6 +115,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 .controller('AppCtrl', ['$scope', '$mdDialog', '$timeout', '$q', '$log', '$rootScope', '$localStorage', '$sessionStorage', '$window', '$http', '$translate', '$translatePartialLoader', 'functions', '$state', function ($scope, $mdDialog, $timeout, $q, $log, $rootScope, $localStorage, $sessionStorage, $window, $http, $translate, $translatePartialLoader, functions, $state) {
     $rootScope.loginUser = $sessionStorage.loginuser;
     $rootScope.user = $sessionStorage.user;
+    if ($rootScope.user === undefined) {
+        $window.location.href = '/app/#/login';
+    }
+
     $scope.today = new Date();
     $rootScope.unitSystem = 1;
 
@@ -123,6 +128,14 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             description: 'for a better experience in using the application, please use some of the modern browsers such as google chrome, mozilla firefox, microsoft edge etc.'
         };
     }
+
+    /***** Check internet speed  *****/
+    $rootScope.connection = null;
+    var connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    if (connection) {
+        $rootScope.connection = connection;
+    }
+    /***** Check internet speed  *****/
 
     if (angular.isDefined($sessionStorage.user)) {
         if ($sessionStorage.user !== null) {
@@ -1142,7 +1155,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
 }])
 
-.controller("schedulerCtrl", ['$scope', '$localStorage', '$http', '$rootScope', '$timeout', '$sessionStorage', '$mdDialog', 'functions', '$translate', function ($scope, $localStorage, $http, $rootScope, $timeout, $sessionStorage, $mdDialog, functions, $translate) {
+.controller("schedulerCtrl", ['$scope', '$localStorage', '$http', '$rootScope', '$timeout', '$sessionStorage', '$mdDialog', 'functions', '$translate', '$window', function ($scope, $localStorage, $http, $rootScope, $timeout, $sessionStorage, $mdDialog, functions, $translate, $window) {
+    if ($rootScope.user === undefined) {
+        $window.location.href = '/app/#/login';
+    }
     var webService = 'Scheduler.asmx';
     $scope.id = '#myScheduler';
     $scope.room = 0;
@@ -1357,6 +1373,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 }])
 
 .controller('userCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', '$state', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate, $state) {
+    if ($rootScope.user === undefined) {
+        $window.location.href = '/app/#/login';
+    }
+
     var webService = 'Users.asmx';
 
     $scope.adminTypes = [
@@ -1638,7 +1658,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 }])
 
 //-------------- Program Prehrane Controllers---------------
-.controller('dashboardCtrl', ['$scope', '$http', '$sessionStorage', '$rootScope', 'functions', '$translate', '$timeout', '$state', function ($scope, $http, $sessionStorage, $rootScope, functions, $translate, $timeout, $state) {
+.controller('dashboardCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', 'functions', '$translate', '$timeout', '$state', 'charts', function ($scope, $http, $sessionStorage, $window, $rootScope, functions, $translate, $timeout, $state, charts) {
+    if ($rootScope.user === undefined) {
+        $window.location.href = '/app/#/login';
+    }
     var getUser = function () {
         if ($rootScope.user === null) { return false;}
         $http({
@@ -1681,9 +1704,46 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $state.go('login');
 	}
 
+    /***** Internet speed test *****/
+	$scope.loadingSpeedTest = false;
+	var connectionChart = function () {
+	    $scope.loadingSpeedTest = true;
+	    google.charts.load('current', { 'packages': ['gauge'] });
+	    $timeout(function () {
+	        var id = 'connectionChart';
+	        var value = $rootScope.connection.downlink;
+	        var unit = 'Mbps';
+	        var options = {
+	            title: 'Mbps',
+	            min: 0,
+	            max: 10,
+	            greenFrom: 1.35,
+	            greenTo: 10,
+	            yellowFrom: 1,
+	            yellowTo: 1.35,
+	            redFrom: 0,
+	            redTo: 1,
+	            minorTicks: 0.1
+	        };
+	        google.charts.setOnLoadCallback(charts.guageChart(id, value, unit, options));
+	        $scope.loadingSpeedTest = false;
+	    }, 1500);
+	}
+
+	$scope.testInternetSpeed = function() {
+	    connectionChart();
+	}
+    /***** Internet speed test *****/
+
+
+
 }])
 
-.controller('clientsCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', '$timeout', 'charts', '$filter', 'functions', '$translate', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, $timeout, charts, $filter, functions, $translate) {
+.controller('clientsCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', '$timeout', 'charts', '$filter', 'functions', '$translate', '$state', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, $timeout, charts, $filter, functions, $translate, $state) {
+    if ($rootScope.user === undefined) {
+        $window.location.href = '/app/#/login';
+    }
+    $rootScope.selectedNavItem = $state.current.name;
     var webService = 'Clients.asmx';
     $scope.displayType = 0;
 
@@ -1839,11 +1899,18 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                    functions.alert($translate.instant(JSON.parse(response.data.d).message), '');
                    return false;
                }
-               $mdDialog.hide(JSON.parse(response.data.d).data);
+               $scope.d = JSON.parse(response.data.d).data;
+               //$mdDialog.hide(JSON.parse(response.data.d).data);
            },
            function (response) {
                functions.alert($translate.instant(response.data.d), '');
            });
+        }
+
+        $scope.forward = function (d) {
+            if (d.clientId !== null) {
+                $mdDialog.hide(d);
+            }
         }
 
         $scope.remove = function (x) {
@@ -1869,6 +1936,42 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             }, function () {
             });
         };
+
+        /********* Profile Image *********/
+        $scope.uploadImg = function () {
+            var content = new FormData(document.getElementById("formUpload"));
+            $http({
+                url: $sessionStorage.config.backend + '/UploadProfileImg.ashx',
+                method: 'POST',
+                headers: { 'Content-Type': undefined },
+                data: content,
+            }).then(function (response) {
+                $scope.d.profileImg = response.data;
+            },
+           function (response) {
+               alert($translate.instant(response.data));
+           });
+        }
+
+        $scope.removeProfileImg = function (x) {
+            if (confirm($translate.instant('remove image') + '?')) {
+                removeProfileImg(x);
+            }
+        }
+
+        var removeProfileImg = function (x) {
+            $http({
+                url: $sessionStorage.config.backend + 'Files.asmx/DeleteProfileImg',
+                method: 'POST',
+                data: { x: x },
+            }).then(function (response) {
+                $scope.d.profileImg = response.data.d;
+            },
+           function (response) {
+               alert($translate.instant(response.data.d));
+           });
+        }
+        /********* Profile Image *********/
 
     }
 
@@ -2276,9 +2379,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
     };
 
-    //$rootScope.setClientLogGraphData = function (type, clientLogsDays) {
-    //    setClientLogGraphData(type, clientLogsDays);
-    //}
     $scope.setClientLogGraphData = function (type, clientLogsDays) {
         setClientLogGraphData(type, clientLogsDays);
     }
@@ -2716,173 +2816,12 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
 }])
 
-//.controller('detailCalculationOfEnergyExpenditureCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', '$timeout', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate, $timeout) {
-//    $rootScope.totalDailyEnergyExpenditure = {
-//        value: 0,
-//        duration: 0
-//    }
+.controller('calculationCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'charts', '$timeout', 'functions', '$translate', '$state', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, charts, $timeout, functions, $translate, $state) {
+    if ($rootScope.user === undefined) {
+        $window.location.href = '/app/#/login';
+    }
+    $rootScope.selectedNavItem = $state.current.name;
 
-//    var init = function () {
-//        $http({
-//            url: $sessionStorage.config.backend + 'DetailEnergyExpenditure.asmx/Init',
-//            method: "POST",
-//            data: ''
-//        })
-//      .then(function (response) {
-//          $scope.dailyActivity = JSON.parse(response.data.d);
-//      },
-//      function (response) {
-//          functions.alert($translate.instant(response.data.d), '');
-//      });
-//    }
-//    init();
-
-//    var setTime = function (h) {
-//        $scope.hours = [];
-//        $scope.minutes = [];
-//        for (i = h; i < 25; i++) {
-//            $scope.hours.push(i);
-//        }
-//        for (i = 0; i < 60; i = i + 5) {
-//            $scope.minutes.push(i);
-//        }
-//    }
-
-//    var initTime = function () {
-//        $scope.from = {
-//            hour: 0,
-//            min: 0
-//        };
-//        $scope.to = {
-//            hour: 0,
-//            min: 0
-//        }
-//        setTime(0);
-//    }
-//    initTime();
-
-//    $scope.clearDailyActivities = function () {
-//        $rootScope.clientData.dailyActivities.activities = [];
-//        $rootScope.clientData.dailyActivities.energy = 0;
-//        $rootScope.clientData.dailyActivities.duration = 0;
-//        $rootScope.totalDailyEnergyExpenditure.value = 0;
-//        $rootScope.totalDailyEnergyExpenditure.duration = 0;
-//        $scope.save($rootScope.clientData.dailyActivities.activities);
-//        initTime();
-//    }
-
-//    $rootScope.detailCalculationOfEnergyExpenditure = function () {
-//        $rootScope.showDetailCalculationOfEnergyExpenditure = !$rootScope.showDetailCalculationOfEnergyExpenditure;
-//        init();
-//        //$scope.clearDailyActivities();
-//    }
-
-//    var totalEnergy = function () {
-//        var e = 0;
-//        angular.forEach($rootScope.clientData.dailyActivities.activities, function (value, key) {
-//            e = e + value.energy;
-//        })
-//        return e;
-//    }
-
-//    var totalDuration = function () {
-//        var d = 0;
-//        angular.forEach($rootScope.clientData.dailyActivities.activities, function (value, key) {
-//            d = d + value.duration;
-//        })
-//        return d;
-//    }
-
-//    $scope.confirmActivity = function (x) {
-//        if (timeDiff($scope.from, $scope.to) == 0) {
-//            functions.alert($translate.instant('the start time and end of activity can not be the same'), '');
-//            return false;
-//        }
-//        $scope.dailyActivity.id = angular.fromJson(x).id;
-//        $scope.dailyActivity.activity = angular.fromJson(x).activity;
-//        //$scope.dailyActivity.from = $scope.from.hour + ':' + $scope.from.minute;
-//        $scope.dailyActivity.from.hour = $scope.from.hour;
-//        $scope.dailyActivity.from.min = $scope.from.min;
-//        // $scope.dailyActivity.to = $scope.to.hour + ':' + $scope.to.minute;
-//        $scope.dailyActivity.to.hour = $scope.to.hour;
-//        $scope.dailyActivity.to.min = $scope.to.min;
-//        $scope.dailyActivity.duration = timeDiff($scope.from, $scope.to);
-//        $scope.dailyActivity.energy = energy(timeDiff($scope.from, $scope.to), angular.fromJson(x).factorKcal);
-
-//        $rootScope.clientData.dailyActivities.activities.push(angular.copy($scope.dailyActivity));
-//        $rootScope.totalDailyEnergyExpenditure.value = totalEnergy(); // $scope.totalDailyEnergyExpenditure + $scope.dailyActivity.energy;
-//        $rootScope.clientData.dailyActivities.energy = $rootScope.totalDailyEnergyExpenditure.value;
-//        $rootScope.totalDailyEnergyExpenditure.duration = totalDuration();
-//        $rootScope.clientData.dailyActivities.duration = $rootScope.totalDailyEnergyExpenditure.duration;
-
-//        $scope.from = angular.copy($scope.to);
-//        setTime($scope.from.hour);
-//    }
-
-//    var timeDiff = function (from, to) {
-//        return (to.hour * 60 + to.min) - (from.hour * 60 + from.min);
-//    }
-
-//    var energy = function (duration, factor) {
-//        return duration * factor;
-//    }
-
-//    $scope.save = function (x) {
-//        if ($rootScope.user.licenceStatus == 'demo') {
-//            functions.demoAlert('this function is not available in demo version');
-//            return false;
-//        }
-//        $http({
-//            url: $sessionStorage.config.backend + 'DetailEnergyExpenditure.asmx/Save',
-//            method: "POST",
-//            data: { userId: $rootScope.user.userGroupId, clientId: $rootScope.client.clientId, activities: x }
-//        })
-//      .then(function (response) {
-//          $rootScope.clientData.dailyActivities = JSON.parse(response.data.d);
-//      },
-//      function (response) {
-//          functions.alert($translate.instant(response.data.d), '');
-//      });
-//    }
-
-//    var getTotal = function () {
-//        if ($rootScope.clientData === undefined) {
-//            return false;
-//        }
-//        if ($rootScope.clientData.dailyActivities.activities == null) {
-//            $rootScope.clientData.dailyActivities.activities = [];
-//        }
-//        if ($rootScope.clientData.dailyActivities.activities.length > 0) {
-//            $rootScope.totalDailyEnergyExpenditure.value = totalEnergy();
-//            $rootScope.totalDailyEnergyExpenditure.duration = totalDuration();
-//            var lastActivity = $rootScope.clientData.dailyActivities.activities[$rootScope.clientData.dailyActivities.activities.length - 1];
-//            $scope.from = {
-//                hour: lastActivity.to.hour,
-//                min: lastActivity.to.min
-//            };
-//            $scope.to = {
-//                hour: lastActivity.to.hour,
-//                min: lastActivity.to.min
-//            }
-//            setTime(lastActivity.to.hour);
-//        }
-//    }
-//    $timeout(function () {  // TODO, ne ucita prvi put 
-//        getTotal();
-//    }, 1000);
-
-
-//    $scope.selectHours = function () {
-//        if ($scope.to.hour == 24) {
-//            $scope.to.min = 0;
-//            $scope.minutes = [];
-//            $scope.minutes.push(0);
-//        }
-//    }
-
-//}])
-
-.controller('calculationCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'charts', '$timeout', 'functions', '$translate', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, charts, $timeout, functions, $translate) {
     var webService = 'Calculations.asmx';
 
     $scope.getBmiClass = function (x) {
@@ -3241,6 +3180,11 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 }])
 
 .controller('activitiesCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', '$state', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate, $state) {
+    if ($rootScope.user === undefined) {
+        $window.location.href = '/app/#/login';
+    }
+    $rootScope.selectedNavItem = $state.current.name;
+
     var webService = 'Activities.asmx';
     $scope.orderdirection = '-';
     $scope.orderby = function (x) {
@@ -3252,6 +3196,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     $scope.energy = 0;
 
     if ($rootScope.activities == undefined) { $rootScope.loadActivities(); };
+
     if (angular.isDefined($rootScope.appCalculation) && angular.isDefined($rootScope.myCalculation)) {
         if (!functions.isNullOrEmpty($rootScope.myCalculation.recommendedEnergyExpenditure)) {
             $rootScope.calculation.recommendedEnergyExpenditure = $rootScope.myCalculation.recommendedEnergyExpenditure;
@@ -3340,7 +3285,14 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 }])
 
 .controller('dietsCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$state', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $state) {
+    if ($rootScope.user === undefined) {
+        $window.location.href = '/app/#/login';
+    }
+    $rootScope.selectedNavItem = $state.current.name;
+
     var webService = 'Diets.asmx';
+
+    if ($rootScope.diets == undefined) { $rootScope.loadDiets(); };
    
     var get = function (x) {
         $http({
@@ -3434,6 +3386,11 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 }])
 
 .controller('mealsCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', '$state', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate, $state) {
+    if ($rootScope.user === undefined) {
+        $window.location.href = '/app/#/login';
+    }
+    $rootScope.selectedNavItem = $state.current.name;
+
     if ($rootScope.clientData === undefined) {
         $state.go('clientsdata');
         $rootScope.selectedNavItem = 'clientsdata';
@@ -3447,7 +3404,6 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         if (x === 'myMeals') {
             $rootScope.clientData.meals = $rootScope.myMeals.data.meals;
         }
-
     }
 
     var defineMealsType = function () {
@@ -3511,6 +3467,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 }])
 
 .controller('myMealsCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate) {
+    if ($rootScope.user === undefined) {
+        $window.location.href = '/app/#/login';
+    }
+
     var webService = 'MyMeals.asmx';
     var init = function () {
         $http({
@@ -3800,6 +3760,11 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 }])
 
 .controller('menuCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'charts', '$timeout', 'functions', '$translate', '$state', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, charts, $timeout, functions, $translate, $state) {
+    if ($rootScope.user === undefined) {
+        $window.location.href = '/app/#/login';
+    }
+    $rootScope.selectedNavItem = $state.current.name;
+
     if ($rootScope.clientData === undefined) {
         $state.go('meals');
         $rootScope.selectedNavItem = 'meals';
@@ -3808,6 +3773,8 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     var webService = 'Foods.asmx';
     $scope.addFoodBtnIcon = 'fa fa-plus';
     $scope.addFoodBtn = false;
+
+    if ($rootScope.foods == undefined) { $rootScope.loadFoods(); };
 
     function initPrintSettings() {
         $http({
@@ -4119,6 +4086,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.loginUser = d.loginUser;
         $scope.pdfLink == null;
         $scope.creatingPdf = false;
+        $scope.rowsPerPage = 51;
 
         $scope.cancel = function () {
             $mdDialog.cancel();
@@ -4193,10 +4161,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             }
         }
 
-        $scope.settings = d.settings;
+        //$scope.settings = d.settings;
         //$scope.pdfLink == null;
         //$scope.creatingPdf = false;
-        $scope.printMenuPdf = function (consumers, date, author) {
+        $scope.printMenuPdf = function (consumers, date, author, rowsPerPage) {
             if (angular.isDefined($rootScope.currentMenu)) {
                 $scope.creatingPdf = true;
                 $http({
@@ -4211,7 +4179,7 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                     $http({
                         url: $sessionStorage.config.backend + 'PrintPdf.asmx/MenuPdf',
                         method: "POST",
-                        data: { userId: $sessionStorage.usergroupid, currentMenu: currentMenu, totals: $rootScope.totals, consumers: consumers, lang: $rootScope.config.language, settings: $scope.settings, date: date, author: author, headerInfo: d.user.headerInfo }
+                        data: { userId: $sessionStorage.usergroupid, currentMenu: currentMenu, totals: $rootScope.totals, consumers: consumers, lang: $rootScope.config.language, settings: $scope.settings, date: date, author: author, headerInfo: d.user.headerInfo, rowsPerPage: rowsPerPage }
                     })
                     .then(function (response) {
                         var fileName = response.data.d;
@@ -4373,7 +4341,9 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.toLanguage = '';
         $scope.limit = 20;
         $scope.searchValue = null;
+        $scope.clientId = null;
         var limit = $rootScope.config.showmenuslimit;
+        $scope.limit = limit;
         var offset = 0;
 
         $scope.toggle = function (type) {
@@ -4381,39 +4351,31 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 $scope.d = [];
                 limit = $rootScope.config.showmenuslimit;
                 offset = 0;
-                load(null);
+                load(null, null);
             } else if (type == 'appMenus') {
                 loadAppMenues();
             }
         }
 
-        $scope.loadMore = function (search) {
-            //$scope.limit += 20;
+        $scope.loadMore = function (search, clientId) {
             offset += $rootScope.config.showmenuslimit;
-            load(search);
+            load(search, clientId);
         }
 
         $scope.d = [];
-        var load = function (search) {
+        var load = function (search, clientId) {
             $scope.loading = true;
             $scope.appMenues = false;
             $http({
                 url: $sessionStorage.config.backend + 'Menues.asmx/Load',
                 method: "POST",
-                //data: { userId: $rootScope.user.userGroupId }
-                data: { userId: $rootScope.user.userGroupId, limit: limit, offset: offset, search: search }
+                data: { userId: $rootScope.user.userGroupId, limit: limit, offset: offset, search: search, clientId: clientId }
             })
            .then(function (response) {
-               //$scope.d = JSON.parse(response.data.d);
                var d = JSON.parse(response.data.d);
                angular.forEach(d, function (x, key) {
                    x.date = new Date(x.date);
-                   //x.date = functions.correctDate(x.date);
                });
-               //angular.forEach($scope.d, function (x, key) {
-               //    x.date = new Date(x.date);
-               //    //x.date = functions.correctDate(x.date);
-               //});
                $scope.d = $scope.d.concat(d);
                $scope.loading = false;
            },
@@ -4422,17 +4384,18 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                alert(response.data.d);
            });
         }
-        load(null);
+        load(null, null);
 
-        //$scope.load = function (search) {
-        //    load(search);
-        //}
-
-        $scope.search = function (search) {
+        $scope.load = function (search, type, clientId) {
             $scope.d = [];
-            limit = $rootScope.config.showmenuslimit;
             offset = 0;
-            load(search);
+            if (type == 0) {
+                $scope.clientId = null;
+                load(search, null);
+            } else {
+                $scope.clientId = clientId;
+                load(search, clientId);
+            }
         }
 
         $scope.remove = function (x) {
@@ -4767,8 +4730,8 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                 [$translate.instant('carbohydrates'), $translate.instant('proteins'), $translate.instant('fats')],
                 [t.carbohydratesPercentage, t.proteinsPercentage, t.fatsPercentage],
                 [$translate.instant('carbohydrates') + ' (%)', $translate.instant('proteins') + ' (%)', $translate.instant('fats') + ' (%)'],
-                ['#45b7cd', '#ff6384', '#33cc33'],
-                { responsive: true, maintainAspectRatio: true, legend: { display: true },
+                ['#f2f20f', '#28c1e0', '#ed722f'],
+                { responsive: true, maintainAspectRatio: false, legend: { display: true, position: 'right',"labels": {"fontSize": 14} },
                 scales: {
                     xAxes: [{ display: false, scaleLabel: { display: false }, ticks: { beginAtZero: true } }],
                     yAxes: [{ display: false, scaleLabel: { display: false }, ticks: { beginAtZero: true } }]}
@@ -5546,12 +5509,14 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             return false;
         }
         $scope.creatingPdf1 = true;
+        var img = imageData();
+
         if (angular.isDefined($rootScope.currentMenu)) {
             var currentMenu = angular.copy($rootScope.currentMenu);
             $http({
                 url: $sessionStorage.config.backend + 'PrintPdf.asmx/MenuDetailsPdf',
                 method: "POST",
-                data: { userId: $sessionStorage.usergroupid, currentMenu: currentMenu, calculation: $rootScope.calculation, totals: $rootScope.totals, recommendations: $rootScope.recommendations, lang: $rootScope.config.language, headerInfo: $rootScope.user.headerInfo }
+                data: { userId: $sessionStorage.usergroupid, currentMenu: currentMenu, calculation: $rootScope.calculation, totals: $rootScope.totals, recommendations: $rootScope.recommendations, lang: $rootScope.config.language, imageData: img, headerInfo: $rootScope.user.headerInfo }
             })
             .then(function (response) {
                 var fileName = response.data.d;
@@ -5572,10 +5537,11 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
             currentMenu.title = $rootScope.weeklyMenu.title;
             currentMenu.note = $rootScope.weeklyMenu.note;
             currentMenu.diet = $rootScope.weeklyMenu.diet.diet;
+            var img = imageData();
             $http({
                 url: $sessionStorage.config.backend + 'PrintPdf.asmx/MenuDetailsPdf',
                 method: "POST",
-                data: { userId: $sessionStorage.usergroupid, currentMenu: currentMenu, calculation: $rootScope.calculation, totals: $rootScope.totals, recommendations: $rootScope.recommendations, lang: $rootScope.config.language, headerInfo: $rootScope.user.headerInfo }
+                data: { userId: $sessionStorage.usergroupid, currentMenu: currentMenu, calculation: $rootScope.calculation, totals: $rootScope.totals, recommendations: $rootScope.recommendations, lang: $rootScope.config.language, imageData: img, headerInfo: $rootScope.user.headerInfo }
             })
             .then(function (response) {
                 var fileName = response.data.d;
@@ -5589,10 +5555,32 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         }
     }
 
+    var imageData = function () {
+        var img = [];
+        if ($scope.showCharts) {
+            img = getImageData(img, "mealsChart");
+            img = getImageData(img, "mealsNutriChart");
+            img = getImageData(img, "servChart");
+            img = getImageData(img, "pieChart");
+            img = getImageData(img, "parametersGraphDataOther");
+            img = getImageData(img, "parametersGraphDataUI");
+            img = getImageData(img, "parametersGraphDataMDA");
+            img = getImageData(img, "parametersGraphData");
+        }
+        return img;
+    }
+    var getImageData = function (img, id) {
+        if (document.getElementById(id) != null) {
+            img.push(document.getElementById(id).toDataURL("image/png").replace(/^data:image\/(png|jpg);base64,/, ""));
+        }
+        return img;
+    }
+
+    $scope.showCharts = true;
     $scope.pdfLink == null;
     $scope.creatingPdf1 = false;
     $scope.printMenuDetailsPdf = function () {
-        if ($rootScope.menuTpl == 'dailyMenuTpl') {
+        if ($rootScope.menuTpl === 'dailyMenuTpl') {
             printDailyMenu();
         } else {
             printWeeklyMenu();
@@ -5634,10 +5622,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         return recommendations;
     }
 
-    $scope.toggleParamTpl = function (x) {
-        $scope.parametersTpl = x;
-    }
-    $scope.toggleParamTpl('parametersChartTpl');
+    //$scope.toggleParamTpl = function (x) {
+    //    $scope.parametersTpl = x;
+    //}
+    //$scope.toggleParamTpl('parametersChartTpl');
 
     $scope.checkTotal = function (total, min, max) {
         var icon = 'pull-right fa fa-';
@@ -5821,13 +5809,17 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
     }
     $scope.mealDescHelp(false);
 
-    $scope.chartResp = function (w, w_resp) {
-        return window.innerWidth < 767 ? w_resp : w;
+    $scope.chartResp = function (h, h_resp) {
+        return window.innerWidth < 767 ? h_resp : h;
     }
 
 }])
 
 .controller('myFoodsCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', '$timeout', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate, $timeout) {
+    if ($rootScope.user === undefined) {
+        $window.location.href = '/app/#/login';
+    }
+
     var webService = 'MyFoods.asmx';
     $scope.unit = null;
 
@@ -6260,6 +6252,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 }])
 
 .controller('myRecipesCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate) {
+    if ($rootScope.user === undefined) {
+        $window.location.href = '/app/#/login';
+    }
+
     var webService = 'Recipes.asmx';
     $scope.addFoodBtnIcon = 'fa fa-plus';
     $scope.addFoodBtn = false;
@@ -6853,7 +6849,11 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
 }])
 
-.controller('pricesCtrl', ['$scope', '$http', '$sessionStorage', '$rootScope', '$translate', 'functions', '$mdDialog', function ($scope, $http, $sessionStorage, $rootScope, $translate, functions, $mdDialog) {
+.controller('pricesCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$translate', 'functions', '$mdDialog', function ($scope, $http, $sessionStorage, $window, $rootScope, $translate, functions, $mdDialog) {
+    if ($rootScope.user === undefined) {
+        $window.location.href = '/app/#/login';
+    }
+
     var webService = 'Prices.asmx';
     $scope.foodListType = 0;
     $scope.getFoodList = function (x) {
@@ -6956,7 +6956,11 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
 }])
 
-.controller('orderCtrl', ['$scope', '$http', '$rootScope', '$translate', 'functions', function ($scope, $http, $rootScope, $translate, functions) {
+.controller('orderCtrl', ['$scope', '$http', '$window', '$rootScope', '$translate', 'functions', function ($scope, $http, $window, $rootScope, $translate, functions) {
+    if ($rootScope.user === undefined) {
+        $window.location.href = '/app/#/login';
+    }
+
     $scope.application = $translate.instant('nutrition program web');
     $scope.version = 'STANDARD';
     $scope.userType = 1;
@@ -7120,10 +7124,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
            if (response.data.d == 'error') {
                $scope.showAlert = false;
                $scope.showPaymentDetails = false;
-               $scope.sendicon = 'fa fa-paper-plane-o';
+               $scope.sendicon = 'fa fa-angle-double-right';
                $scope.sendicontitle = $translate.instant('send');
                $scope.isSendButtonDisabled = false;
-               functions.alert($translate.instant('order is not sent'), '');
+               functions.alert($translate.instant('order is not sent') + '. ' + $translate.instant('please try again') + '.', '');
            } else {
                $scope.showAlert = true;
                $scope.showPaymentDetails = true;
@@ -7157,7 +7161,11 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 
 }])
 
-.controller('settingsCtrl', ['$scope', '$http', '$rootScope', '$translate', '$sessionStorage', 'functions', function ($scope, $http, $rootScope, $translate, $sessionStorage, functions) {
+.controller('settingsCtrl', ['$scope', '$http', '$window', '$rootScope', '$translate', '$sessionStorage', 'functions', function ($scope, $http, $window, $rootScope, $translate, $sessionStorage, functions) {
+    if ($rootScope.user === undefined) {
+        $window.location.href = '/app/#/login';
+    }
+
     var webService = 'Files.asmx';
     if(angular.isDefined($sessionStorage.settings)){$rootScope.settings = $sessionStorage.settings;}
 
@@ -7304,32 +7312,33 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.searchValue = null;
         $scope.hideNav = true;
         var limit = $rootScope.config.showmenuslimit;
+        $scope.limit = limit;
         var offset = 0;
+        $scope.d = [];
 
         $scope.toggle = function (type) {
             if (type == 'myMenus') {
                 $scope.d = [];
                 limit = $rootScope.config.showmenuslimit;
                 offset = 0;
-                load(null);
+                load(null, null);
             } else if (type == 'appMenus') {
                 loadAppMenues();
             }
         }
 
-        $scope.loadMore = function (search) {
+        $scope.loadMore = function (search, clientId) {
             offset += $rootScope.config.showmenuslimit;
-            load(search);
+            load(search, clientId);
         }
 
-        $scope.d = [];
-        var load = function (search) {
+        var load = function (search, clientId) {
             $scope.loading = true;
             $scope.appMenues = false;
             $http({
                 url: $sessionStorage.config.backend + 'Menues.asmx/Load',
                 method: "POST",
-                data: { userId: $rootScope.user.userGroupId, limit: limit, offset: offset, search: search }
+                data: { userId: $rootScope.user.userGroupId, limit: limit, offset: offset, search: search, clientId: clientId }
             })
            .then(function (response) {
                var d = JSON.parse(response.data.d);
@@ -7344,13 +7353,18 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
                alert(response.data.d);
            });
         }
-        load(null);
+        load(null, null);
 
-        $scope.search = function (search) {
+        $scope.load = function (search, type, clientId) {
             $scope.d = [];
-            limit = $rootScope.config.showmenuslimit;
             offset = 0;
-            load(search);
+            if (type == 0) {
+                $scope.clientId = null;
+                load(search, null);
+            } else {
+                $scope.clientId = clientId;
+                load(search, clientId);
+            }
         }
 
         $scope.remove = function (x) {
@@ -7931,6 +7945,10 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
 }])
 
 .controller('clientAppCtrl', ['$scope', '$http', '$sessionStorage', '$window', '$rootScope', '$mdDialog', 'functions', '$translate', '$timeout', function ($scope, $http, $sessionStorage, $window, $rootScope, $mdDialog, functions, $translate, $timeout) {
+    if ($rootScope.user === undefined) {
+        $window.location.href = '/app/#/login';
+    }
+
     var webService = 'ClientApp.asmx';
     $scope.show = false;
     $scope.showTitle = $translate.instant('show access data');
@@ -8271,6 +8289,17 @@ angular.module('app', ['ui.router', 'pascalprecht.translate', 'ngMaterial', 'cha
         $scope.isShow = !$scope.isShow;
     }
 }])
+
+.directive('loadingDirective', function ()  {
+    return {
+        restrict: 'E',
+        scope: {
+            value: '=',
+            showdesc: '='
+        },
+        templateUrl: './assets/partials/directive/loading.html'
+    };
+})
 
 
 ;

@@ -15,5 +15,10 @@
   "email": "nutrition.plan@yahoo.com",
   "phone": "+385 98 330 966",
   "language": "en",
-  "freetrial": true
+  "freetrial": true,
+  "instagram": {
+    "name": "@program_prehrane",
+    "url": "https://www.instagram.com/program_prehrane/",
+    "show": false
+  }
 }
